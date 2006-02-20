@@ -1,6 +1,6 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/MicroRTL.cpp,v 1.2 2002/08/24 14:52:54 yole Exp $
    FAR+Plus: reduced RTL startup functions for Visual C++
-   (C) 2001-02 Dmitry Jemerov <yole@spb.cityline.ru>
+   (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
 
 #include <windows.h>

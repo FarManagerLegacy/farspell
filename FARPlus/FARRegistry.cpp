@@ -1,4 +1,4 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARRegistry.cpp,v 1.2 2002/09/03 06:32:11 yole Exp $
    FAR+Plus: registry access class implementation
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
    This file is heavily based on sources by Eugene Roshal
@@ -62,7 +62,12 @@ FarString FarRegistry::GetRegStr (const char *Key, const char *ValueName,
 			&dataSize);
 	}
 	else if (retVal == ERROR_SUCCESS)
-		retStr = Data;
+	{
+		if (Type == REG_SZ)
+			retStr = Data;
+		else
+			retStr.SetText (Data, dataSize);
+	}
 	else
 		retStr = Default;
 
@@ -123,8 +128,19 @@ int FarRegistry::DeleteRegKey (const char *RootKey, const char *KeyName, HKEY hR
 FarRegistry::KeyIterator FarRegistry::EnumKeys (const char *Key, 
 												HKEY hRoot /* = HKEY_CURRENT_USER */)
 {
-	HKEY hKey = OpenRegKey (hRoot, Key, TRUE);
-	return KeyIterator (hKey);		
+	return KeyIterator (OpenRegKey (hRoot, Key, true));
+}
+
+FarRegistry::ValueIterator FarRegistry::EnumValues(const char *Key, 
+												   HKEY hRoot /* = HKEY_CURRENT_USER */)
+{
+	return ValueIterator (OpenRegKey (hRoot, Key, true));
+}
+
+FarRegistry::BaseIterator::~BaseIterator()
+{
+	if (fEnumKey)
+		RegCloseKey (fEnumKey);
 }
 
 bool FarRegistry::KeyIterator::NextKey (FarString &keyName)
@@ -142,10 +158,22 @@ bool FarRegistry::KeyIterator::NextKey (FarString &keyName)
 	return true;
 }
 
-FarRegistry::KeyIterator::~KeyIterator()
+bool FarRegistry::ValueIterator::NextValue (FarString &valueName, FarString &valueData)
 {
-	if (fEnumKey)
-		RegCloseKey (fEnumKey);
+	char valueNameBuf [256];
+	DWORD valueNameSize = sizeof (valueNameBuf)-1;
+	DWORD valueType;
+	unsigned char valueDataBuf [256];
+	DWORD valueDataSize = sizeof (valueDataBuf)-1;
+
+	LONG retVal = RegEnumValue (fEnumKey, fEnumIndex++, valueNameBuf, &valueNameSize, NULL,
+		&valueType, valueDataBuf, &valueDataSize);
+    if (retVal != ERROR_SUCCESS && retVal != ERROR_MORE_DATA)
+		return false;
+
+	valueName = valueNameBuf;
+    valueData = reinterpret_cast<char *> (valueDataBuf);
+	return true;
 }
 
 HKEY FarRegistry::CreateRegKey (HKEY hRoot, const char *Key)

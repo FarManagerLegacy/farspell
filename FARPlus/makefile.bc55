@@ -1,11 +1,11 @@
-BCC_INCLUDE = E:\Progra~1\BCC502\Include
+BCC_INCLUDE = E:\Progra~1\BCC55\Include
 FAR_INCLUDE = E:\Progra~1\FarAlpha\PlugDoc\Headers.c
 
 OBJS = FAR_SF.obj FARDialog.obj FAREd.obj FARFile.obj FARPlus.obj \
        FARRegistry.obj FARString.obj FARArray.obj FARDbg.obj FARLog.obj
 
 .cpp.obj:
-	bcc32 -c -4 -a2 -d -f- -O -Oc -OS -Ov -RT- -w-inl -x -I$(BCC_INCLUDE) -I$(FAR_INCLUDE) $<
+	bcc32 -c -D_FAR_USE_FARFINDDATA -4 -a2 -d -f- -O -Oc -OS -Ov -RT- -w-inl -x -I$(BCC_INCLUDE) -I$(FAR_INCLUDE) $<
 
 FARPlus.lib: $(OBJS)
 	tlib FARPlus.lib -+FAR_SF.obj -+FARDialog.obj -+FAREd.obj -+FARFile.obj -+FARPlus.obj \

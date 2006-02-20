@@ -1,4 +1,4 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARMemory.h,v 1.1.1.1 2002/02/20 18:56:37 yole Exp $
    FAR+Plus: memory functions (replacements for the standard RTL functions)
    (C) 2001-02 Dmitry Jemerov <yole@spb.cityline.ru>
 */

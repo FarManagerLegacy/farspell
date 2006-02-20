@@ -1,3 +1,203 @@
+05 Sep 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarStringArray: Fixed a problem in destructor with
+	  fOwnsItems=false.
+        * FarDbg.h, FarDbg.cpp: Added separate #define's for
+          enabling traces and assertions.
+
+03 Sep 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarRegistry::GetRegStr(): Strings containing null bytes
+	  are now read correctly.
+
+01 Sep 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* New method FarRegistry::EnumValues().
+        * New optional parameter startChar for FarString::IndexOf().
+
+24 Aug 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarSF::Execute() now supports executing a process in a
+	  separate window. (Based on a patch by Sergey Oblomov.)
+	* FarSF.cpp: isspace() replaced with FAR_isspace()
+	  everywhere.
+
+30 May 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Corrected implementations of RTrim and Trim functions
+	  with USE_FAR_170 defined.
+
+30 May 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Patch from Dennis Trachuk:
+	* New module FARLog.
+	* Some changes to module FARDbg.
+
+29 May 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarFileInfo::IsDirectory(): New method.
+	* The return type of FarFileInfo::GetFileSize() has been 
+	  changed to __int64.
+
+	* Patch from Dennis Trachuk:
+	* FarFileName::GetExt(): New method.
+	* FarFileName::SetPath(): New method.
+	* FarFileName::SetNameExt(): New method.
+	* FarFileName::SetExt(): New method.
+
+05 May 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarMemoryMappedFile::Open(): Corrected signature. Previously
+	  memory-mapped files could not be opened correctly.
+
+05 May 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarFileName::MakeName(): New function.
+	* FarFileName::GetFullName(): New function.
+	* FarFileName::GetShortName(): New function.
+	* FarFileName::QuoteSpaceOnly(): New function.
+
+	* FarFileInfo: New class.
+
+	* FarSF::LTrim(), FarSF::RTrim(): Now always use unsigned char; 
+  	  use FAR_isspace() instead of isspace().
+	* FarSF::CopyToClipboard(): New function.
+	* FarSF::PasteFromClipboard(): New function.
+
+	* FarEd::Quit(): New function.
+
+	* FarString::data(): Return type changed to const char *.
+
+	* FarCtrl::SetPanelDir(): New function.
+	* FarCtrl::SetAnotherPanelDir(): New function.
+	* FarCtrl::GetCmdLine(): New function.
+	* FarCtrl::SetCmdLine(): New function.
+	* FarCtrl::InsertCmdLine(): New function.
+	* FarCtrl::GetCmdLinePos(): New function.
+	* FarCtrl::SetCmdLinePos(): New function.
+	* FarCtrl::SetAnotherSelection(): New function.
+	* FarCtrl::SetViewMode(): New function.
+	* FarCtrl::SetAnotherViewMode(): New function.
+
+	* Far::SetCommandPrefix(): Parameter type changed to const char *.
+
+	* FarFile::Open(), FarFile::CreateForWrite(): New optional 
+	  parameter Attribute.
+
+14 Apr 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarCheckCtrl: type int is used instead of bool (for 3-state
+	  checkboxes)
+	* FarSF::CmpNameList(): new parameter skipPath. Previously
+	  the path was skipped only when USE_FAR_170 was not defined.
+	* FarFileName: new class.
+
+14 Apr 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Another patch from Dennis Trachuk.
+	* FarSF::Trace(): Removed. Please use the far_trace macro
+	  from FARDbg.h instead.
+	* FarFile::Open(): Corrected error reporting when a
+	  file is not found.
+	* FarMemoryMappedFile::FarMemoryMappedFile(), 
+	  FarMemoryMappedFile::~FarMemoryMappedFile():
+          The file is now opened and closed correctly.
+        * FarFile::ReadInt64(): The 64-bit value is now read 
+          correctly.
+        * Changed the meaning of the return value of 
+          FarString::CompareNoCase() to match FarString::Compare().
+        * FarString (char c, int nCount): New constructor.
+        * FarString::data(): New method.
+        * char& FarString::operator[] (int index): New method.
+
+        * FARXml.cpp, FARXml.h: Initial checkin.
+
+27 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarComboBox::GetText(): new methods.
+
+24 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+        * BaseFarArray implementation reworked to store an array of
+          objects of any size (not necessarily void *).
+        * FarArray::At(): new method.
+        * Implementation of FarStringArray is now based on 
+          FarArray<char>, instead of duplicating code.
+        * New class FarDataArray.
+        * Implementation of FarIntArray is now based on
+          FarDataArray<int>.
+        
+        * FarDialog::m_Items: converted to FarDataArray<FarDialogItem>.
+
+        * FarString::FarStringData::FarStringData: the fText and fCapacity
+          fields were not initialized correctly.
+        * FarString::Append(): the resulting string was not always
+          null-terminated correctly.
+        * FarString::LastIndexOf(): returned a bogus value when the
+          string did not contain the character searched
+        
+        * FarComboBox: new class.
+	
+23 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarControl::GetMsg(): deleted function.
+	* FarBaseListCtrl: new class.
+
+17 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FarSF::LIsAlpha: new function.
+        * FarSF::LIsAlphanum: new function.
+        * FarSF::LIsLower: new function.
+        * FarSF::LIsUpper: new function.
+        * FarArray::const TPtr &operator[] (int index) const: new function.
+        * FarString::Append(): incorrect usage of strcpy() replaced
+          with strncpy().
+
+16 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Added a default constructor and an Attach() method to
+	  FarStringTokenizer.
+	* Bugfixes in FarString.
+	* New constructor parameter ignoreWhitespace for FarStringTokenizer.
+	* The class FarArray is now const-correct.
+	* FarEd::SelectBlock(): added assertions to validate parameters
+	* FarEd::InsertText(): the parameter Text is now const
+	* FarEd::InsertTextString(): deleted function.
+	* FarEd::EditorToOem (FarString &Text): new function.
+	* FarEd::OemToEditor (FarString &Text): new function.
+        * FarEd::SetTitle(): the parameter Title is now const.
+        * FarEd::ProcessInput(): the parameter pRec is now const.
+        * FarEd::SaveFile(): new function.
+
+02 Mar 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Another patch from Dennis Trachuk.
+	* Both overloads of the FarDialog constructor now correctly
+	  use AddOwnedControl().
+	* New functions GetCharTable() and DetectCharTable().
+	* Far::Text() now accepts a const char *.
+	* Some minor fixes to FarString.
+
+25 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* FAREd: Added new overrides for GetStringText() and 
+	  GetCurStringText() returning FarString.
+
+24 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+	
+	* Merged in the new FarFile from Dennis Trachuk.
+	* New class FarStringTokenizer.
+	* Deleted FarString::GetToken(), as it was poorly designed.
+
+23 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Merged in FarString changes from Dennis Trachuk.
+
+22 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Added FARDbg.* from Dennis Trachuk.
+	* Added project file for Visual C++.NET.
+
 05 Feb 2002  Dmitry Jemerov <yole@yole.ru>
 
 	* Fixed a compilation problem when using the plugin.hpp

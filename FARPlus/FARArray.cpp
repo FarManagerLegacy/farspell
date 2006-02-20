@@ -1,4 +1,4 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARArray.cpp,v 1.2 2002/04/14 10:39:29 yole Exp $
    FAR+Plus: Lightweight typesafe dynamic array class implementation
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
@@ -7,19 +7,19 @@
 #include "FARArray.h"
 #include "FARPlus.h"
 
-void BaseFarArray::Add (void *item)
+void BaseFarArray::BaseAdd (const void *item)
 {
 	if (fCount + 1 > fAllocCount)
 	{
 		fAllocCount += fResizeDelta;
-		fItems = (void **) realloc (fItems, fAllocCount * sizeof (void *));
-		for (int i=fCount; i<fAllocCount; i++)
-			fItems [i] = NULL;
+		fItems = (char *) realloc (fItems, fAllocCount * fItemSize);
+		memset (fItems + (fCount + 1) * fItemSize, 0, (fAllocCount - fCount - 1) * fItemSize);
 	}
-	fItems [fCount++] = item;
+	memcpy (fItems + fCount * fItemSize, item, fItemSize);
+	fCount++;
 }
 
 void BaseFarArray::InternalSort (BaseCmpFunc cmpFunc)
 {
-	FarSF::qsort (fItems, fCount, sizeof (void *), cmpFunc);
+	FarSF::qsort (fItems, fCount, fItemSize, cmpFunc);
 }

@@ -1,4 +1,4 @@
-/* $Header: /FARPlugins/FARPlus.cpp 11    9.02.01 22:48 Yole $
+/* $Header: /cvsroot/farplus/FARPlus/FARPlus.cpp,v 1.4 2002/09/05 06:34:06 yole Exp $
    FAR+Plus: A FAR Plugin C++ class library: source file
    (C) 1998-2002 Dmitry Jemerov <yole@spb.cityline.ru>
 */
@@ -141,6 +141,7 @@ void Far::ClearPluginConfig()
 
 void Far::AddDiskMenu (const char *Text, int Number)
 {
+	far_assert (Text != NULL);
 	fDiskMenuStrings->Add (Text);
 	fDiskMenuNumbers->Add (Number);
 }
@@ -152,6 +153,7 @@ void Far::AddDiskMenu (int LngIndex, int Number)
 
 void Far::AddPluginMenu (const char *Text)
 {
+	far_assert (Text != NULL);
 	fPluginMenuStrings->Add (Text);
 }
 
@@ -162,6 +164,7 @@ void Far::AddPluginMenu (int LngIndex)
 
 void Far::AddPluginConfig (const char *Text)
 {
+	far_assert (Text != NULL);
 	fPluginConfigStrings->Add (Text);
 }
 
@@ -170,7 +173,7 @@ void Far::AddPluginConfig (int LngIndex)
     AddPluginConfig (GetMsg (LngIndex));
 }
 
-void Far::SetCommandPrefix (char *CommandPrefix)
+void Far::SetCommandPrefix (const char *CommandPrefix)
 {
     if (m_CommandPrefix) delete m_CommandPrefix;
     m_CommandPrefix = new char [strlen (CommandPrefix)+1];
@@ -181,12 +184,12 @@ void Far::GetPluginInfo (PluginInfo *Info)
 {
     Info->StructSize=sizeof(*Info);
     Info->Flags=m_PluginFlags;
-    Info->DiskMenuStrings           = (char **) fDiskMenuStrings->GetItems();
+    Info->DiskMenuStrings           = fDiskMenuStrings->GetItems();
     Info->DiskMenuNumbers           = fDiskMenuNumbers->GetItems();
     Info->DiskMenuStringsNumber     = fDiskMenuStrings->Count();
-    Info->PluginMenuStrings         = (char **) fPluginMenuStrings->GetItems();
+    Info->PluginMenuStrings         = fPluginMenuStrings->GetItems();
     Info->PluginMenuStringsNumber   = fPluginMenuStrings->Count();
-    Info->PluginConfigStrings       = (char **) fPluginConfigStrings->GetItems();
+    Info->PluginConfigStrings       = fPluginConfigStrings->GetItems();
     Info->PluginConfigStringsNumber = fPluginConfigStrings->Count();
     Info->CommandPrefix=m_CommandPrefix;
 }

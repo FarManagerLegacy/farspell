@@ -1,4 +1,4 @@
-/* $Header: /FARPlugins/FARPlus.h 11    9.02.01 22:48 Yole $
+/* $Header: /cvsroot/farplus/FARPlus/FARPlus.h,v 1.7 2002/08/24 14:55:43 yole Exp $
    FAR+Plus: A FAR Plugin C++ class library: header file
    (C) 1998-2002 Dmitry Jemerov <yole@yole.ru>
    This file is heavily based on sources by Eugene Roshal
@@ -18,7 +18,7 @@
 // If this is defined, new features of FAR 1.70 are used.
 // If this is not defined, the plugin will be compatible with FAR 1.65,
 // but its code may be larger.
-//#define USE_FAR_170
+// #define USE_FAR_170
 
 // -- Service functions ------------------------------------------------------
 
@@ -29,7 +29,7 @@ namespace FarSF {
     char* PointToName(const char *Path);
     void RecursiveSearch (char *InitDir, char *Mask, FRSUSERFUNC Func,
         DWORD Flags, void *param);
-    int CmpNameList (const char *MaskList, const char *Path);
+    int CmpNameList (const char *MaskList, const char *Path, bool skipPath = false);
     char *RTrim (char *Str);
     char *LTrim (char *Str);
     char *Trim (char *Str);
@@ -43,8 +43,16 @@ namespace FarSF {
 	char *QuoteSpaceOnly (char *Str);
 	char *MkTemp (char *Dest, const char *Prefix);
 
+	int LIsAlpha (unsigned Ch);
+	int LIsAlphanum (unsigned Ch);
+	int LIsLower (unsigned Ch);
+    int LIsUpper (unsigned Ch);
+
 	char *TruncStr (char *Str, int MaxLength);
 	char *TruncPathStr (char *Str, int MaxLength);
+
+	int CopyToClipboard (const char *Data);
+	FarString PasteFromClipboard();
 
     // Useful functions not in FSF
     char *QuoteText (char *Str);
@@ -55,8 +63,9 @@ namespace FarSF {
     void Bytes2Str (unsigned long bytes, char *buf);
 
     void Trace (const char *fmt, ...);
-    int Execute(HANDLE hPlugin,const char *CmdStr,int HideOutput,
-        int Silent,int ShowTitle,int MWaitForExternalProgram);
+    int Execute(HANDLE hPlugin,const char *CmdStr,bool HideOutput,
+        bool Silent,bool ShowTitle,int MWaitForExternalProgram,
+		bool SeparateWindow = false);
 
 #ifdef USE_FAR_170
 
@@ -69,14 +78,15 @@ namespace FarSF {
     inline void RecursiveSearch (char *InitDir, char *Mask, FRSUSERFUNC Func,
         DWORD Flags, void *param)
         { m_FSF.FarRecursiveSearch (InitDir, Mask, Func, Flags, param); }
-    inline int CmpNameList (const char *MaskList, const char *Path)
-        { return m_FSF.ProcessName (MaskList, (char *) Path, PN_CMPNAMELIST); }
+    inline int CmpNameList (const char *MaskList, const char *Path, bool skipPath = false)
+		{ return m_FSF.ProcessName (MaskList, const_cast<char *> (Path),
+			PN_CMPNAMELIST | (skipPath ? PN_SKIPPATH : 0)); }
     inline char *LTrim (char *Str)
         { return m_FSF.LTrim (Str); }
     inline char *RTrim (char *Str)
-        { return m_FSF.LTrim (Str); }
+        { return m_FSF.RTrim (Str); }
     inline char *Trim (char *Str)
-        { return m_FSF.LTrim (Str); }
+        { return m_FSF.Trim (Str); }
     inline void Unquote (char *Str)
         { m_FSF.Unquote (Str);  }
     inline int GetFileOwner (const char *Computer, const char *Name, char *Owner)
@@ -95,6 +105,23 @@ namespace FarSF {
 		{ return m_FSF.atoi (string); }
 	inline char *itoa (int value, char *string, int radix)
 		{ return m_FSF.itoa (value, string, radix); }
+	inline int LIsAlpha (unsigned Ch)
+		{ return m_FSF.LIsAlpha (Ch); }
+	inline int LIsAlphanum (unsigned Ch)
+		{ return m_FSF.LIsAlphanum (Ch); }
+	inline int LIsLower (unsigned Ch)
+		{ return m_FSF.LIsLower (Ch); }
+	inline int LIsUpper (unsigned Ch)
+		{ return m_FSF.LIsUpper (Ch); }
+	inline int CopyToClipboard (const char *Data)
+		{ return m_FSF.CopyToClipboard (Data); }
+	inline FarString PasteFromClipboard()
+	{
+        char *buf = m_FSF.PasteFromClipboard();
+		FarString str = buf;
+		m_FSF.DeleteBuffer (buf);
+		return str;
+	}
 #endif
 
     inline void qsort (void *base, size_t nelem, size_t width, int (__cdecl *fcmp)(const void *, const void *))
@@ -155,14 +182,16 @@ public:
 
     // FAR wrappers
     static const char *GetMsg(int MsgId);
-    static int Editor (char *FileName, char *Title=NULL, int X1=0, int Y1=0,
+    static int Editor (const char *FileName, const char *Title=NULL, int X1=0, int Y1=0,
                 int X2=-1, int Y2=-1, int StartLine=0, int StartChar=1);
     static HANDLE SaveScreen (int X1=0, int Y1=0, int X2=-1, int Y2=-1);
     static void RestoreScreen (HANDLE hScreen);
-    static void Text (int X, int Y, int Color, char *Text);
+    static void Text (int X, int Y, int Color, const char *Text);
     static void Text (int X, int Y, int Color, int LngIndex);
     static void FlushText();
     static int CmpName (const char *Pattern, const char *String, bool SkipPath);
+	static int GetCharTable (int Index, CharTableSet *pTable);
+	static int DetectCharTable (const char *Buffer, int BufferSize);
 
 #ifdef USE_FAR_170
 	static int AdvControl (int Command, void *Param);
@@ -180,7 +209,7 @@ public:
     static void AddPluginConfig (const char *Text);
     static void AddPluginConfig (int LngIndex);
     static void SetPluginFlags (DWORD Flags);
-    static void SetCommandPrefix (char *CommandPrefix);
+    static void SetCommandPrefix (const char *CommandPrefix);
     static void GetPluginInfo (struct PluginInfo *Info);
 
     // Miscellaneous helpers
@@ -202,7 +231,7 @@ inline const char *Far::GetMsg(int MsgId)
     return m_Info.GetMsg (m_Info.ModuleNumber, MsgId);
 }
 
-inline int Far::Editor (char *FileName, char *Title, int X1, int Y1,
+inline int Far::Editor (const char *FileName, const char *Title, int X1, int Y1,
                        int X2, int Y2, int StartLine, int StartChar)
 {
     return m_Info.Editor (FileName, Title, X1, Y1, X2, Y2, 0, StartLine, StartChar);
@@ -218,7 +247,7 @@ inline void Far::RestoreScreen (HANDLE hScreen)
     m_Info.RestoreScreen (hScreen);
 }
 
-inline void Far::Text (int X, int Y, int Color, char *Text)
+inline void Far::Text (int X, int Y, int Color, const char *Text)
 {
     m_Info.Text (X, Y, Color, Text);
 }
@@ -236,6 +265,16 @@ inline void Far::FlushText()
 inline int Far::CmpName (const char *Pattern, const char *String, bool SkipPath)
 {
     return m_Info.CmpName (Pattern, String, SkipPath);
+}
+
+inline int Far::GetCharTable (int Index, CharTableSet *pTable)
+{
+	return m_Info.CharTable (Index, reinterpret_cast<char *> (pTable), sizeof (CharTableSet));
+}
+
+inline int Far::DetectCharTable (const char *Buffer, int BufferSize)
+{
+	return m_Info.CharTable (FCT_DETECT, const_cast<char *> (Buffer), BufferSize);
 }
 
 inline void Far::SetPluginFlags (DWORD Flags)
@@ -268,6 +307,8 @@ class FarCtrl
 private:
     HANDLE m_hPlugin;
 
+	int FCTL (int Command, void *Param);
+
 public:
     FarCtrl()
         : m_hPlugin (INVALID_HANDLE_VALUE) {}
@@ -285,18 +326,34 @@ public:
     int UpdateAnotherPanel (bool clearSelection = false);
     int RedrawPanel();
     int RedrawAnotherPanel();
+	int SetPanelDir (const char *dir);
+	int SetAnotherPanelDir (const char *dir);
+	int GetCmdLine (char *buf);
+	FarString GetCmdLine();
+	int SetCmdLine (const char *buf);
+	int InsertCmdLine (const char *buf);
+	int GetCmdLinePos();
+	int SetCmdLinePos (int newPos);
     int SetSelection (PanelInfo *pi);
+	int SetAnotherSelection (PanelInfo *pi);
     int SetUserScreen();
+	int SetViewMode (int viewMode);
+	int SetAnotherViewMode (int viewMode);
 };
+
+inline int FarCtrl::FCTL (int Command, void *Param)
+{
+	return Far::m_Info.Control (m_hPlugin, Command, Param);
+}
 
 inline int FarCtrl::ClosePlugin (const char *DestPath)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_CLOSEPLUGIN, (void *) DestPath);
+    return FCTL (FCTL_CLOSEPLUGIN, (void *) DestPath);
 }
 
 inline int FarCtrl::GetPanelInfo (PanelInfo *pi)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_GETPANELINFO, pi);
+    return FCTL (FCTL_GETPANELINFO, pi);
 }
 
 inline PanelInfo FarCtrl::GetPanelInfo()
@@ -315,37 +372,96 @@ inline PanelInfo FarCtrl::GetAnotherPanelInfo()
 
 inline int FarCtrl::GetAnotherPanelInfo (PanelInfo *pi)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_GETANOTHERPANELINFO, pi);
+    return FCTL (FCTL_GETANOTHERPANELINFO, pi);
 }
 
 inline int FarCtrl::UpdatePanel (bool clearSelection)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_UPDATEPANEL, clearSelection ? NULL : (void *) 1);
+    return FCTL (FCTL_UPDATEPANEL, clearSelection ? NULL : (void *) 1);
 }
 
 inline int FarCtrl::UpdateAnotherPanel (bool clearSelection)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_UPDATEANOTHERPANEL, clearSelection ? NULL : (void *) 1);
+    return FCTL (FCTL_UPDATEANOTHERPANEL, clearSelection ? NULL : (void *) 1);
 }
 
 inline int FarCtrl::RedrawPanel()
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_REDRAWPANEL, NULL);
+    return FCTL (FCTL_REDRAWPANEL, NULL);
 }
 
 inline int FarCtrl::RedrawAnotherPanel()
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_REDRAWANOTHERPANEL, NULL);
+    return FCTL (FCTL_REDRAWANOTHERPANEL, NULL);
 }
 
 inline int FarCtrl::SetSelection (PanelInfo *pi)
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_SETSELECTION, pi);
+    return FCTL (FCTL_SETSELECTION, pi);
+}
+
+inline int FarCtrl::SetAnotherSelection (PanelInfo *pi)
+{
+    return FCTL (FCTL_SETANOTHERSELECTION, pi);
 }
 
 inline int FarCtrl::SetUserScreen()
 {
-    return Far::m_Info.Control (m_hPlugin, FCTL_SETUSERSCREEN, NULL);
+    return FCTL (FCTL_SETUSERSCREEN, NULL);
+}
+
+inline int FarCtrl::SetPanelDir (const char *dir)
+{
+	return FCTL (FCTL_SETPANELDIR, (void *) dir);
+}
+
+inline int FarCtrl::SetAnotherPanelDir (const char *dir)
+{
+	return FCTL (FCTL_SETANOTHERPANELDIR, (void *) dir);
+}
+
+inline int FarCtrl::GetCmdLine (char *buf)
+{
+	return FCTL (FCTL_GETCMDLINE, buf);
+}
+
+inline FarString FarCtrl::GetCmdLine()
+{
+	char buf [1024];
+	GetCmdLine (buf);
+	return FarString (buf);
+}
+
+inline int FarCtrl::SetCmdLine (const char *buf)
+{
+	return FCTL (FCTL_SETCMDLINE, (void *) buf);
+}
+
+inline int FarCtrl::InsertCmdLine (const char *buf)
+{
+	return FCTL (FCTL_INSERTCMDLINE, (void *) buf);
+}
+
+inline int FarCtrl::GetCmdLinePos()
+{
+	int pos;
+    FCTL (FCTL_GETCMDLINEPOS, &pos);
+	return pos;
+}
+
+inline int FarCtrl::SetCmdLinePos (int newPos)
+{
+	return FCTL (FCTL_SETCMDLINEPOS, &newPos);
+}
+
+inline int FarCtrl::SetViewMode (int viewMode)
+{
+	return FCTL (FCTL_SETVIEWMODE, &viewMode);
+}
+
+inline int FarCtrl::SetAnotherViewMode (int viewMode)
+{
+	return FCTL (FCTL_SETANOTHERVIEWMODE, &viewMode);
 }
 
 // -- FarMessage -------------------------------------------------------------

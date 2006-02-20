@@ -1,9 +1,10 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FAREd.cpp,v 1.3 2002/04/14 10:39:29 yole Exp $
    FAR+Plus: FAR editor API wrappers implementation
-   (C) 2001 Dmitry Jemerov <yole@spb.cityline.ru>
+   (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
 
 #include "FAREd.h"
+#include "FARDbg.h"
 
 // -- FarEd ------------------------------------------------------------------
 
@@ -16,6 +17,14 @@ int FarEd::GetStringText (int StringNumber, char *StringText, int MaxLength)
     memcpy (StringText, egs.StringText, Len);
     StringText [MaxLength-1] = 0;
     return TRUE;
+}
+
+FarString FarEd::GetStringText (int StringNumber)
+{
+    EditorGetString egs;
+    egs.StringNumber = StringNumber;
+    if (!ECTL (ECTL_GETSTRING, &egs)) return FarString();
+	return FarString (egs.StringText, egs.StringLength+1);
 }
 
 int FarEd::GetStringLength (int StringNumber)
@@ -74,6 +83,11 @@ int FarEd::SetOvertype (BOOL Overtype)
 int FarEd::SelectBlock (int BlockType, int BlockStartLine, int BlockStartPos,
                         int BlockWidth, int BlockHeight)
 {
+	far_assert (BlockType == BTYPE_STREAM || BlockType == BTYPE_COLUMN);
+	far_assert (BlockHeight >= 1);
+	if (BlockType == BTYPE_COLUMN)
+		far_assert (BlockWidth >= 1);
+
     EditorSelect es;
     es.BlockType = BlockType;
     es.BlockStartLine = BlockStartLine;
@@ -94,13 +108,6 @@ int FarEd::InsertString (bool Indent)
 {
     int LocalIndent=Indent ? 1 : 0;
     return ECTL (ECTL_INSERTSTRING, &LocalIndent);
-}
-
-int FarEd::InsertTextString (char *Text, bool Indent)
-{
-    if (!InsertString (Indent))
-        return FALSE;
-    return InsertText (Text);
 }
 
 int FarEd::EditorToOem (char *Text, int TextLength)
@@ -167,6 +174,17 @@ int FarEd::GetColor (int StringNumber, int ColorItem,
     if (EndPos) *EndPos=ec.EndPos;
     if (Color) *Color=ec.Color;
     return 1;
+}
+
+int FarEd::SaveFile (const char *FileName, const char *StringEOL)
+{
+	EditorSaveFile esf;
+	if (FileName != NULL)
+		strncpy (esf.FileName, FileName, sizeof (esf.FileName)-1);
+	else
+		esf.FileName [0] = '\0';
+	esf.FileEOL = (char *) StringEOL;
+	return ECTL (ECTL_SAVEFILE, &esf);
 }
 
 // -- FarEdInfo --------------------------------------------------------------

@@ -1,4 +1,4 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FAR_SF.cpp,v 1.5 2002/08/24 14:55:43 yole Exp $
    FAR+Plus: FAR standard functions implementation
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
@@ -42,7 +42,7 @@ const char *GetCommaWord (const char *Src,char *Word, char Separator)
         {
             Word[WordPos]=0;
             Src++;
-            while (isspace(*Src))
+            while (FAR_isspace(*Src))
                 Src++;
             return(Src);
         }
@@ -125,147 +125,141 @@ void Bytes2Str (unsigned long bytes, char *buf)
     wsprintf (buf, "%lub", bytes);
 }
 
-int Execute(HANDLE hPlugin,const char *CmdStr,int HideOutput,
-            int Silent,int ShowTitle, int MWaitForExternalProgram)
+int Execute(HANDLE hPlugin,const char *CmdStr,bool HideOutput,
+            bool Silent,bool ShowTitle, int MWaitForExternalProgram,
+			bool SeparateWindow)
 {
-  STARTUPINFO si;
-  PROCESS_INFORMATION pi;
-  int ExitCode, CreateProcessCode;
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    int ExitCode, CreateProcessCode;
 
-  memset(&si,0,sizeof(si));
-  si.cb=sizeof(si);
+    memset(&si,0,sizeof(si));
+    si.cb=sizeof(si);
 
-  HANDLE hChildStdoutRd,hChildStdoutWr;
-  HANDLE StdInput=GetStdHandle(STD_INPUT_HANDLE);
-  HANDLE StdOutput=GetStdHandle(STD_OUTPUT_HANDLE);
-  HANDLE StdError=GetStdHandle(STD_ERROR_HANDLE);
-  HANDLE hScreen=NULL;
-  CONSOLE_SCREEN_BUFFER_INFO csbi;
+	HANDLE hChildStdoutRd,hChildStdoutWr;
+	HANDLE StdInput=GetStdHandle(STD_INPUT_HANDLE);
+	HANDLE StdOutput=GetStdHandle(STD_OUTPUT_HANDLE);
+	HANDLE StdError=GetStdHandle(STD_ERROR_HANDLE);
+	HANDLE hScreen=NULL;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
 
-  if (HideOutput)
-  {
-    SECURITY_ATTRIBUTES saAttr;
-    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-    saAttr.bInheritHandle = TRUE;
-    saAttr.lpSecurityDescriptor = NULL;
+	if (HideOutput)
+	{
+		SECURITY_ATTRIBUTES saAttr;
+		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+		saAttr.bInheritHandle = TRUE;
+		saAttr.lpSecurityDescriptor = NULL;
 
-    if (CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 32768))
-    {
-      SetStdHandle(STD_OUTPUT_HANDLE,hChildStdoutWr);
-      SetStdHandle(STD_ERROR_HANDLE,hChildStdoutWr);
+		if (CreatePipe(&hChildStdoutRd, &hChildStdoutWr, &saAttr, 32768))
+		{
+			SetStdHandle(STD_OUTPUT_HANDLE,hChildStdoutWr);
+			SetStdHandle(STD_ERROR_HANDLE,hChildStdoutWr);
 
-      if (Silent)
-      {
-        hScreen=Far::SaveScreen (0,0,-1,0);
-        Far::Text (2,0,7,MWaitForExternalProgram);
-      }
-      else
-      {
-        hScreen=Far::SaveScreen();
-        FarMessage msg;
-        msg.AddLine ("");
-        msg.AddLine (MWaitForExternalProgram);
-        msg.Show();
-      }
-    }
-    else
-      HideOutput=FALSE;
-  }
-  else
-  {
-    GetConsoleScreenBufferInfo(StdOutput,&csbi);
+			if (Silent)
+			{
+				hScreen=Far::SaveScreen (0,0,-1,0);
+				Far::Text (2,0,7,MWaitForExternalProgram);
+			}
+			else
+			{
+				hScreen=Far::SaveScreen();
+				FarMessage msg;
+				msg.AddLine ("");
+				msg.AddLine (MWaitForExternalProgram);
+				msg.Show();
+			}
+		}
+		else
+			HideOutput=false;
+	}
+	else
+	{
+		GetConsoleScreenBufferInfo(StdOutput,&csbi);
 
-    char Blank[1024];
-	FillMemory (Blank, csbi.dwSize.X, ' ');
-	Blank [csbi.dwSize.X] = '\0';
-    for (int Y=0;Y<csbi.dwSize.Y;Y++)
-      Far::Text (0, Y, 7, Blank);
-    Far::FlushText();
+		char Blank[1024];
+		FillMemory (Blank, csbi.dwSize.X, ' ');
+		Blank [csbi.dwSize.X] = '\0';
+		for (int Y=0;Y<csbi.dwSize.Y;Y++)
+			Far::Text (0, Y, 7, Blank);
+		Far::FlushText();
 
-    COORD C;
-    C.X=0;
-    C.Y=csbi.dwCursorPosition.Y;
-    SetConsoleCursorPosition(StdOutput,C);
-  }
+		COORD C;
+		C.X=0;
+		C.Y=csbi.dwCursorPosition.Y;
+		SetConsoleCursorPosition(StdOutput,C);
+	}
 
 
-  DWORD ConsoleMode;
-  GetConsoleMode(StdInput,&ConsoleMode);
-  SetConsoleMode(StdInput,ENABLE_PROCESSED_INPUT|ENABLE_LINE_INPUT|
-                 ENABLE_ECHO_INPUT|ENABLE_MOUSE_INPUT);
+	DWORD ConsoleMode;
+	GetConsoleMode(StdInput,&ConsoleMode);
+	SetConsoleMode(StdInput,ENABLE_PROCESSED_INPUT|ENABLE_LINE_INPUT|
+		             ENABLE_ECHO_INPUT|ENABLE_MOUSE_INPUT);
 
-  char ExpandedCmd[260];
-  ExpandEnvironmentStrings(CmdStr,ExpandedCmd,sizeof(ExpandedCmd));
+	char ExpandedCmd[260];
+	ExpandEnvironmentStrings(CmdStr,ExpandedCmd,sizeof(ExpandedCmd));
 
-  char SaveTitle[512];
-  GetConsoleTitle(SaveTitle,sizeof(SaveTitle));
-  if (ShowTitle)
-    SetConsoleTitle(ExpandedCmd);
+	char SaveTitle[512];
+	GetConsoleTitle(SaveTitle,sizeof(SaveTitle));
+	if (ShowTitle)
+		SetConsoleTitle(ExpandedCmd);
 
-  CreateProcessCode=CreateProcess(NULL,ExpandedCmd,NULL,NULL,HideOutput,0,NULL,NULL,&si,&pi);
+	CreateProcessCode=CreateProcess(NULL,ExpandedCmd,NULL,NULL,HideOutput,0,NULL,NULL,&si,&pi);
 
-  if (HideOutput)
-  {
-    SetStdHandle(STD_OUTPUT_HANDLE,StdOutput);
-    SetStdHandle(STD_ERROR_HANDLE,StdError);
-    CloseHandle(hChildStdoutWr);
-  }
+	if (HideOutput)
+	{
+		SetStdHandle(STD_OUTPUT_HANDLE,StdOutput);
+		SetStdHandle(STD_ERROR_HANDLE,StdError);
+		CloseHandle(hChildStdoutWr);
+	}
 
-  if (CreateProcessCode)
-  {
-    if (HideOutput)
-    {
-      WaitForSingleObject(pi.hProcess,1000);
+	if (CreateProcessCode)
+	{
+		if (SeparateWindow)
+			ExitCode = 0;
+		else 
+		{
+			if (HideOutput)
+			{
+				WaitForSingleObject(pi.hProcess,1000);
 
-      char PipeBuf[32768];
-      DWORD Read;
-      while (ReadFile(hChildStdoutRd,PipeBuf,sizeof(PipeBuf),&Read,NULL))
-        ;
-      CloseHandle(hChildStdoutRd);
-    }
-    WaitForSingleObject(pi.hProcess,INFINITE);
-    GetExitCodeProcess(pi.hProcess,(LPDWORD)&ExitCode);
-    CloseHandle(pi.hThread);
-    CloseHandle(pi.hProcess);
-  }
-  else if (HideOutput)
-    CloseHandle (hChildStdoutRd);
-  SetConsoleTitle(SaveTitle);
-  SetConsoleMode(StdInput,ConsoleMode);
-  if (!HideOutput)
-  {
-    SMALL_RECT src;
-    COORD dest;
-    CHAR_INFO fill;
-    src.Left=0;
-    src.Top=2;
-    src.Right=csbi.dwSize.X;
-    src.Bottom=csbi.dwSize.Y;
-    dest.X=dest.Y=0;
-    fill.Char.AsciiChar=' ';
-    fill.Attributes=7;
-    ScrollConsoleScreenBuffer(StdOutput,&src,NULL,dest,&fill);
-    FarCtrl (hPlugin).SetUserScreen();
-  }
-  if (hScreen)
-  {
-    Far::RestoreScreen (NULL);
-    Far::RestoreScreen (hScreen);
-  }
-  if (!CreateProcessCode) return -1;
-  else return ExitCode;
-}
-
-void Trace (const char *fmt, ...)
-{
-   char buf [4096];
-   va_list va;
-
-   va_start (va, fmt);
-   wvsprintf (buf, fmt, va);
-   va_end (va);
-
-   OutputDebugString (buf);
+				char PipeBuf[32768];
+				DWORD Read;
+				while (ReadFile(hChildStdoutRd,PipeBuf,sizeof(PipeBuf),&Read,NULL))
+					;
+				CloseHandle(hChildStdoutRd);
+			}
+			WaitForSingleObject(pi.hProcess,INFINITE);
+			GetExitCodeProcess(pi.hProcess,(LPDWORD)&ExitCode);
+		}
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+	}
+	else if (HideOutput)
+		CloseHandle (hChildStdoutRd);
+	SetConsoleTitle(SaveTitle);
+	SetConsoleMode(StdInput,ConsoleMode);
+	if (!HideOutput)
+	{
+		SMALL_RECT src;
+		COORD dest;
+		CHAR_INFO fill;
+		src.Left=0;
+		src.Top=2;
+		src.Right=csbi.dwSize.X;
+		src.Bottom=csbi.dwSize.Y;
+		dest.X=dest.Y=0;
+		fill.Char.AsciiChar=' ';
+		fill.Attributes=7;
+		ScrollConsoleScreenBuffer(StdOutput,&src,NULL,dest,&fill);
+		FarCtrl (hPlugin).SetUserScreen();
+	}
+	if (hScreen)
+	{
+		Far::RestoreScreen (NULL);
+		Far::RestoreScreen (hScreen);
+	}
+	if (!CreateProcessCode) return -1;
+	else return ExitCode;
 }
 
 
@@ -340,12 +334,12 @@ void RecursiveSearch (char *InitDir, char *Mask, FRSUSERFUNC Func, DWORD Flags, 
     _FarRecursiveSearch (InitDir, Mask, Func, Flags, param);
 }
 
-int CmpNameList (const char *MaskList, const char *Path)
+int CmpNameList (const char *MaskList, const char *Path, bool skipPath /*= false*/)
 {
     const char *pMask = MaskList;
     char curMask [256];
     while ((pMask = GetCommaWord (pMask, curMask)) != NULL)
-        if (Far::CmpName (curMask, Path, true)) return true;
+        if (Far::CmpName (curMask, Path, skipPath)) return true;
 
         return false;
 }
@@ -355,7 +349,7 @@ char *LTrim (char *Str)
     if (Str)
     {
         char *p = Str;
-        while (isspace (*p))
+        while (FAR_isspace ((unsigned char) *p))
             p++;
         if (p != Str)
             memmove (Str, p, strlen (p)+1);
@@ -368,7 +362,7 @@ char *RTrim (char *Str)
     if (Str)
     {
         char *p = Str + strlen (Str)-1;
-        while (p >= Str && isspace (*p))
+        while (p >= Str && FAR_isspace ((unsigned char) *p))
             p--;
         *++p = 0;
     }
@@ -595,6 +589,131 @@ char *MkTemp (char *Dest, const char *Prefix)
 	return NULL;
 }
 
+int LIsAlpha (unsigned Ch)
+{
+	unsigned char c = Ch;
+    OemToCharBuff ((char *) &c, (char *) &c, 1);
+	return IsCharAlpha (c);
+}
+
+int LIsAlphanum (unsigned Ch)
+{
+	unsigned char c = Ch;
+    OemToCharBuff ((char *) &c, (char *) &c, 1);
+	return IsCharAlphaNumeric (c);
+}
+
+int LIsLower (unsigned Ch)
+{
+	unsigned char c = Ch;
+    OemToCharBuff ((char *) &c, (char *) &c, 1);
+	return IsCharLower (c);
+}
+
+int LIsUpper (unsigned Ch)
+{
+	unsigned char c = Ch;
+    OemToCharBuff ((char *) &c, (char *) &c, 1);
+	return IsCharUpper (c);
+}
+
+int CopyToClipboard (const char *Data)
+{
+	OSVERSIONINFO WinVer;
+	WinVer.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+	GetVersionEx (&WinVer);
+
+    long DataSize;
+    if (Data!=NULL && (DataSize=strlen(Data))!=0)
+	{
+		HGLOBAL hData;
+		void *GData;
+		if (!OpenClipboard(NULL))
+			return(FALSE);
+		EmptyClipboard();
+		int BufferSize=DataSize+1;
+		if ((hData=GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE,BufferSize))!=NULL)
+			if ((GData=GlobalLock(hData))!=NULL)
+			{
+				memcpy(GData,Data,DataSize+1);
+				GlobalUnlock(hData);
+				SetClipboardData(CF_OEMTEXT,(HANDLE)hData);
+			}
+		if ((hData=GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE,BufferSize))!=NULL)
+			if ((GData=GlobalLock(hData))!=NULL)
+			{
+				memcpy(GData,Data,DataSize+1);
+				OemToChar((LPCSTR)GData,(LPTSTR)GData);
+				GlobalUnlock(hData);
+				SetClipboardData(CF_TEXT,(HANDLE)hData);
+			}
+		if (WinVer.dwPlatformId==VER_PLATFORM_WIN32_NT)
+			if ((hData=GlobalAlloc(GMEM_MOVEABLE|GMEM_DDESHARE,BufferSize*2))!=NULL)
+				if ((GData=GlobalLock(hData))!=NULL)
+				{
+					MultiByteToWideChar(CP_OEMCP,0,Data,-1,(LPWSTR)GData,BufferSize);
+					GlobalUnlock(hData);
+					SetClipboardData(CF_UNICODETEXT,(HANDLE)hData);
+				}
+		CloseClipboard();
+	}
+	return(TRUE);
+}
+
+FarString PasteFromClipboard()
+{
+	OSVERSIONINFO WinVer;
+	WinVer.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
+	GetVersionEx (&WinVer);
+
+	HANDLE hClipData;
+	if (!OpenClipboard(NULL))
+		return(NULL);
+	int Unicode=FALSE;
+	int Format=0;
+	int ReadType=CF_OEMTEXT;
+	while ((Format=EnumClipboardFormats(Format))!=0)
+	{
+		if (Format==CF_UNICODETEXT && WinVer.dwPlatformId==VER_PLATFORM_WIN32_NT)
+		{
+			Unicode=TRUE;
+			break;
+		}
+		if (Format==CF_TEXT)
+		{
+			ReadType=CF_TEXT;
+			break;
+		}
+		if (Format==CF_OEMTEXT)
+			break;
+	}
+	FarString ClipText;
+	if ((hClipData=GetClipboardData(Unicode ? CF_UNICODETEXT:ReadType))!=NULL)
+	{
+		int BufferSize;
+		char *ClipAddr=(char *)GlobalLock(hClipData);
+		if (Unicode)
+			BufferSize=lstrlenW((LPCWSTR)ClipAddr)+1;
+		else
+			BufferSize=strlen(ClipAddr)+1;
+
+		if (Unicode)
+		{
+			ClipText.SetLength (BufferSize);
+			WideCharToMultiByte(CP_OEMCP,0,(LPCWSTR)ClipAddr,-1,ClipText.GetBuffer(),BufferSize,NULL,FALSE);
+		}
+		else
+		{
+			ClipText.SetText (ClipAddr, BufferSize);
+			if (ReadType==CF_TEXT)
+				ClipText = ClipText.ToOEM();
+		}
+		GlobalUnlock(hClipData);
+	}
+	CloseClipboard();
+	return ClipText;
+}
+					 
 #endif
 
 }  // namespace

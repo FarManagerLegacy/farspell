@@ -1,4 +1,4 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARArray.h,v 1.3 2002/09/05 06:33:05 yole Exp $
    Lightweight typesafe dynamic array class for use in FAR plugins
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
@@ -15,20 +15,24 @@
 
 class BaseFarArray
 {
+private:
+	BaseFarArray (const BaseFarArray &rhs);              // not implemented (for now)
+    BaseFarArray &operator= (const BaseFarArray &rhs);   // not implemented (for now)
+
 protected:
-	void **fItems;
+	char *fItems;
 	int fCount;
 	int fAllocCount;
-	bool fOwnsItems;
 	int fResizeDelta;
+	int fItemSize;
 
 	typedef int (__cdecl *BaseCmpFunc) (const void *, const void *);
 
-	BaseFarArray (int resizeDelta)
-		: fItems (NULL), fCount (0), fAllocCount (0), fOwnsItems (true),
-		  fResizeDelta (resizeDelta) {};
+	BaseFarArray (int itemSize, int resizeDelta)
+		: fItems (NULL), fCount (0), fAllocCount (0),
+		  fResizeDelta (resizeDelta), fItemSize (itemSize) {};
 
-	void Add (void *item);
+	void BaseAdd (const void *item);
 
 	void InternalClear()
 	{
@@ -41,32 +45,85 @@ protected:
 		}
 	}
 
-	int IndexOf (const void *item)
+	int BaseIndexOf (const void *item) const
 	{
 		for (int i=0; i<fCount; i++)
-			if (fItems [i] == item) return i;
+		{
+			if (memcmp (fItems + i * fItemSize, item, fItemSize) == 0) 
+				return i;
+		}
 		return -1;
 	}
 
 	void InternalSort (BaseCmpFunc cmpFunc);
 
 public:
-	int Count()
+	int Count() const
 	{
 		return fCount;
 	}
 };
 
 template <class T>
-class FarArray: public BaseFarArray
+class FarDataArray: public BaseFarArray
+{
+public:
+	FarDataArray (int resizeDelta = 16)
+		: BaseFarArray (sizeof (T), resizeDelta) {};
+	
+	~FarDataArray()
+	{
+		Clear();
+	}
+
+	void Clear()
+	{
+		InternalClear();
+	}
+
+	void Add (T &item)
+	{
+		BaseAdd (&item);
+	}
+
+	int IndexOf (T &item) const
+	{
+		return BaseIndexOf (&item);
+	}
+
+	T &At (int index)
+	{
+		return reinterpret_cast<T *> (fItems) [index];
+	}
+
+	T &operator[] (int index)
+	{
+		return At (index);
+	}
+
+	const T &operator[] (int index) const
+	{
+		return reinterpret_cast<const T *> (fItems) [index];
+	}
+
+	T *GetItems() const
+	{
+		return reinterpret_cast<T *> (fItems);
+	}
+};
+
+template <class T>
+class FarArray: public FarDataArray<T *>
 {
 private:
-	typedef T *TPtr;
 	typedef int (__cdecl *CmpFunc) (const T **, const T **);
+
+protected:
+	bool fOwnsItems;
 
 public:
 	FarArray (int resizeDelta = 16)
-		: BaseFarArray (resizeDelta) {};
+		: FarDataArray<T *> (resizeDelta), fOwnsItems (true) {};
 	~FarArray()
 	{
 		Clear();
@@ -76,23 +133,14 @@ public:
 	{
 		if (fOwnsItems)
 			for (int i=fCount-1; i >= 0; i--)
-				delete (T *) fItems [i];
+				delete At (i);
 		InternalClear();
 	}
 
-	void Add (T *item)
+	void Add (const T *item)
 	{
-		BaseFarArray::Add (item);
-	}
-
-	int IndexOf (const T *item)
-	{
-		return BaseFarArray::IndexOf (item);
-	}
-
-	TPtr &operator[] (int index)
-	{
-		return (TPtr &) fItems [index];
+		T *addItem = const_cast<T *> (item);
+		FarDataArray<T *>::Add (addItem);
 	}
 
 	bool OwnsItems() const
@@ -111,7 +159,7 @@ public:
 	}
 };
 
-class FarStringArray: public BaseFarArray
+class FarStringArray: public FarArray<char>
 {
 private:
 	char *Copy (const char *item)
@@ -127,68 +175,32 @@ private:
 
 public:
 	FarStringArray (int resizeDelta = 16)
-		: BaseFarArray (resizeDelta) {};
+		: FarArray<char> (resizeDelta) {};
 	~FarStringArray()
 	{
 		Clear();
 	}
 
-	void Clear()
-	{
-		for (int i=0; i < fCount; i++)
-			delete (char *) fItems [i];
-		InternalClear();
-	}
-
 	void Add (const char *item)
 	{
-		BaseFarArray::Add (Copy (item));
-	}
-
-	char *operator[] (int index)
-	{
-		return (char *) fItems [index];
-	}
-
-	const char **GetItems()
-	{
-		return (const char **) fItems;
+		if (fOwnsItems)
+			FarArray<char>::Add (Copy (item));
+		else
+			FarArray<char>::Add (const_cast<char *> (item));
 	}
 };
 
-
-class FarIntArray: public BaseFarArray
+class FarIntArray: public FarDataArray<int>
 {
 public:
 	FarIntArray (int resizeDelta = 16)
-		: BaseFarArray (resizeDelta)
+		: FarDataArray<int> (16)
 	{
-		fOwnsItems = false;
-	}
+	};
 
-	~FarIntArray()
+	void Add (int i)
 	{
-		Clear();
-	}
-
-	void Add (int item)
-	{
-		BaseFarArray::Add ((void *) item);
-	}
-
-	void Clear()
-	{
-		InternalClear();
-	}
-
-	int operator[] (int index)
-	{
-		return (int) fItems [index];
-	}
-
-	int *GetItems()
-	{
-		return (int *) fItems;
+		FarDataArray<int>::Add (i);
 	}
 };
 

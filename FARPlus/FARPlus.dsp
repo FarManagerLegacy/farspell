@@ -94,6 +94,10 @@ SOURCE=.\FARArray.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\FARDbg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\FARDialog.cpp
 # End Source File
 # Begin Source File
@@ -123,6 +127,10 @@ SOURCE=.\FARString.cpp
 # Begin Source File
 
 SOURCE=.\FARArray.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\FARDbg.h
 # End Source File
 # Begin Source File
 

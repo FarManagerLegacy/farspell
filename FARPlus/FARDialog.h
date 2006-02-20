@@ -1,6 +1,6 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARDialog.h,v 1.3 2002/04/15 05:40:56 yole Exp $
    FAR+Plus: dialog classes
-   (C) 2001-02 Dmitry Jemerov <yole@spb.cityline.ru>
+   (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
 
 #ifndef __FARDIALOG_H
@@ -48,9 +48,8 @@ protected:
     friend class FarEditCtrl;
     friend class FarRadioCtrl;
 
-	FarDialogItem *m_Items;
-    int m_ItemsNumber;
-    FarArray<FarControl> m_Controls;
+	FarDataArray<FarDialogItem> fItems;
+    FarArray<FarControl> fControls;
 	FarArray<FarDlgItem> fSpecialItems;
     FarString fHelpTopic;
     FarControl *m_DefaultControl;
@@ -82,7 +81,7 @@ public:
 
 inline void FarDialog::OwnsControls()
 {
-	m_Controls.SetOwnsItems (true);
+	fControls.SetOwnsItems (true);
 }
 
 inline void FarDialog::SetBorders (int X, int Y)
@@ -121,7 +120,8 @@ protected:
     FarControl (FarDialog *pDlg, unsigned char Type, int LngIndex);
     virtual BOOL Validate();
 
-    const char *GetMsg (int MsgId);
+	virtual void BeforeShow() {};
+
 public:
     void SetFlags (DWORD flags);
     int GetSelected();
@@ -129,11 +129,6 @@ public:
     void SetNextY() 
         { m_flagsPlus |= FCF_NEXTY; }
 };
-
-inline const char *FarControl::GetMsg (int MsgId)
-{
-    return Far::GetMsg (MsgId);
-}
 
 inline int FarControl::GetSelected()
 {
@@ -214,14 +209,16 @@ public:
 class FarCheckCtrl : public FarControl
 {
 protected:
-    bool *m_pSelected;
+    int *m_pSelected;
     virtual BOOL Validate();
 
 public:
-    FarCheckCtrl (FarDialog *pDlg, const char *Text, bool Selected);
-    FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool Selected);
+    FarCheckCtrl (FarDialog *pDlg, const char *Text, int Selected);
+    FarCheckCtrl (FarDialog *pDlg, int LngIndex, int Selected);
     FarCheckCtrl (FarDialog *pDlg, const char *Text, bool *pSelected);
     FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool *pSelected);
+    FarCheckCtrl (FarDialog *pDlg, const char *Text, int *pSelected);
+    FarCheckCtrl (FarDialog *pDlg, int LngIndex, int *pSelected);
 };
 
 class FarRadioCtrl : public FarControl
@@ -255,7 +252,7 @@ public:
 	int GetSelectedIndex();
 };
 
-class FarBoxCtrl : public FarControl
+class FarBoxCtrl: public FarControl
 {
 public:
     FarBoxCtrl (FarDialog *pDlg, BOOL Double, int X1, int Y1, int W, int H,
@@ -264,7 +261,7 @@ public:
         int LngIndex);
 };
 
-class FarButtonCtrl : public FarControl
+class FarButtonCtrl: public FarControl
 {
 public:
     // if X is equal to DIF_CENTERGROUP, the button gets this flag.
@@ -272,5 +269,50 @@ public:
     FarButtonCtrl (FarDialog *pDlg, const char *Text, int X=-1);
     FarButtonCtrl (FarDialog *pDlg, int LngIndex, int X=-1);
 };
+
+#ifdef USE_FAR_170
+
+// Base class for combo boxes and list boxes
+class FarBaseListCtrl: public FarControl
+{
+protected:
+	FarDataArray<FarListItem> fListItems;
+	FarList fFarList;
+
+	virtual void BeforeShow();
+
+    FarBaseListCtrl (FarDialog *pDlg, unsigned char Type, int X, int Width);
+
+public:
+	void AddItem (const char *Text, int Flags = 0);
+
+	int GetListPos() const
+	{
+		return fItem->ListPos;
+	}
+};
+
+class FarComboBox: public FarBaseListCtrl
+{
+protected:
+	FarString *fStringPtr;
+
+	virtual BOOL Validate();
+
+public:
+	FarComboBox (FarDialog *pDlg, int X, int Width)
+		: FarBaseListCtrl (pDlg, DI_COMBOBOX, X, Width), fStringPtr (NULL) {};
+
+    FarComboBox (FarDialog *pDlg, FarString *pString, int X, int Width)
+		: FarBaseListCtrl (pDlg, DI_COMBOBOX, X, Width), fStringPtr (pString) 
+	{
+		strncpy (fItem->Data, *pString, sizeof (fItem->Data)-1);
+	}
+
+	void GetText (char *Text, int MaxLength);
+	FarString GetText();
+};
+
+#endif
 
 #endif

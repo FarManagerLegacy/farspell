@@ -1,6 +1,6 @@
-/* $Header: $
+/* $Header: /cvsroot/farplus/FARPlus/FARDialog.cpp,v 1.5 2002/09/05 06:32:38 yole Exp $
    FAR+Plus: dialog classes implementation
-   (C) 2001-02 Dmitry Jemerov <yole@spb.cityline.ru>
+   (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
 
 #include "FARDialog.h"
@@ -8,30 +8,26 @@
 // -- FarDialog --------------------------------------------------------------
 
 FarDialog::FarDialog (const char *Title, const char *HelpTopic)
-  : m_Items          (NULL),
-    fHelpTopic       (HelpTopic),
+  : fHelpTopic       (HelpTopic),
     m_DefaultControl (NULL),
     m_FocusControl   (NULL),
-    m_ItemsNumber    (0),
     m_BorderX        (2),
     m_BorderY        (1)
 {
-	m_Controls.SetOwnsItems (false);
+	fControls.SetOwnsItems (false);
 	fSpecialItems.SetOwnsItems (false);
 
-    new FarBoxCtrl (this, TRUE, 0, 0, 0, 0, Title);
+    AddOwnedControl (new FarBoxCtrl (this, TRUE, 0, 0, 0, 0, Title));
 }
 
 FarDialog::FarDialog (int TitleLngIndex, const char *HelpTopic)
-  : m_Items          (NULL),
-    fHelpTopic       (HelpTopic),
+  : fHelpTopic       (HelpTopic),
     m_DefaultControl (NULL),
     m_FocusControl   (NULL),
-    m_ItemsNumber    (0),
     m_BorderX        (2),
     m_BorderY        (1)
 {
-	m_Controls.SetOwnsItems (false);
+	fControls.SetOwnsItems (false);
 	fSpecialItems.SetOwnsItems (false);
 
     AddOwnedControl (new FarBoxCtrl (this, TRUE, 0, 0, 0, 0, TitleLngIndex));
@@ -39,14 +35,14 @@ FarDialog::FarDialog (int TitleLngIndex, const char *HelpTopic)
 
 FarDialog::~FarDialog()
 {
-    if (!m_Controls.OwnsItems())
+    if (!fControls.OwnsItems())
 	{
-		for (int i=m_Controls.Count()-1; i >= 0; i--)
+		for (int i=fControls.Count()-1; i >= 0; i--)
 		{
-			if (m_Controls [i]->IsOwned())
+			if (fControls [i]->IsOwned())
 			{
-				delete m_Controls [i];
-				m_Controls [i] = NULL;
+				delete fControls [i];
+				fControls [i] = NULL;
 			}
 		}
 		for (int j=fSpecialItems.Count()-1; j >= 0; j--)
@@ -59,20 +55,18 @@ FarDialog::~FarDialog()
 		}
 	}
 	
-	m_Controls.Clear();
+	fControls.Clear();
 	fSpecialItems.Clear();
-	if (m_ItemsNumber > 0)
-        free (m_Items);
 }
 
 void FarDialog::AddControl (FarControl *pCtrl)
 {
-    m_ItemsNumber++;
-    m_Items=(FarDialogItem *) realloc (m_Items, sizeof (FarDialogItem) * m_ItemsNumber);
-	m_Controls.Add (pCtrl);
+	FarDialogItem newItem;   // not yet initialized
+	fItems.Add (newItem);
+	fControls.Add (pCtrl);
     
-    for (int i=0; i<m_ItemsNumber; i++)
-        m_Controls [i]->fItem = &m_Items [i];
+    for (int i=0; i<fItems.Count(); i++)
+        fControls [i]->fItem = &fItems [i];
 }
 
 void FarDialog::AddSpecialItem (FarDlgItem *pItem)
@@ -87,7 +81,7 @@ void FarDialog::AddOwnedControl (FarDlgItem *pCtrl)
 
 int FarDialog::FindControl (FarControl *pCtrl)
 {
-	return m_Controls.IndexOf (pCtrl);
+	return fControls.IndexOf (pCtrl);
 }
 
 void FarDialog::AddText (const char *Text)
@@ -115,9 +109,9 @@ void FarDialog::Layout()
 	unsigned int MaxY2 = 0;
     
     // m_Controls [0] is the dialog frame. It is handled specially.
-    for (int i=1; i<m_ItemsNumber; i++)
+    for (int i=1; i<fControls.Count(); i++)
     {
-        FarDialogItem *pCurItem=m_Controls [i]->fItem;
+        FarDialogItem *pCurItem=fControls [i]->fItem;
         
         // Layout
         if (pCurItem->Y1 == -1)
@@ -135,7 +129,7 @@ void FarDialog::Layout()
             else if (pCurItem->X1 == DIF_CENTERGROUP) // special case for buttons
             { 
                 pCurItem->Flags |= DIF_CENTERGROUP;
-                FarDialogItem *pPrevItem=m_Controls [i-1]->fItem;
+                FarDialogItem *pPrevItem=fControls [i-1]->fItem;
                 if (pPrevItem->Type == DI_BUTTON)
                 {
                     pCurItem->Y1 = pPrevItem->Y1;
@@ -147,7 +141,7 @@ void FarDialog::Layout()
                 pCurItem->X1 = 0; // not important for centered groups
             }
             else {
-                if (m_Controls [i]->m_flagsPlus & FCF_NEXTY)
+                if (fControls [i]->m_flagsPlus & FCF_NEXTY)
                     pCurItem->Y1 = ++LastY;
                 else
                     pCurItem->Y1 = LastY;
@@ -187,11 +181,11 @@ void FarDialog::Layout()
         }
         
         // Default
-        if (m_Controls [i] == m_DefaultControl)
+        if (fControls [i] == m_DefaultControl)
             pCurItem->DefaultButton = TRUE;
         else if (m_DefaultControl == NULL && pCurItem->Type == DI_BUTTON)
         {
-            m_DefaultControl = m_Controls [i];
+            m_DefaultControl = fControls [i];
             pCurItem->DefaultButton = TRUE;
         }
         else
@@ -203,24 +197,24 @@ void FarDialog::Layout()
     // Set the size of the dialog frame
 	if (MaxY2 > LastY)
 		LastY = MaxY2;
-    m_Items [0].X1 = m_BorderX+1;
-    m_Items [0].Y1 = m_BorderY;
-    m_Items [0].X2 = m_Items [0].X1+MaxX2-1;
-    m_Items [0].Y2 = LastY+1;
+    fItems [0].X1 = m_BorderX+1;
+    fItems [0].Y1 = m_BorderY;
+    fItems [0].X2 = fItems [0].X1+MaxX2-1;
+    fItems [0].Y2 = LastY+1;
 }
 
 void FarDialog::UpdateFocus()
 {
-    for (int i=1; i<m_ItemsNumber; i++)
+    for (int i=1; i<fControls.Count(); i++)
     {
-		FarDialogItem *pCurItem=m_Controls [i]->fItem;
-        if (m_Controls [i] == m_FocusControl)
+		FarDialogItem *pCurItem=fControls [i]->fItem;
+        if (fControls [i] == m_FocusControl)
             pCurItem->Focus = TRUE;
         else if (m_FocusControl == NULL &&
             pCurItem->Type != DI_SINGLEBOX && pCurItem->Type != DI_DOUBLEBOX &&
             pCurItem->Type != DI_TEXT && pCurItem->Type != DI_VTEXT)
         {
-            m_FocusControl = m_Controls [i];
+            m_FocusControl = fControls [i];
             pCurItem->Focus = TRUE;
         }
         else
@@ -237,28 +231,31 @@ FarControl *FarDialog::Show (bool SkipLayout)
     BOOL bValidData;
     int ExitCode;
     do {
+		for (int k=0; k<fControls.Count(); k++)
+			fControls [k]->BeforeShow();
+
         bValidData = TRUE;
         ExitCode=Far::m_Info.Dialog (Far::m_Info.ModuleNumber,
-            -1, -1, m_Items [0].X2+m_BorderX+2, m_Items [0].Y2+m_BorderY+1,
+            -1, -1, fItems [0].X2+m_BorderX+2, fItems [0].Y2+m_BorderY+1,
             fHelpTopic,
-            m_Items,
-            m_ItemsNumber);
+            fItems.GetItems(),
+            fItems.Count());
         if (ExitCode == -1)
             return NULL;
-        if (!m_Controls [ExitCode]->m_flagsPlus & FCF_VALIDATE)
+        if (!fControls [ExitCode]->m_flagsPlus & FCF_VALIDATE)
             break;
 
-        for (int i=0; i<m_ItemsNumber; i++)
-            if (!m_Controls [i]->Validate())
+        for (int i=0; i<fControls.Count(); i++)
+            if (!fControls [i]->Validate())
             {
-				SetFocusControl (m_Controls [i]);
+				SetFocusControl (fControls [i]);
 				UpdateFocus();
                 bValidData = FALSE;
                 break;
             }
     } while (!bValidData);
 
-    return m_Controls [ExitCode];
+    return fControls [ExitCode];
 }
 
 // -- FarControl -------------------------------------------------------------
@@ -283,7 +280,7 @@ FarControl::FarControl (FarDialog *pDlg, unsigned char Type, int LngIndex)
     m_flagsPlus (0)
 {
     InitControl (Type);
-    lstrcpyn (fItem->Data, GetMsg (LngIndex), sizeof (fItem->Data)-1);
+	lstrcpyn (fItem->Data, Far::GetMsg (LngIndex), sizeof (fItem->Data)-1);
 }
 
 void FarControl::InitControl (unsigned char Type)
@@ -473,14 +470,14 @@ FarSeparatorCtrl::FarSeparatorCtrl (FarDialog *pDlg, int LngIndex)
 
 // -- FarCheckCtrl -----------------------------------------------------------
 
-FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, const char *Text, bool Selected)
+FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, const char *Text, int Selected)
     : FarControl  (pDlg, DI_CHECKBOX, Text), 
       m_pSelected (NULL)
 {
     fItem->Selected = Selected;
 }
 
-FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool Selected)
+FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, int Selected)
     : FarControl  (pDlg, DI_CHECKBOX, LngIndex), 
       m_pSelected (NULL)
 {
@@ -489,12 +486,26 @@ FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool Selected)
 
 FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, const char *Text, bool *pSelected)
     : FarControl  (pDlg, DI_CHECKBOX, Text),  
-      m_pSelected (pSelected)
+      m_pSelected (reinterpret_cast<int *> (pSelected))
 {
     fItem->Selected = *pSelected;
 }
 
 FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool *pSelected)
+    : FarControl  (pDlg, DI_CHECKBOX, LngIndex),
+      m_pSelected (reinterpret_cast<int *> (pSelected))
+{
+    fItem->Selected = *pSelected;
+}
+
+FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, const char *Text, int *pSelected)
+    : FarControl  (pDlg, DI_CHECKBOX, Text),  
+      m_pSelected (pSelected)
+{
+    fItem->Selected = *pSelected;
+}
+
+FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, int *pSelected)
     : FarControl  (pDlg, DI_CHECKBOX, LngIndex),
       m_pSelected (pSelected)
 {
@@ -504,7 +515,7 @@ FarCheckCtrl::FarCheckCtrl (FarDialog *pDlg, int LngIndex, bool *pSelected)
 BOOL FarCheckCtrl::Validate()
 {
     if (m_pSelected)
-        *m_pSelected = GetSelected() ? true : false;
+        *m_pSelected = GetSelected();
     return TRUE;
 }
 
@@ -545,7 +556,7 @@ FarBoxCtrl::FarBoxCtrl (FarDialog *pDlg, BOOL Double, int X1, int Y1,
 {
     fItem->X1 = X1;
     fItem->Y1 = Y1;
-    fItem->X2 = W;
+	fItem->X2 = W;
     fItem->Y2 = H;
 }
 
@@ -573,3 +584,50 @@ FarButtonCtrl::FarButtonCtrl (FarDialog *pDlg, int LngIndex, int X)
     fItem->X1 = X;
 }
 
+#ifdef USE_FAR_170
+
+// -- FarBaseListCtrl --------------------------------------------------------
+
+FarBaseListCtrl::FarBaseListCtrl (FarDialog *pDlg, unsigned char Type, int X, int Width)
+	: FarControl (pDlg, Type)
+{
+	fItem->X1 = X;
+	fItem->X2 = Width;
+}
+
+void FarBaseListCtrl::AddItem (const char *Text, int Flags /* = 0 */)
+{
+	FarListItem newItem;
+	memset (&newItem, 0, sizeof (newItem));
+	strncpy (newItem.Text, Text, sizeof (newItem.Text)-1);
+	newItem.Flags = Flags;
+	fListItems.Add (newItem);
+}
+
+void FarBaseListCtrl::BeforeShow()
+{
+	fFarList.ItemsNumber = fListItems.Count();
+	fFarList.Items = fListItems.GetItems();
+	fItem->ListItems = &fFarList;
+}
+
+// -- FarComboBox ------------------------------------------------------------
+
+BOOL FarComboBox::Validate()
+{
+	if (fStringPtr)
+		*fStringPtr = fItem->Data;
+	return TRUE;
+}
+
+void FarComboBox::GetText (char *Text, int MaxLength)
+{
+    lstrcpyn (Text, fItem->Data, MaxLength-1);
+}
+
+FarString FarComboBox::GetText()
+{
+	return fItem->Data;
+}
+
+#endif 

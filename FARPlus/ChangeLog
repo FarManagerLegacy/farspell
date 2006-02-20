@@ -1,0 +1,173 @@
+05 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+
+	* Fixed a compilation problem when using the plugin.hpp
+	  from 1.70 beta 3.
+	* New function Far::GetBuildNumber().
+
+02 Feb 2002  Dmitry Jemerov <yole@yole.ru>
+	
+	* FARArray.h modified for compatibility with Borland C++ 5.02
+	  (FarStringArray and FarIntArray are now separately derived
+	  classes of BaseFarArray, not specific instantiations of 
+	  FarArray)
+	* New method FarArray::Sort().
+	* Added support for key enumeration in the FarRegistry class.
+	* Added operator+ and operator== to class FarString.
+	* Added methods ToOEM() and ToANSI() to class FarString.
+	* Fixed a handle leak in FarSF::Execute().
+	* New FarSF function itoa().
+
+30 Jan 2002  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Added a universal wrapper for the AdvControl() function.
+
+07 Jan 2002  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Annual copyright updates.
+	* Created a static library project for the FARPlus library.
+	* Declaration of function QuoteText() added to namespace FarSF.
+	  The function has been rewritten for better efficiency.
+	* Implementation of AddPluginConfig() and related functions
+	  rewritten to use FarStringArray.
+	* The parameter CmdStr of FarSF::Execute() has been changed to
+	  const.
+	* Changed the prototype of the FarEditCtrl validation functions.
+	  Now it is possible to pass a user-defined parameter to a
+	  validation function.
+	* After a validation error, the focus is set to the dialog
+	  control that caused the error.
+	* New method FarDialog::AddText() - a shortcut for adding
+	  text controls to a dialog.
+	* New method FarDialog::AddSeparator() - a shortcut for adding
+	  separators to a dialog.
+	* New FarSF function MkTemp().
+	* FarString: methods IsEmpty() and Length() are now const
+	* FarString: operator+= now returns *this.
+	* FarString: some internal changes.
+	* The RTL stub functions (main(), _DllMainCRTStartup() and
+	  _purecall()) have been moved to a separate file MicroRTL.cpp.
+	  If you need the RTL stubs, you need to link to this file
+	  explicitly.
+
+15 Dec 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Improvements in the FarRegistry class.
+	* Added RTL function replacements to help reduce plugin DLL size
+	  (FARMemory.h)
+	* Converted menu string arrays in FAR to pointers, in order not
+	  to use static objects with destructors (requiring the atexit()
+	  function).
+	* Added atoi() to the FAR standard functions.
+
+17 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Dialog code has been extracted into FARDialog.h/FARDialog.cpp.
+	* Redesigned radio button group handling (replaced FarRadioGroupCtrl
+	  with FarRadioGroup, extracted common base class FarDlgItem).
+	* Fixed a memory leak with m_HelpTopic in FarDialog.
+
+15 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* ECTL_GETINFO handling has been extracted to a separate class
+	  FarEdInfo.
+	* Rewritten FarMenu implementation to use FarString.
+        * In the constructor for FarMenu, the flag FMENU_WRAPMODE is set by
+          default.
+        * Added variants of FarCtrl::GetPanelInfo() and
+          FarCtrl::GetAnotherPanelInfo() returning the PanelInfo structure.
+
+14 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Implementation of FarString rewritten to use reference counting.
+        * Editor API wrappers have been extracted to a separate file FAREd.cpp
+          (FAREd.h).
+        * Added a constructor for FarEditCtrl accepting pointer to a
+          FarString.
+
+07 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+        * Functions for working with the registry moved to a separate class
+          FarRegistry. Added new methods GetRegBool, GetRegStr, KeyExists.
+        * Added method FarEditCtrl::GetText() returning FarString.
+
+06 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+        * Added possibility to specify control ownership in dialogs on a
+          per-control basis.
+        * Tried to improve layout logic for boxes. Most likely will need
+          further tweaking.
+
+04 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New class FarArray.
+	* New functions in FSF: TruncStr, TruncPathStr.
+	* New parameter ExtraFlags in the function FarMessage::ErrMsg.
+	* Implementation of FARPlus partly reworked using new container classes
+	  (reduces code size, fixes realloc/delete conflicts).
+
+03 Nov 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New class FarString.
+
+08 May 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* FarEd::ECTL() moved back to the private section.
+	* New method FarEd::GetString().
+	* New method FarDialog::HasControls().
+
+29 Apr 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New method FarMessage::ErrMsg().
+	* The functions Bytes2Str(), Execute() and Trace() have been
+  	  moved to FAR_SF.cpp.
+  	* Dialog controls are no longer owned by the dialog class.
+  	* New class FarFixEditCtrl.
+  	* The constructor of the class FarPswEditCtrl no longer accepts
+  	  the History parameter.
+  	* FarIntEditCtrl is no longer a separate class. Its constructor
+  	  and method GetIntValue() have been moved to the FarEditCtrl
+  	  class.
+  	* FarControl::m_bValidate replaced with the flags field
+  	  (m_flagsPlus).
+  	* New method FarControl::SetNextY().
+  	* The implementation of FarDialog::SetFocusControl() and
+  	  FarDialog::SetDefaultControl() was missing.
+  	* New method FarFixEditCtrl::SetMask().
+   	* Parameter of FarCheckCtrl constructors changed from int
+   	  to bool.
+  	* New constructors for FarCheckCtrl, receving bool * as a
+    	  parameter and eliminating the need to call GetSelected()
+    	  after the dialog is closed.
+    	* New constructor for FarEditCtrl, receiving int * as a parameter.
+        * New methods Far::ClearDiskMenu(), Far::ClearPluginMenu(),
+          Far::ClearPluginConfig().
+
+20 Apr 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New method FarMessage::SimpleMsg().
+	* Deleted methods Far::ErrMsg(), Far::ErrMsg2().
+	* Started moving the standard functions into a separate file
+	  FAR_SF.cpp and the namespace FarSF.
+	* Functions QuoteSpace and QuoteText replaced with the FAR
+	  standard function QuoteSpaceOnly.
+
+19 Apr 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New methods Far::Unquote(), Far::ClosePlugin(), Far::qsort(),
+	  Far::GetFileOwner(), Far::GetNumberOfLinks().
+	* Deleted bool Far::GetRegKey() (error-prone).
+	* New class FarDirList.
+	* Moved the Control API wrappers into a new class FarCtrl.
+
+15 Apr 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* New method FarControl::SetFlags().
+	* New method Far::LTrim(), Far::RTrim(), Far::Trim().
+	* The layout code now always centers the text shown
+	  on separators.
+
+14 Apr 2001  Dmitry Jemerov <yole@spb.cityline.ru>
+
+	* Const correction.
+	* Definition of FarRecursiveSearch changed to match FAR 1.70 beta
+	  3.

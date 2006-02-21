@@ -26,7 +26,7 @@ void far_ods( char const * const Fmt, ... )
 	// иначе, по понятным причинам, получим переполнение стека :)
 	HANDLE Heap = GetProcessHeap();
 
-	char * Tmp = (char*)HeapAlloc( Heap, 0, 0x1000 );
+	char * Tmp = (char*)HeapAlloc( Heap, 0, 1024 ); 
 
 	va_list argPtr;
 	va_start( argPtr, Fmt );
@@ -269,7 +269,7 @@ private:
 public:
 	CTraceClipboardData( DWORD dwTarget ) : m_dwTarget( dwTarget )
 	{
-		m_Tmp = new char[ 0x1000 ];
+		m_Tmp = new char[ 1024 ]; // see wvsprintf help
 	}
 	~CTraceClipboardData()
 	{

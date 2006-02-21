@@ -39,7 +39,7 @@ void FarLog::Log( int Level, char const * Fmt, va_list argPtr )
 		return;
 	
 	if ( m_Tmp == NULL )
-		m_Tmp = new char[ 0x1000 ];
+		m_Tmp = new char[ 1024 ]; // see wvsprintf help
 	
 	SYSTEMTIME LocalTime; GetLocalTime( &LocalTime );
 

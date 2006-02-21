@@ -253,7 +253,7 @@ void FarMessage::AddLine (int LngIndex)
 
 void FarMessage::AddFmt (const char *FmtText, ...)
 {
-    char buf [256];
+    char buf [1024]; // see wvsprintf help
     va_list va;
 
     va_start (va, FmtText);
@@ -265,7 +265,7 @@ void FarMessage::AddFmt (const char *FmtText, ...)
 
 void FarMessage::AddFmt (int FmtLngIndex, ...)
 {
-    char buf [256];
+    char buf [1024];
     va_list va;
 
     va_start (va, FmtLngIndex);

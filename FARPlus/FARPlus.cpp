@@ -62,6 +62,7 @@ void Far::Init (const PluginStartupInfo *Info, DWORD PluginFlags)
     FillMemory (&FarSF::m_FSF, sizeof(FarSF::m_FSF), 0); // see MSDN
     if (GetVersion() >= 0x170)
         MoveMemory (&FarSF::m_FSF, Info->FSF, Info->FSF->StructSize);
+    m_Info.FSF = &FarSF::m_FSF;
 #endif
 
     m_PluginFlags = PluginFlags;

@@ -11,6 +11,8 @@
 #ifndef ___FarDbg_H___
 #define ___FarDbg_H___
 
+#include <windows.h>
+
 #if _MSC_VER >= 1000
 #pragma once
 #endif
@@ -65,7 +67,9 @@ inline void far_ods( char const * const Fmt, ... ) {}
 #define FAR_STACK_DUMP_TARGET_DEFAULT       FAR_STACK_DUMP_TARGET_CLIPBOARD
 #endif
 
-void FarDumpStack( unsigned long dwTarget = FAR_STACK_DUMP_TARGET_DEFAULT );
+typedef void (*FarDumpCallback)(void* const user_param, const char *text, ...);
+void FarDumpStack( PEXCEPTION_POINTERS pExcPtrs = NULL, unsigned long dwTarget = FAR_STACK_DUMP_TARGET_DEFAULT );
+void FarDumpStackCb( PEXCEPTION_POINTERS pExcPtrs, FarDumpCallback callback, void * const param );
 
 #ifdef FARPLUS_DEBUG_MEMORY
 

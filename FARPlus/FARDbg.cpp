@@ -7,8 +7,8 @@
   
 *************************************************************************/
 
-#include <Windows.h>
 //#define _CRTDBG_MAP_ALLOC
+#include <malloc.h>
 #include <CrtDbg.h>
 #ifndef _msize
 #define _msize(p) _msize_dbg(p, _NORMAL_BLOCK)
@@ -171,6 +171,8 @@ int far_dbg_report( int reportType, char * userMessage, int * retVal )
 }
 
 #ifdef _DEBUG
+#ifdef HAVE_DEBUGCRT
+
 
 class CDbgReportInit
 {
@@ -253,109 +255,8 @@ _CRT_ALLOC_HOOK CDbgReportInit::m_OrigAllocHook = NULL;
 
 CDbgReportInit _DbgReportInit;
 
-#endif
-
-#include <imagehlp.h>
-#pragma comment( lib, "imagehlp.lib" )
-
-/////////////////////////////////////////////////////////////////////////////
-// Routine to produce stack dump
-
-#define MODULE_NAME_LEN 64
-#define SYMBOL_NAME_LEN 128
-
-struct FARPLUS_SYMBOL_INFO
-{
-	DWORD dwAddress;
-	DWORD dwOffset;
-	CHAR  szModule[ MODULE_NAME_LEN ];
-	CHAR  szSymbol[ SYMBOL_NAME_LEN ];
-};
-
-static DWORD __stdcall GetModuleBase( HANDLE hProcess, DWORD dwReturnAddress )
-{
-	IMAGEHLP_MODULE moduleInfo;
-
-	if ( SymGetModuleInfo( hProcess, dwReturnAddress, &moduleInfo ) )
-		return moduleInfo.BaseOfImage;
-
-	MEMORY_BASIC_INFORMATION mbInfo;
-	if ( VirtualQueryEx( hProcess, (LPCVOID)dwReturnAddress, &mbInfo, sizeof( mbInfo ) ) )
-	{
-		char szFile[ MAX_PATH ] = { 0 };
-		DWORD cch = GetModuleFileName( (HINSTANCE)mbInfo.AllocationBase, szFile, MAX_PATH );
-		
-		// Ignore the return code since we can't do anything with it.
-		if ( SymLoadModule( hProcess, NULL, cch ? szFile : NULL, NULL,
-			(DWORD)mbInfo.AllocationBase, 0 ) )
-	
-		return (DWORD) mbInfo.AllocationBase;
-	}
-
-	return SymGetModuleBase( hProcess, dwReturnAddress );
-}
-
-// determine number of elements in an array (not bytes)
-#define _countof( array ) ( sizeof( array ) / sizeof( array[ 0 ] ) )
-
-static void ResolveSymbol( HANDLE hProcess, DWORD dwAddress, FARPLUS_SYMBOL_INFO &siSymbol )
-{
-	union
-	{
-		char rgchSymbol[ sizeof( IMAGEHLP_SYMBOL ) + 255 ];
-		IMAGEHLP_SYMBOL sym;
-	};
-
-	char  szUndec     [ 256 ];
-	char  szWithOffset[ 256 ];
-
-	LPSTR pszSymbol = NULL;
-	
-	IMAGEHLP_MODULE mi;
-	mi.SizeOfStruct = sizeof( IMAGEHLP_MODULE );
-	
-	ZeroMemory( &siSymbol, sizeof( FARPLUS_SYMBOL_INFO ) );
-
-	siSymbol.dwAddress = dwAddress;
-	
-	if ( SymGetModuleInfo( hProcess, dwAddress, &mi ) )
-		strncpy( siSymbol.szModule, FarSF::PointToName( mi.ImageName ), _countof( siSymbol.szModule ) );
-	else
-		strcpy( siSymbol.szModule, "<no module>" );
-	
-	__try
-	{
-		sym.SizeOfStruct  = sizeof( IMAGEHLP_SYMBOL );
-		sym.Address       = dwAddress;
-		sym.MaxNameLength = 255;
-
-		if ( SymGetSymFromAddr( hProcess, dwAddress, &(siSymbol.dwOffset), &sym ) )
-		{
-			pszSymbol = sym.Name;
-
-			if ( UnDecorateSymbolName( sym.Name, szUndec, _countof( szUndec ),
-				UNDNAME_NO_MS_KEYWORDS|UNDNAME_NO_ACCESS_SPECIFIERS ) )
-				pszSymbol = szUndec;
-			else if ( SymUnDName( &sym, szUndec, _countof( szUndec ) ) )
-				pszSymbol = szUndec;
-			
-			if ( siSymbol.dwOffset != 0 )
-			{
-				wsprintfA( szWithOffset, "%s + %d bytes", pszSymbol, siSymbol.dwOffset );
-				pszSymbol = szWithOffset;
-			}
-		}
-		else
-			pszSymbol = "<no symbol>";
-	}
-	__except( EXCEPTION_EXECUTE_HANDLER )
-	{
-		pszSymbol = "<EX: no symbol>";
-		siSymbol.dwOffset = dwAddress - mi.BaseOfImage;
-	}
-	
-	strncpy( siSymbol.szSymbol, pszSymbol, _countof( siSymbol.szSymbol ) );
-}
+#endif HAVE_DEBUGCRT
+#endif _DEBUG
 
 class CTraceClipboardData
 {
@@ -388,81 +289,33 @@ public:
 			FarSF::CopyToClipboard( m_Data );
 		
 	}
+	void vSendOut( char const * const Fmt, va_list Args )
+	{
+        	wvsprintf( m_Tmp, Fmt, Args );
+		m_Data += m_Tmp;
+	}
 	void SendOut( char const * const Fmt, ... )
 	{
 		va_list argPtr;
 		va_start( argPtr, Fmt );
-		wvsprintf( m_Tmp, Fmt, argPtr );
-		m_Data += m_Tmp;
+		vSendOut(Fmt,  argPtr);
 		va_end( argPtr );
 	}
 };
 
-void FarDumpStack( DWORD dwTarget )
+void to_clipboard(void* const p, const char* text, ...)
 {
-	CTraceClipboardData clipboardData( dwTarget );
+  CTraceClipboardData *const clipboardData = (CTraceClipboardData*)p;
+  va_list argPtr;
+  va_start( argPtr, text );
+  clipboardData->vSendOut(text, argPtr);
+  va_end( argPtr );
+}
 
-	clipboardData.SendOut( "===== begin FarDumpStack output =====\r\n" );
-
-	FarIntArray adwAddress/*( 16 )*/;
-	HANDLE hProcess = ::GetCurrentProcess();
-	if ( SymInitialize( hProcess, NULL, FALSE ) )
-	{
-		// force undecorated names to get params
-		DWORD dw = SymGetOptions();
-		dw &= ~SYMOPT_UNDNAME;
-		SymSetOptions(dw);
-
-		HANDLE hThread = ::GetCurrentThread();
-		CONTEXT threadContext;
-
-		threadContext.ContextFlags = CONTEXT_FULL;
-
-		if ( ::GetThreadContext(hThread, &threadContext ) )
-		{
-			STACKFRAME stackFrame;
-			ZeroMemory( &stackFrame, sizeof( stackFrame ) );
-			stackFrame.AddrPC.Mode = AddrModeFlat;
-
-			stackFrame.AddrPC.Offset    = threadContext.Eip;
-			stackFrame.AddrStack.Offset = threadContext.Esp;
-			stackFrame.AddrStack.Mode   = AddrModeFlat;
-			stackFrame.AddrFrame.Offset = threadContext.Ebp;
-			stackFrame.AddrFrame.Mode   = AddrModeFlat;
-
-			for ( int nFrame = 0; nFrame < 1024; nFrame++ )
-			{
-				if ( StackWalk( IMAGE_FILE_MACHINE_I386, hProcess, hProcess,
-					&stackFrame, &threadContext, NULL, 
-					SymFunctionTableAccess, GetModuleBase, NULL) == 0 )
-					break;
-				adwAddress.Add( stackFrame.AddrPC.Offset );
-			}
-		}
-	}
-	else
-	{
-		clipboardData.SendOut( "FarDumpStack Error: IMAGEHLP.DLL wasn't found. "
-			"GetLastError() returned 0x%8.8X\r\n", GetLastError() );
-	}
-	
-	// dump it out now
-	for ( int nAddress = 0; nAddress < adwAddress.Count(); nAddress++ )
-	{
-		FARPLUS_SYMBOL_INFO info;
-		
-		clipboardData.SendOut( "%8.8X: ", adwAddress[ nAddress ] );
-		
-		ResolveSymbol( hProcess, adwAddress[ nAddress ], info );
-		
-		clipboardData.SendOut( info.szModule );
-		clipboardData.SendOut( "! " );
-		clipboardData.SendOut( info.szSymbol );
-		
-		clipboardData.SendOut( "\r\n" );
-	}
-	
-	clipboardData.SendOut( "====== end FarDumpStack output ======\r\n" );
+void FarDumpStack( PEXCEPTION_POINTERS pExcPtrs, DWORD dwTarget )
+{
+  CTraceClipboardData clipboardData( dwTarget );
+  FarDumpStackCb(pExcPtrs, to_clipboard, &clipboardData);
 }
 
 #endif // defined(_MSC_VER)

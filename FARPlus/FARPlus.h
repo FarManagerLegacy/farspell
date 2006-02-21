@@ -29,7 +29,9 @@ namespace FarSF {
     char* PointToName(const char *Path);
     void RecursiveSearch (char *InitDir, char *Mask, FRSUSERFUNC Func,
         DWORD Flags, void *param);
+#ifndef USE_FAR_170
     int CmpNameList (const char *MaskList, const char *Path, bool skipPath = false);
+#endif USE_FAR_170
     char *RTrim (char *Str);
     char *LTrim (char *Str);
     char *Trim (char *Str);

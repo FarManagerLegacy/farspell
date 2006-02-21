@@ -1,0 +1,3 @@
+Dialog.h API header
+Dialog.def DEF file for API dll (Dialog.gen)
+Dialog.gen Dialog API

@@ -1,0 +1,27 @@
+LIBRARY dialog.gen
+EXPORTS
+DllMain@12
+DG_Init
+LoadDialog
+LoadDialogEx
+FreeDialog
+GetNumById
+GetItemStatus
+ShowDialog
+GetItemData
+GetItemAddr
+GetRadioStatus
+DialogGeneratorVersion
+SetItemStatus
+SetItemColor
+SetRadioStatus
+;ShowInfo
+HideItem
+RestoreItem
+GetItemNULL
+EnumDialog
+parseNum
+parseGetStr
+parseGet
+sparse
+SetItemFocus

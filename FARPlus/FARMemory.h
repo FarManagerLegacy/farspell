@@ -16,7 +16,7 @@
 // If USE_WINDOWS_HEAP is defined, the RTL functions for heap manipulation
 // are not linked in, reducing plugin size
 
-#define USE_WINDOWS_HEAP
+//#define USE_WINDOWS_HEAP
 
 #ifdef USE_WINDOWS_HEAP
 

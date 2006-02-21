@@ -315,6 +315,13 @@ public:
 	FarString GetText();
 };
 
+class FarListBox: public FarBaseListCtrl
+{
+public:
+	FarListBox(FarDialog *pDlg, int X, int Width)
+		: FarBaseListCtrl (pDlg, DI_LISTBOX, X, Width) {};
+};
+
 #endif
 
 #endif

@@ -1,0 +1,7 @@
+
+mju-sed.exe: mju-sed.cpp
+  cl /nologo /EHsc /Ox /Gy /GL  mju-sed.cpp
+
+clean:
+  -del mju-sed.exe
+  -del mju-sed.obj

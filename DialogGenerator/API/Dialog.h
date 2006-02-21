@@ -43,7 +43,9 @@ char    * DG_DATA_NULL;
 int     DG_Module_Number;
 
 #ifdef DIALOG_LINK
-
+#ifdef __cplusplus
+extern "C" {
+#endif __cplusplus
  void  DG_Init(struct  PluginStartupInfo );
 // DWORD LoadDialog(HMODULE ,char * ,char * );
  DWORD LoadDialogEx(HMODULE ,int , char * ,char * );
@@ -70,6 +72,10 @@ int     DG_Module_Number;
  char *parseGetStr(char *str, char *dst, int num);
  char *parseGet(char *str, int num);
  int   sparse(char *source, char *format, char * dest, int len);
+
+#ifdef __cplusplus
+}
+#endif __cplusplus
 
 DWORD LoadDialog(HMODULE hDll,char * fname,char * dname)
 { return LoadDialogEx(hDll,DG_Module_Number,fname,dname);

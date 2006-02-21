@@ -21,7 +21,10 @@ FarString::FarStringData::FarStringData (const char *text, int length /*= -1*/)
 		fLength = length;
 	SetCapacity (fLength + 1);
 	if (text)
+	{
 		memcpy (fText, text, fLength);
+		fText[fLength]='\0'; // ss20051211
+	}
 	else
 		*fText = '\0';
 }

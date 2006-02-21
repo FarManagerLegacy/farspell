@@ -56,6 +56,7 @@ protected:
     FarControl *m_FocusControl;
     int m_BorderX, m_BorderY;   // space to the left and to the top of the 
                                 // dialog frame
+    int m_Left, m_Top;
 
     void AddControl (FarControl *pCtrl);
 	void UpdateFocus();
@@ -70,6 +71,7 @@ public:
     FarControl *Show (bool SkipLayout = false);
 
     void SetBorders (int X, int Y);
+    void SetOrigin (int X, int Y) { m_Left=X; m_Top=Y; }
     void SetDefaultControl (FarControl *pCtrl);
     void SetFocusControl (FarControl *pCtrl);
     int FindControl (FarControl *pCtrl);  // returns index of given control or -1 if not found

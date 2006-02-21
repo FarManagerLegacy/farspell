@@ -12,7 +12,9 @@ FarDialog::FarDialog (const char *Title, const char *HelpTopic)
     m_DefaultControl (NULL),
     m_FocusControl   (NULL),
     m_BorderX        (2),
-    m_BorderY        (1)
+    m_BorderY        (1),
+    m_Left           (-1),
+    m_Top            (-1)
 {
 	fControls.SetOwnsItems (false);
 	fSpecialItems.SetOwnsItems (false);
@@ -25,7 +27,9 @@ FarDialog::FarDialog (int TitleLngIndex, const char *HelpTopic)
     m_DefaultControl (NULL),
     m_FocusControl   (NULL),
     m_BorderX        (2),
-    m_BorderY        (1)
+    m_BorderY        (1),
+    m_Left           (-1),
+    m_Top            (-1)
 {
 	fControls.SetOwnsItems (false);
 	fSpecialItems.SetOwnsItems (false);
@@ -230,13 +234,15 @@ FarControl *FarDialog::Show (bool SkipLayout)
     // Show dialog and validate data
     BOOL bValidData;
     int ExitCode;
+    int dx = (m_Left == -1) ? 0 : m_Left;
+    int dy = (m_Top == -1) ? 0 : m_Top;
     do {
 		for (int k=0; k<fControls.Count(); k++)
 			fControls [k]->BeforeShow();
 
         bValidData = TRUE;
         ExitCode=Far::m_Info.Dialog (Far::m_Info.ModuleNumber,
-            -1, -1, fItems [0].X2+m_BorderX+2, fItems [0].Y2+m_BorderY+1,
+            m_Left, m_Top, dx + fItems [0].X2+m_BorderX+2, dy + fItems [0].Y2+m_BorderY+1,
             fHelpTopic,
             fItems.GetItems(),
             fItems.Count());

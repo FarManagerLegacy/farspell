@@ -55,11 +55,11 @@ char  *Far::m_CommandPrefix = NULL;
 
 void Far::Init (const PluginStartupInfo *Info, DWORD PluginFlags)
 {
-    FillMemory (&m_Info, 0, sizeof (m_Info));
+    FillMemory (&m_Info, sizeof(m_Info), 0);  // see MSDN
     MoveMemory (&m_Info, Info, Info->StructSize);
 
 #ifdef USE_FAR_170
-    FillMemory (&FarSF::m_FSF, 0, sizeof (FarSF::m_FSF));
+    FillMemory (&FarSF::m_FSF, sizeof(FarSF::m_FSF), 0); // see MSDN
     if (GetVersion() >= 0x170)
         MoveMemory (&FarSF::m_FSF, Info->FSF, Info->FSF->StructSize);
 #endif

@@ -33,6 +33,7 @@ public:
 	void Warning( char const * Fmt, ... );
 	void Message( char const * Fmt, ... );
 	void Message( int Level, char const * Fmt, ... );
+	void Write( char const * Text, int nLen = -1);
 };
 
 #endif //!defined(___FarLog_H___)

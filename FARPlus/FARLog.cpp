@@ -107,3 +107,9 @@ void FarLog::Message( int Level, char const * Fmt, ... )
 	
 	va_end( argPtr );
 }
+
+void FarLog::Write( char const * Text, int nLen )
+{
+	if (nLen<0) nLen=strlen(Text);
+	m_File->Write( Text, nLen );
+}

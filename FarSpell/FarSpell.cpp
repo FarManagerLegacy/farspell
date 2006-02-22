@@ -398,6 +398,7 @@ Hunspell* FarSpellEditor::Manager::GetDictInstance(FarString& dict)
      if ((*cache_engine_langs[i]) == dict)
        return cache_engine_instances[i];
   }
+  HANDLE screen = Far::SaveScreen();
   FarMessage wait(0);
   wait.AddLine(MFarSpell);
   wait.AddFmt(MLoadingDictionary, dict.c_str());
@@ -407,6 +408,7 @@ Hunspell* FarSpellEditor::Manager::GetDictInstance(FarString& dict)
          FarFileName::MakeName(dict_root, dict+".dic").c_str());
   cache_engine_langs.Add(new FarString(dict));
   cache_engine_instances.Add(engine);
+  Far::RestoreScreen(screen);
   return engine;
 }
 
@@ -799,6 +801,8 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 
 void FarSpellEditor::DoMenu(FarEdInfo &fei)
 {
+  Hunspell *dict_inst = GetDict();
+  TextParser *parser_inst = GetParser();
   FarMenu menu(MFarSpell, FMENU_WRAPMODE, "Contents");
   FarString s;
   char* token = NULL;
@@ -806,8 +810,6 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei)
   int cpos = fei.CurPos;
   int line = fei.CurLine;
   int ns, res, static_part = 0;
-  Hunspell *dict_inst = GetDict();
-  TextParser *parser_inst = GetParser();
   char ** wlst = NULL;
   FarString document(FarEd::GetStringText(line));
 

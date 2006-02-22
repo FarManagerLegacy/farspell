@@ -170,7 +170,8 @@ clean:
   $(MAKE) /nologo -f makefile.vc clean
   cd "$(MAKEDIR)"
 
-templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc $(DIST)\history.txt \
+templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
+  $(DIST)\history.txt $(DIST)\todo.txt \
   $(DIST)\dbghelp.dll $(DIST)\Dialog.gen \
   $(DIST)\FarSpell.dlg \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
@@ -200,6 +201,8 @@ $(DIST)\Dialog.gen: $(DialogAPI)\Dialog.gen
 	copy $** $@
 $(DIST)\history.txt: history.txt
 	copy $** $@
+$(DIST)\todo.txt: todo.txt
+	copy $** $@
 www\index.html: www\index_t.html
   $(MJU_SED) < $** > $@
 
@@ -219,7 +222,7 @@ dist: makefile.exinfo templates
 	$(SEVEN_ZIP) a -t7z -mx9 -ms $(DIST_FILE) \
 	  $(DIST)\farspell.dll $(DIST)\Dialog.gen \
 	  $(DIST)\farspell.dlg \
-	  $(DIST)\file_id.diz $(DIST)\history.txt \
+	  $(DIST)\file_id.diz $(DIST)\history.txt $(DIST)\todo.txt \
 	  $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
 	  $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
 	  $(DIST)\FarSpell.map

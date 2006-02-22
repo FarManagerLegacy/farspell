@@ -1,0 +1,51 @@
+INCLUDE="C:\Program Files\Far\PlugDoc\Headers.c";"C:\Program Files\Microsoft Visual C++ Toolkit 2003\include";"C:\Program Files\Microsoft Visual C++ Toolkit 2003\PlatformSDK\include"
+CC=cl
+LIB=lib /nologo
+COMMON_FLAGS = /c  /nologo /DUSE_FAR_170  /Zp2 /D_export= /D_FARPLUS=1
+RELEASE_FLAGS = /LD /Ox /Gy  /GL
+DEBUG_FLAGS =  /LD /Od /Ge /Zi /D_DEBUG
+FARPlusCPP = FAR_SF.cpp \
+  FARArray.cpp \
+  FARDialog.cpp \
+  FAREd.cpp \
+  FARFile.cpp \
+  FARLog.cpp \
+  FARPlus.cpp \
+  FARRegistry.cpp \
+  FARString.cpp \
+  FARXml.cpp
+FARPlusOptionalCPP = FARDbg.cpp FarDbg_PDB.cpp MicroRTL.cpp
+
+# Use these files explicitly:
+#  FARDbg.cpp FarDbg_PDB.cpp MicroRTL.cpp
+#  (i.e. nmake MicroRTL.obj_d & link ... MicroRTL.obj_d ... )
+
+
+FARPlusH = $(FARPlusCPP:.cpp=.h)
+FARPlusObj = $(FARPlusCPP:.cpp=.obj_r)
+FARPlusDebugObj = $(FARPlusCPP:.cpp=.obj_d)
+FARPlusOptionalObj = $(FARPlusOptionalCPP:.cpp=.obj_r)
+FARPlusOptionalDebugObj = $(FARPlusOptionalCPP:.cpp=.obj_d)
+
+main: farplus_r.lib farplus_d.lib $(FARPlusOptionalObj) $(FARPlusOptionalDebugObj)
+
+farplus_r.lib: $(FARPlusObj)
+	$(LIB) /OUT:farplus_r.lib $(FARPlusObj)
+
+farplus_d.lib: $(FARPlusDebugObj)
+	$(LIB) /OUT:farplus_d.lib $(FARPlusDebugObj)
+
+.cpp.obj_r:
+	$(CC) $(RELEASE_FLAGS) $(COMMON_FLAGS) $< /Fo$@ -Fdfarplus_r.pdb
+
+.cpp.obj_d:
+	$(CC) $(DEBUG_FLAGS) $(COMMON_FLAGS) $< /Fo$@ -Fdfarplus_d.pdb
+
+clean:
+	-del $(FARPlusObj) 
+	-del $(FARPlusDebugObj) 
+	-del $(FARPlusOptionalObj)
+	-del $(FARPlusOptionalDebugObj)
+	-del farplus_r.lib 
+	-del farplus_d.lib 
+	-del *.pdb

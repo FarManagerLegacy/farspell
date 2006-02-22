@@ -5,7 +5,7 @@ enum {
   MFarSpell, MLoadingDictionary, MEngineNotInstalled, MNoDictionaries,
   MSuggestion, MReplace, MSkip, MStop, MPreferences, MUnloadDictionaries,
   MHighlight, MDictianary, MParser,
-  MGeneralConfig, MSpellExts, MColorSelectBtn, 
+  MGeneralConfig, MSpellExts, MSuggMenu, MColorSelectBtn, 
   MSelectColor, MForeground, MBackground, MTest,
   M_FMT_AUTO_TEXT, M_FMT_TEXT, M_FMT_LATEX, M_FMT_HTML, M_FMT_MAN, M_FMT_FIRST };
 enum { 
@@ -17,14 +17,15 @@ enum {
 ;                      selected(T/F|0/1) 
 ;                                      Flags          DefButton Data
 name "General config"
-DOUBLEBOX 0 3 1 55 7 F F               0              0 %LNG% MGeneralConfig
+DOUBLEBOX 0 3 1 55 8 F F               0              0 %LNG% MGeneralConfig
 TEXT 0      5 2  0 0 F F               0              0 %LNG% MSpellExts
 EDIT ID_GC_SpellExts 5 3 52 0 F MSpellExts DIF_HISTORY    0 NULL
-BUTTON MColorSelectBtn 5 4 0 0  F F               DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
-BUTTON MUnloadDictionaries 10 4 0 0 F F               DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
-TEXT 0      0  5 0 0 F F               DIF_SEPARATOR   0 NULL
-BUTTON MOk  05 6 0 0 F F               DIF_CENTERGROUP 1 %LNG% MOk
-BUTTON -1   15 6 0 0 F F               DIF_CENTERGROUP 0 %LNG% MCancel
+CHECKBOX MSuggMenu 7 4  0 0 F F               0              0 %LNG% MSuggMenu
+BUTTON MColorSelectBtn 5 5 0 0  F F               DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
+BUTTON MUnloadDictionaries 10 5 0 0 F F               DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
+TEXT 0      0  6 0 0 F F               DIF_SEPARATOR   0 NULL
+BUTTON MOk  05 7 0 0 F F               DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON -1   15 7 0 0 F F               DIF_CENTERGROUP 0 %LNG% MCancel
 
 name "Color Select"
 ; name     id x1 y1 x2 y2 focus(T/F|0/1) 

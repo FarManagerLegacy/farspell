@@ -64,6 +64,7 @@
 char *const editor_files_key = "EditorFiles";
 char *const highlight_mask_key = "HighlightMask";
 char *const highlight_color_key = "HighlightColor";
+char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -97,6 +98,7 @@ enum {
 
   MGeneralConfig,
   MSpellExts,
+  MSuggMenu,
   MColorSelectBtn,
 
   MSelectColor,
@@ -248,8 +250,10 @@ void ConvertEncoding(FarString &src, int src_enc, FarString &dst, int dst_enc)
   dst.ReleaseBuffer(ac);
 }
 
+class FarEditorSuggestList;
 class FarSpellEditor
 {
+  friend class FarEditorSuggestList;
   public:
     int EditorId;
     FarSpellEditor *next, *prev;
@@ -263,6 +267,7 @@ class FarSpellEditor
         FarArray<Hunspell> cache_engine_instances;
         FarString highlight_list;
         int highlight_color;
+        bool suggestions_in_menu;
         class FarRegistry1: public FarRegistry
         {  public:
              FarRegistry1 (const char *rootKeyStart, const char *rootKeyBody)
@@ -288,6 +293,8 @@ class FarSpellEditor
           last = NULL;
           highlight_list = reg.GetRegStr("", highlight_mask_key, "*.txt,*.,*.tex,*.htm,*.html,*.docbook");
           highlight_color = reg.GetRegKey("", highlight_color_key, 0x84);
+          suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
+
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
           ml = NULL;
@@ -307,6 +314,7 @@ class FarSpellEditor
         {
           reg.SetRegKey("", highlight_mask_key, highlight_list);
           reg.SetRegKey("", highlight_color_key, highlight_color);
+          reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
           if (ml)
@@ -348,7 +356,8 @@ class FarSpellEditor
         {
            FarEdInfo fei;
            FarSpellEditor *editor = Lookup(fei.EditorID);
-           if (editor) editor->DoMenu(fei);
+           if (editor)
+              editor->DoMenu(fei, suggestions_in_menu);
         }
     };
     static Manager *editors;
@@ -375,7 +384,7 @@ class FarSpellEditor
   public:
     FarSpellEditor();
     ~FarSpellEditor();
-    void DoMenu(FarEdInfo &fei);
+    void DoMenu(FarEdInfo &fei, bool insert_suggestions);
     void Save(FarEdInfo *fei);
     void Redraw(FarEdInfo &fei, int What);
     void HighlightRange(FarEdInfo &fei, int top_line, int bottom_line);
@@ -799,68 +808,114 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
   }
 }
 
-void FarSpellEditor::DoMenu(FarEdInfo &fei)
+class FarEditorSuggestList
 {
-  Hunspell *dict_inst = GetDict();
-  TextParser *parser_inst = GetParser();
-  FarMenu menu(MFarSpell, FMENU_WRAPMODE, "Contents");
-  FarString s;
-  char* token = NULL;
-  int tpos, tlen;
-  int cpos = fei.CurPos;
-  int line = fei.CurLine;
-  int ns, res, static_part = 0;
-  char ** wlst = NULL;
-  FarString document(FarEd::GetStringText(line));
+    char **wlst;
+    int tpos, tlen;
+    int line;
+    char *token;
+    int ns;
+    FarSpellEditor* editor;
+    FarString _word_cache;
+  public:
+    FarEditorSuggestList(FarEdInfo &fei, FarSpellEditor* _editor)
+    : editor(_editor)
+    {
+      token = NULL;
+      wlst = NULL;
+      ns = 0;
+      Hunspell *dict_inst = editor->GetDict();
+      TextParser *parser_inst = editor->GetParser();
+      int cpos = fei.CurPos;
+      line = fei.CurLine;
+      FarString document(FarEd::GetStringText(line));
 
-  ConvertEncoding(document, doc_enc, document, spell_enc);
-  parser_inst->put_line((char*)document.c_str());
-  while ((token = parser_inst->next_token()))
-  {
-    if (!dict_inst->spell(token))
-    {
-      tpos = parser_inst->get_tokenpos();
-      tlen = strlen(token);
-      if (cpos>=tpos && cpos<(tpos+tlen))
-        break;
-    }
-    hunspell_free(token);
-    token = NULL;
-  }
-  if (token)
-  {
-    ns = dict_inst->suggest(&wlst,token);
-    if (ns)
-    {
-      for (int j = 0; j < ns; j++) {
-        s = wlst[j];
-        ConvertEncoding(s, spell_enc, s, GetOEMCP());
-        menu.AddItem(s);
+      ConvertEncoding(document, editor->doc_enc, document, editor->spell_enc);
+      parser_inst->put_line((char*)document.c_str());
+      while ((token = parser_inst->next_token()))
+      {
+        if (!dict_inst->spell(token))
+        {
+          tpos = parser_inst->get_tokenpos();
+          tlen = strlen(token);
+          if (cpos>=tpos && cpos<(tpos+tlen))
+            break;
+        }
+        hunspell_free(token);
+        token = NULL;
       }
-      menu.AddSeparator();
-      static_part = ns+1;
-    };
-    hunspell_free(token);
+      if (token)
+      {
+        ns = dict_inst->suggest(&wlst, token);
+        hunspell_free(token);
+        token = NULL;
+      }
+    }
+    ~FarEditorSuggestList()
+    {
+      if (wlst)
+      {
+        for (int j = 0; j < ns; j++)
+          hunspell_free(wlst[j]);
+        hunspell_free(wlst);
+        wlst = NULL;
+      }
+      if (token)
+      {
+        hunspell_free(token);
+        token = NULL;
+      }
+    }
+    inline int Count() const
+    {
+      return ns;
+    }
+    FarString& operator[](int index) 
+    {
+      _word_cache = wlst[index];
+      ConvertEncoding(_word_cache, editor->spell_enc, _word_cache, GetOEMCP());
+      return _word_cache;
+    }
+    bool Apply(int index) 
+    {
+      if (!ns || !wlst || index>=ns || index < 0) throw "Bad Apply";
+      FarEd::SetPos(line, tpos);
+      for (int i=0; i<tlen; i++)
+        FarEd::DeleteChar();
+      FarString s(wlst[index]);
+      ConvertEncoding(s, editor->spell_enc, s, GetOEMCP());
+      FarEd::InsertText(s);
+    }
+};
+
+void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
+{
+  FarEditorSuggestList *sl = 
+    insert_suggestions ? new FarEditorSuggestList(fei, this) : NULL;
+  FarMenu menu(MFarSpell, FMENU_WRAPMODE, "Contents");
+  int static_part = 0;
+
+  if (sl && sl->Count())
+  {
+    for (int j = 0; j < sl->Count(); j++) 
+      menu.AddItem((*sl)[j]);
+    menu.AddSeparator();
+    static_part = sl->Count()+1;
   }
   menu.AddItem(MPreferences);
 # ifdef _DEBUG
   menu.AddItem("Test dump");
 # endif _DEBUG
 
-  res=menu.Show();
+  int res = menu.Show();
 
   if (res==-1)
   {
     //pass
   }
-  else if (ns && wlst && res<ns)
+  else if (sl && sl->Count() && res<sl->Count())
   {
-    FarEd::SetPos(line, tpos);
-    for (int i=0; i<tlen; i++)
-      FarEd::DeleteChar();
-    s = wlst[res];
-    ConvertEncoding(s, spell_enc, s, GetOEMCP());
-    FarEd::InsertText(s);
+    sl->Apply(res);
   }
   else
   {
@@ -872,12 +927,10 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei)
 #     endif _DEBUG
     }
   }
-
-  if (wlst)
+  if (sl)
   {
-    for (int j = 0; j < ns; j++)
-      hunspell_free(wlst[j]);
-    hunspell_free(wlst);
+    delete sl;
+    sl = NULL;
   }
 }
 
@@ -924,6 +977,7 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
   dlg = LoadDialog(hDll, "farspell.dlg", "General config"); // Load dialog
   char* p = GetItemData(dlg, ID_GC_SpellExts);
   strcpy(p, highlight_list.c_str());
+  SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
   for (int cont=1; cont;) switch (ShowDialog(dlg))
   {
     case MColorSelectBtn:
@@ -938,6 +992,7 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
         char* news = highlight_list.GetBuffer(l);
         strncpy(news, p, l);
         highlight_list.ReleaseBuffer(l);
+        suggestions_in_menu = GetItemStatus(dlg, MSuggMenu); 
       }
       cont = 0;
       break;

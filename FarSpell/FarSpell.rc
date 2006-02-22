@@ -1,0 +1,29 @@
+// 
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 0, &Y, &m, &d
+PRODUCTVERSION 1, 70, 4, 0
+FILEOS 4
+FILETYPE 2
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "000004E4"
+  {
+   VALUE "CompanyName", "Eugene Roshal & FAR Group\000\000"
+   VALUE "FileDescription", "Spell-check plugin for FAR Manager\000"
+   VALUE "FileVersion", "alpha &Y&m&d\000\000"
+   VALUE "InternalName", "farspell.dll\000"
+   VALUE "LegalCopyright", "Copyright © Sergey Shishmintzev 2005-&Y, Copyright © Eugene Roshal 1996-2000, Copyright © 2000 FAR Group\000\000"
+   VALUE "OriginalFilename", "farspell.dll\000"
+   VALUE "ProductName", "FAR manager\000"
+   VALUE "ProductVersion", "1.70 beta 4\000"
+  }
+
+ }
+
+ BLOCK "VarFileInfo"
+ {
+   VALUE "Translation", 0, 0x4e4
+ }
+
+}

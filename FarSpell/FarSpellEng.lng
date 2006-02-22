@@ -1,0 +1,45 @@
+.Language=English,English
+
+"Please wait..."
+"&Continue"
+"&Don't disturb me"
+"&Unload plugin"
+"&Exit FAR"
+"...see more in %s.err!"
+"Exception in %s"
+
+"Error"
+"OK"
+"Cancel"
+
+"FarSpell: Spell-check"
+"Loading dictionary %s..."
+"engine not installed!"
+"No dictionaries"
+
+"Suggestion"
+"Replace"
+"Skip"
+"Stop spell-checking"
+"Preferences"
+"Unload dictionaries"
+
+"Highlight enabled"
+"Dictianary:"
+"Text format:"
+
+"FarSpell: general config"
+"Spellcheck files by default:"
+"Mispellign color..."
+
+"Select Color"
+"Foreground"
+"Background"
+"Test"
+
+"Autodetect"
+"Plain text"
+"LaTeX"
+"HTML"
+"Unix man pages"
+"`First field (delimiter = tabulator)'"

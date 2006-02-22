@@ -1,0 +1,27 @@
+
+CXXFILES = affentry.cxx affixmgr.cxx csutil.cxx \
+   dictmgr.cxx hashmgr.cxx hunspell.cxx suggestmgr.cxx
+
+RELEASE_OBJ_FILES = $(CXXFILES:.cxx=.obj_r)
+DEBUG_OBJ_FILES = $(CXXFILES:.cxx=.obj_d)
+CC = cl -nologo
+LIB = lib.exe
+
+CXX_COMMON_FLAGS = -DW32 -D_LIB
+CXX_RELEASE_FLAGS = -LD -Ox -Gy -GL  -DNDEBUG
+CXX_DEBUG_FLAGS =  -LD -Od -Zi -Ge -D_DEBUG
+
+all: hunspell_r.lib hunspell_d.lib
+
+hunspell_r.lib: $(RELEASE_OBJ_FILES)
+	$(LIB) -out:$@ $(RELEASE_OBJ_FILES)
+.cxx.obj_r:
+	$(CC) -c  $(CXX_RELEASE_FLAGS) $(CXX_COMMON_FLAGS) $< -Fo$@ -Fdhunspell_r.pdb
+
+hunspell_d.lib: $(DEBUG_OBJ_FILES)
+	$(LIB) -out:$@ $(DEBUG_OBJ_FILES)
+.cxx.obj_d:
+	$(CC) -c $(CXX_DEBUG_FLAGS) $(CXX_COMMON_FLAGS) $< -Fo$@ -Fdhunspell_d.pdb
+
+clean:
+	del $(RELEASE_OBJ_FILES) $(DEBUG_OBJ_FILES) hunspell.dll hunspell_r.* hunspell.exp hunspell_d.* *.pdb

@@ -1,0 +1,31 @@
+Для сборки плагина нужно достать:
+  - Visual C++ Toolkit 2003
+    http://msdn.microsoft.com/library/en-us/vcedit/html/vcorivisualcmainnode.asp
+  - PlatformSDK
+    на любом компакте с Visual Studio
+  - Windows Driver Development Kit 2000/XP (нужен nmake.exe, lib.exe)
+    eDonkey/BitTorrent (???)
+  - ... либо Visual Studio XXXX (не проверял)
+  - Архив с исходниками Hunspell (например, версии 1.1.3.2)
+      http://hunspell.sourceforge.net/
+      CVS почему-то здесь:
+      @echo  Password: `anoncvs'
+      cvs -d :pserver:anoncvs@anoncvs.services.openoffice.org:/cvs login
+      cvs -z 3 -d :pserver:anoncvs@anoncvs.services.openoffice.org:/cvs checkout whiteboard/lingucomponent/source/spellcheck/hunspell
+
+Для работы с репозитарием:
+   Нужен darcs-win32. Например отсюда http://glozer.net/darcs/
+   Доки:
+     http://www.darcs.net/DarcsWiki/
+     http://www.darcs.net/DarcsWiki/%d0%9d%d0%b0%d1%87%d0%b0%d0%bb%d0%be
+   
+
+Последовательность сборки:
+  1. Зайти в папку FarSpell
+  2a. Запустить "nmake debug"
+  [-> В подпапке будет рабочая версия farspell]
+  3a. Запустить "nmake dist"
+  [-> Получится файл farspell-YYYYMMDD-debug.7z - это отладочный
+      дистрибутив плагина.]
+  2b. Или запустить "nmake release dist"
+  [-> Получится файл farspell-YYYYMMDD.7z - это дистрибутив плагина.]

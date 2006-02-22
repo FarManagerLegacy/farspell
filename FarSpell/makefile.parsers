@@ -1,0 +1,27 @@
+
+CXXFILES = firstparser.cxx htmlparser.cxx latexparser.cxx  \
+    manparser.cxx textparser.cxx
+
+RELEASE_OBJ_FILES = $(CXXFILES:.cxx=.obj_r)
+DEBUG_OBJ_FILES = $(CXXFILES:.cxx=.obj_d)
+CC = cl -nologo
+LIB = lib.exe -nologo
+CXX_COMMON_FLAGS =  -DW32
+CXX_RELEASE_FLAGS = -LD -Ox -Gy  -GL  -DNDEBUG
+CXX_DEBUG_FLAGS =  -LD -Od -Zi -Ge -D_DEBUG
+
+all: hunparsers_r.lib hunparsers_d.lib
+
+hunparsers_r.lib: $(RELEASE_OBJ_FILES)
+	$(LIB) -out:$@ $(RELEASE_OBJ_FILES)
+.cxx.obj_r:
+	$(CC) -c $(CXX_RELEASE_FLAGS) $(CXX_COMMON_FLAGS) $< -Fo$@ -Fdhunparsers.pdb
+
+hunparsers_d.lib: $(DEBUG_OBJ_FILES)
+	$(LIB) -out:$@ $(DEBUG_OBJ_FILES)
+.cxx.obj_d:
+	$(CC) -c $(CXX_DEBUG_FLAGS) $(CXX_COMMON_FLAGS) $< -Fo$@ -Fdhunparsers_d.pdb
+
+
+clean:
+	del $(DEBUG_OBJ_FILES) $(RELEASE_OBJ_FILES) hunparsers.dll hunparsers_r.* hunparsers.exp  hunparsers_d.* *.pdb

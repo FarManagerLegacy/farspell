@@ -1,0 +1,9 @@
+LIBRARY farspell.dll
+EXPORTS
+   ExitFAR=_ExitFAR@0
+   GetPluginInfo=_GetPluginInfo@4
+   OpenPlugin=_OpenPlugin@8
+   SetStartupInfo=_SetStartupInfo@4
+   ProcessEditorEvent=?ProcessEditorEvent@@YGHHH@Z
+   SetLngMode=?SetLngMode@@YGHXZ
+   Configure=_Configure@4

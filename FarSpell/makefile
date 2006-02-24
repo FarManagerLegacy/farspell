@@ -217,17 +217,23 @@ dist: makefile.exinfo templates
 	-@del $(DIST_FILE).7z > nul
 	if exist $(DIST_FILE).7z !error Unable to delete farspell-$(TIMESTAMP)$(DIST_SUFFIX).7z
 	cd $(DIST)
-  $(SEVEN_ZIP) a -t7z -mx9 -ms ..\$(DIST_FILE) file_id.diz
+	$(SEVEN_ZIP) a -t7z -mx9 -ms ..\$(DIST_FILE) file_id.diz
 	cd ..
-	$(SEVEN_ZIP) a -t7z -mx9 -ms $(DIST_FILE) \
-	  $(DIST)\farspell.dll $(DIST)\Dialog.gen \
-	  $(DIST)\farspell.dlg \
-	  $(DIST)\file_id.diz $(DIST)\history.txt $(DIST)\todo.txt \
-	  $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
-	  $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
-	  $(DIST)\FarSpell.map
+	$(SEVEN_ZIP) a -t7z -mx9 -ms $(DIST_FILE) @<< 
+$(DIST)\farspell.dll 
+$(DIST)\Dialog.gen 
+$(DIST)\farspell.dlg 
+$(DIST)\file_id.diz 
+$(DIST)\history.txt 
+$(DIST)\todo.txt 
+$(DIST)\FarSpellEng.hlf 
+$(DIST)\FarSpellEng.lng 
+$(DIST)\FarSpellRus.hlf 
+$(DIST)\FarSpellRus.lng 
+$(DIST)\FarSpell.map
 !ifdef DEBUG_BUILT
-	$(SEVEN_ZIP) a -t7z -mx9 -ms $(DIST_FILE) \
-	  $(DIST)\dbghelp.dll $(DIST)\farspell.pdb
+$(DIST)\dbghelp.dll 
+$(DIST)\farspell.pdb
 !endif DEBUG
+<<NOKEEP
 !endif EXINFO

@@ -64,6 +64,7 @@
 char *const editor_files_key = "EditorFiles";
 char *const highlight_mask_key = "HighlightMask";
 char *const highlight_color_key = "HighlightColor";
+char *const highlight_deletecolor_key = "HighlightDeleteColor";
 char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
 
 // -- Language strings -------------------------------------------------------
@@ -99,6 +100,7 @@ enum {
   MGeneralConfig,
   MSpellExts,
   MSuggMenu,
+  MAnotherColoring,
   MColorSelectBtn,
 
   MSelectColor,
@@ -268,6 +270,7 @@ class FarSpellEditor
         FarString highlight_list;
         int highlight_color;
         bool suggestions_in_menu;
+        bool highlight_deletecolor; 
         class FarRegistry1: public FarRegistry
         {  public:
              FarRegistry1 (const char *rootKeyStart, const char *rootKeyBody)
@@ -294,7 +297,7 @@ class FarSpellEditor
           highlight_list = reg.GetRegStr("", highlight_mask_key, "*.txt,*.,*.tex,*.htm,*.html,*.docbook");
           highlight_color = reg.GetRegKey("", highlight_color_key, 0x84);
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
-
+          highlight_deletecolor = reg.GetRegKey("", highlight_deletecolor_key, false);
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
           ml = NULL;
@@ -315,6 +318,7 @@ class FarSpellEditor
           reg.SetRegKey("", highlight_mask_key, highlight_list);
           reg.SetRegKey("", highlight_color_key, highlight_color);
           reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
+          reg.SetRegKey("", highlight_deletecolor_key, highlight_deletecolor);
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
           if (ml)
@@ -574,17 +578,6 @@ TextParser* FarSpellEditor::GetParser()
   return _parser_instance;
 }
 
-void FarSpellEditor::ClearAndRedraw(FarEdInfo &fei)
-{
-  if (!highlight) return;
-  if (colored_begin!=INT_MAX && colored_end!=0)
-    for (int i=colored_begin; i<min(colored_end, fei.TotalLines); i++)
-      FarEd::DeleteColor(i);
-  colored_begin=INT_MAX;
-  colored_end=0;
-  Redraw(fei, (int)EEREDRAW_ALL);
-}
-
 int FarSpellEditor::Manager::OnEvent(int Event, int Param)
 {
   FarSpellEditor *editor;
@@ -689,7 +682,8 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   //GetLog().Message("top=%d bot=%d", top_line, bottom_line);
   for (int line_no=top_line; line_no<bottom_line; line_no++)
   {
-    FarEd::DeleteColor(line_no);
+    if (editors->highlight_deletecolor)
+      FarEd::DeleteColor(line_no);
     document = FarEd::GetStringText(line_no);
     document.Delete(MAXLNLEN, document.Length());
     ConvertEncoding(document, doc_enc, document, spell_enc);
@@ -704,6 +698,17 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
       hunspell_free(token);
     }
   }
+}
+
+void FarSpellEditor::ClearAndRedraw(FarEdInfo &fei)
+{
+  if (!highlight) return;
+  if (editors->highlight_deletecolor && colored_begin!=INT_MAX && colored_end!=0)
+    for (int i=colored_begin; i<min(colored_end, fei.TotalLines); i++)
+      FarEd::DeleteColor(i);
+  colored_begin=INT_MAX;
+  colored_end=0;
+  Redraw(fei, (int)EEREDRAW_ALL);
 }
 
 int FarSpellEditor::ShowSuggestion(int line, int start, int len, const char* word, char ** wlst, int ns)
@@ -978,6 +983,8 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
   char* p = GetItemData(dlg, ID_GC_SpellExts);
   strcpy(p, highlight_list.c_str());
   SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
+  SetItemStatus(dlg, MAnotherColoring, !highlight_deletecolor);
+  
   for (int cont=1; cont;) switch (ShowDialog(dlg))
   {
     case MColorSelectBtn:
@@ -993,6 +1000,7 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
         strncpy(news, p, l);
         highlight_list.ReleaseBuffer(l);
         suggestions_in_menu = GetItemStatus(dlg, MSuggMenu); 
+        highlight_deletecolor = !GetItemStatus(dlg, MAnotherColoring);
       }
       cont = 0;
       break;

@@ -6,7 +6,7 @@
   - Windows Driver Development Kit 2000/XP (нужен nmake.exe, lib.exe)
     eDonkey/BitTorrent (???)
   - ... либо Visual Studio XXXX (не проверял)
-  - Архив с исходниками Hunspell (например, версии 1.1.3.2)
+  - Архив с исходниками Hunspell (например, версии 1.1.4)
       http://hunspell.sourceforge.net/
       CVS почему-то здесь:
       @echo  Password: `anoncvs'

@@ -1,3 +1,12 @@
+20060225:
+  [*] hunspell-1.1.4:
+      - Improved suggestion for typical OCR bugs (missing spaces between
+        capitalized words). For example: "aNew" -> "a New".
+        http://qa.openoffice.org/issues/show_bug.cgi?id=58202
+      
+      - tokenization fixes (fix incomplete tokenization of input texts on big-endian
+        platforms, and locale-dependent tokenization of dictionary entries)
+
 20060224:
   [*] Корректная работа с другими плагинами раскраски (thanks, trex!)
 

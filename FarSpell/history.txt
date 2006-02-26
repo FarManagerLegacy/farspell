@@ -1,4 +1,4 @@
-20060225:
+20060226:
   [*] hunspell-1.1.4:
       - Improved suggestion for typical OCR bugs (missing spaces between
         capitalized words). For example: "aNew" -> "a New".
@@ -6,6 +6,7 @@
       
       - tokenization fixes (fix incomplete tokenization of input texts on big-endian
         platforms, and locale-dependent tokenization of dictionary entries)
+  [-] Убрал раскраску латиницы для языков с кодировкой koi8. 
 
 20060224:
   [*] Корректная работа с другими плагинами раскраски (thanks, trex!)

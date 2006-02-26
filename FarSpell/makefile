@@ -4,7 +4,7 @@
 
 SEVEN_ZIP = "c:\program files\7-zip\7z.exe"
 
-Hunspell = F:\devel\spell\hunspell-1.1.4\src
+Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
 FARPlus = ..\FARPlus
 DialogAPI = ..\DialogGenerator
 CINCLUDE = -I".." \

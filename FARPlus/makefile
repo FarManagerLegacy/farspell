@@ -14,14 +14,24 @@ FARPlusCPP = FAR_SF.cpp \
   FARRegistry.cpp \
   FARString.cpp \
   FARXml.cpp
-FARPlusOptionalCPP = FARDbg.cpp FarDbg_PDB.cpp MicroRTL.cpp
 
+FARPlusOptionalCPP = FARDbg.cpp FarDbg_PDB.cpp MicroRTL.cpp
 # Use these files explicitly:
 #  FARDbg.cpp FarDbg_PDB.cpp MicroRTL.cpp
 #  (i.e. nmake MicroRTL.obj_d & link ... MicroRTL.obj_d ... )
 
+FARPlusH = FARArray.h \
+  FARDbg.h \
+  FARDialog.h \
+  FAREd.h \
+  FARFile.h \
+  FARLog.h \
+  FARMemory.h \
+  FARPlus.h \
+  FARRegistry.h \
+  FARString.h \
+  FARXml.h 
 
-FARPlusH = $(FARPlusCPP:.cpp=.h)
 FARPlusObj = $(FARPlusCPP:.cpp=.obj_r)
 FARPlusDebugObj = $(FARPlusCPP:.cpp=.obj_d)
 FARPlusOptionalObj = $(FARPlusOptionalCPP:.cpp=.obj_r)
@@ -29,13 +39,16 @@ FARPlusOptionalDebugObj = $(FARPlusOptionalCPP:.cpp=.obj_d)
 
 main: farplus_r.lib farplus_d.lib $(FARPlusOptionalObj) $(FARPlusOptionalDebugObj)
 
-farplus_r.lib: $(FARPlusObj)
+farplus_r.lib: $(FARPlusObj) 
 	$(LIB) /OUT:farplus_r.lib $(FARPlusObj)
 
-farplus_d.lib: $(FARPlusDebugObj)
+farplus_d.lib: $(FARPlusDebugObj)  
 	$(LIB) /OUT:farplus_d.lib $(FARPlusDebugObj)
 
-.cpp.obj_r:
+$(FARPlusObj): $(FARPlusH)
+$(FARPlusDebugObj): $(FARPlusH)
+
+.cpp.obj_r: 
 	$(CC) $(RELEASE_FLAGS) $(COMMON_FLAGS) $< /Fo$@ -Fdfarplus_r.pdb
 
 .cpp.obj_d:

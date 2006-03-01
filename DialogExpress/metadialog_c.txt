@@ -1,0 +1,58 @@
+metaquote %[]
+begin
+%[foreach dialog]
+/******************************************************************************
+ %[dialog id]
+ ******************************************************************************/
+struct FarDialogItem* %[prefix]%[dialog_id](const struct PluginStartupInfo *pInfo)
+{
+  struct FarDialogItem Items[] = { 
+%[foreach item]
+%[has msgid?]
+    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags], /* msgid=%[msgid] */ },
+%[other]
+    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags], %[cdata] },
+%[next item]
+    { 0 },
+  };
+  struct FarDialogItem *pItems = (struct FarDialogItem *)malloc(sizeof(Items));
+  memcpy(pItems, Items, sizeof(Items));
+%[foreach item]
+%[has msgid?]
+  strcpy((pItems+%[index])->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+%[next item]
+  return pItems;
+}
+
+int __inline %[prefix]%[dialog_id]Index(int nId)
+{
+  switch(nId)
+  {
+%[foreach item]
+%[has id?]
+    case %[id]: return %[index];
+%[next item]
+  }
+  return 0;
+}
+
+int __inline %[prefix]%[dialog_id]Id(int nIndex)
+{
+  switch(nIndex)
+  {
+%[foreach item]
+    case %[index]: return %[id];
+%[next item]
+  }
+  return 0;
+}
+
+%[foreach item]
+%[has id]
+#define %[prefix]%[dialog_id]Index_%[cid] %[index]
+%[next item]
+
+%[foreach item]
+#define %[prefix]%[dialog_id]Id_%[index] %[id]
+%[next item]
+%[next dialog]

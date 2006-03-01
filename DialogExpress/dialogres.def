@@ -1,0 +1,27 @@
+LIBRARY dialogres.pdll
+EXPORTS
+	dialogres_free
+	dialogres_open
+	dialogres_close
+	dialogres_last_error
+	dialogres_error_pos
+	dialogres_error_line
+	dialogres_dialogs_count
+	dialogres_get_dialog
+	dialogres_last_dialog
+	dialogres_prev_dialog
+	dialogtemplate_create_items
+	dialogtemplate_items_count
+	dialogtemplate_index_by_id
+	dialogtemplate_name
+	dialogtemplate_help
+	dialogtemplate_get_item
+	dialogtemplate_first_item
+	dialogtemplate_next_item
+	dialogitem_datasource_type
+	dialogitem_id
+	dialogitem_sid
+	dialogitem_index
+	dialogitem_datasource_text
+	dialogitem_datasource_msgid
+	dialogitem_history

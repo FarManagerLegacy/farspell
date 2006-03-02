@@ -61,6 +61,7 @@
 #endif
 
 // Registry keys
+char *const plugin_enabled_key = "PluginEnabled";
 char *const editor_files_key = "EditorFiles";
 char *const highlight_mask_key = "HighlightMask";
 char *const highlight_color_key = "HighlightColor";
@@ -98,6 +99,7 @@ enum {
   MParser,
 
   MGeneralConfig,
+  MPluginEnabled,
   MSpellExts,
   MSuggMenu,
   MAnotherColoring,
@@ -268,6 +270,7 @@ class FarSpellEditor
         FarArray<FarString> cache_engine_langs;
         FarArray<Hunspell> cache_engine_instances;
         FarString highlight_list;
+        bool plugin_enabled;
         int highlight_color;
         bool suggestions_in_menu;
         bool highlight_deletecolor; 
@@ -294,6 +297,7 @@ class FarSpellEditor
         {
           hDll = GetModuleHandle(Far::GetModuleName());
           last = NULL;
+          plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);
           highlight_list = reg.GetRegStr("", highlight_mask_key, "*.txt,*.,*.tex,*.htm,*.html,*.docbook");
           highlight_color = reg.GetRegKey("", highlight_color_key, 0x84);
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
@@ -315,6 +319,7 @@ class FarSpellEditor
         }
         ~Manager()
         {
+          reg.SetRegKey("", plugin_enabled_key, plugin_enabled);
           reg.SetRegKey("", highlight_mask_key, highlight_list);
           reg.SetRegKey("", highlight_color_key, highlight_color);
           reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
@@ -588,7 +593,7 @@ int FarSpellEditor::Manager::OnEvent(int Event, int Param)
       new FarSpellEditor();
       break;
     case EE_SAVE: // Param==NULL
-      {
+      if (plugin_enabled) {
         FarEdInfo fei;
         editor=Lookup(id=fei.EditorID);
         if (editor) editor->Save(&fei);
@@ -605,7 +610,7 @@ int FarSpellEditor::Manager::OnEvent(int Event, int Param)
       }
       break;
     case EE_REDRAW:
-      {
+      if (plugin_enabled) {
         FarEdInfo fei;
         editor=Lookup(id=fei.EditorID);
         if (editor) editor->Redraw(fei, Param);
@@ -895,10 +900,11 @@ class FarEditorSuggestList
 
 void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 {
-  FarEditorSuggestList *sl = 
-    insert_suggestions ? new FarEditorSuggestList(fei, this) : NULL;
-  FarMenu menu(MFarSpell, FMENU_WRAPMODE, "Contents");
-  int static_part = 0;
+  FarEditorSuggestList *sl 
+   = insert_suggestions && editors->plugin_enabled 
+     ? new FarEditorSuggestList(fei, this) : NULL;
+  FarMenuEx menu(MFarSpell, FMENU_WRAPMODE, "Contents");
+  int i, static_part = 0;
 
   if (sl && sl->Count())
   {
@@ -907,9 +913,14 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     menu.AddSeparator();
     static_part = sl->Count()+1;
   }
-  menu.AddItem(MPreferences);
+  i = menu.AddItem(MPreferences);
+  if (!editors->plugin_enabled)
+    menu.DisableItem(i);
+
 # ifdef _DEBUG
-  menu.AddItem("Test dump");
+  i = menu.AddItem("Test dump");
+  if (!editors->plugin_enabled)
+    menu.DisableItem(i);
 # endif _DEBUG
 
   int res = menu.Show();
@@ -982,6 +993,7 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
   dlg = LoadDialog(hDll, "farspell.dlg", "General config"); // Load dialog
   char* p = GetItemData(dlg, ID_GC_SpellExts);
   strcpy(p, highlight_list.c_str());
+  SetItemStatus(dlg, MPluginEnabled, plugin_enabled);
   SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
   SetItemStatus(dlg, MAnotherColoring, !highlight_deletecolor);
   
@@ -1001,6 +1013,7 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
         highlight_list.ReleaseBuffer(l);
         suggestions_in_menu = GetItemStatus(dlg, MSuggMenu); 
         highlight_deletecolor = !GetItemStatus(dlg, MAnotherColoring);
+        plugin_enabled = GetItemStatus(dlg, MPluginEnabled);
       }
       cont = 0;
       break;

@@ -92,6 +92,7 @@ enum {
   MSkip,
   MStop,
   MPreferences,
+  MEditorGeneralConfig,
   MUnloadDictionaries,
 
   MHighlight,
@@ -358,6 +359,7 @@ class FarSpellEditor
           return FarLog(plugin_root+"farspell.log");
         }
         int OnConfigure(int ItemNumber);
+          int GeneralConfig(bool from_editor);
           int ColorSelectDialog();
         int GetCharsetEncoding(FarString &name);
         int OnEvent(int Event, int Param);
@@ -917,6 +919,8 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   if (!editors->plugin_enabled)
     menu.DisableItem(i);
 
+  menu.AddItem(MEditorGeneralConfig);
+
 # ifdef _DEBUG
   i = menu.AddItem("Test dump");
   if (!editors->plugin_enabled)
@@ -938,8 +942,9 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     switch (res-static_part)
     {
       case 0: ShowPreferences(fei); break;
+      case 1: editors->GeneralConfig(true); break;
 #     ifdef _DEBUG
-      case 1: enable_bug = true;
+      case 2: enable_bug = true;
 #     endif _DEBUG
     }
   }
@@ -986,7 +991,7 @@ int FarSpellEditor::Manager::ColorSelectDialog()
   return FALSE;
 }
 
-int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
+int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
   DWORD dlg; // Dialog handle
   int res;
@@ -996,7 +1001,9 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
   SetItemStatus(dlg, MPluginEnabled, plugin_enabled);
   SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
   SetItemStatus(dlg, MAnotherColoring, !highlight_deletecolor);
-  
+  if (from_editor)
+    HideItem(dlg, MUnloadDictionaries);
+
   for (int cont=1; cont;) switch (ShowDialog(dlg))
   {
     case MColorSelectBtn:
@@ -1023,6 +1030,11 @@ int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
   }
   FreeDialog(dlg); // Free dialog
   return FALSE;
+}
+
+int FarSpellEditor::Manager::OnConfigure(int ItemNumber)
+{
+  return GeneralConfig(false);
 }
 
 // -- Exported plugin functions ----------------------------------------------

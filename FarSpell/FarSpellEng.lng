@@ -33,6 +33,7 @@
 "Plugin enabled"
 "Spell check files by default:"
 "Suggestions in menu"
+"Save settings for every file"
 "Another coloring plugins installed"
 "Misspelling color..."
 
@@ -40,6 +41,10 @@
 "Foreground"
 "Background"
 "Test"
+
+"You disable settings for every file"
+"Delete this settings?" 
+"Settings for every file was removed"
 
 "Autodetect"
 "Plain text"

@@ -1,3 +1,8 @@
+20060302:
+  [+] Отключение настроек для каждого файла.
+  [+] Общие настройки доступны в редакторе.
+  [+] Отключение плагина.
+
 20060226:
   [*] hunspell-1.1.4:
       - Improved suggestion for typical OCR bugs (missing spaces between

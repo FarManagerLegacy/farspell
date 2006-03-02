@@ -67,6 +67,7 @@ char *const highlight_mask_key = "HighlightMask";
 char *const highlight_color_key = "HighlightColor";
 char *const highlight_deletecolor_key = "HighlightDeleteColor";
 char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
+char *const enable_file_settings_key = "FileSettings";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -103,6 +104,7 @@ enum {
   MPluginEnabled,
   MSpellExts,
   MSuggMenu,
+  MFileSettings,
   MAnotherColoring,
   MColorSelectBtn,
 
@@ -110,6 +112,10 @@ enum {
   MForeground,
   MBackground,
   MTest,
+
+  MFileSettingWasDisabled,
+  MWillDeleteFileSetting,
+  MFileSettingsRemoved,
 
   M_FMT_AUTO_TEXT,
   M_FMT_TEXT,
@@ -272,6 +278,7 @@ class FarSpellEditor
         FarArray<Hunspell> cache_engine_instances;
         FarString highlight_list;
         bool plugin_enabled;
+        bool enable_file_settings;
         int highlight_color;
         bool suggestions_in_menu;
         bool highlight_deletecolor; 
@@ -299,6 +306,7 @@ class FarSpellEditor
           hDll = GetModuleHandle(Far::GetModuleName());
           last = NULL;
           plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);
+          enable_file_settings = reg.GetRegKey("", enable_file_settings_key, true);
           highlight_list = reg.GetRegStr("", highlight_mask_key, "*.txt,*.,*.tex,*.htm,*.html,*.docbook");
           highlight_color = reg.GetRegKey("", highlight_color_key, 0x84);
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
@@ -321,6 +329,7 @@ class FarSpellEditor
         ~Manager()
         {
           reg.SetRegKey("", plugin_enabled_key, plugin_enabled);
+          reg.SetRegKey("", enable_file_settings_key, enable_file_settings);
           reg.SetRegKey("", highlight_mask_key, highlight_list);
           reg.SetRegKey("", highlight_color_key, highlight_color);
           reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
@@ -361,6 +370,7 @@ class FarSpellEditor
         int OnConfigure(int ItemNumber);
           int GeneralConfig(bool from_editor);
           int ColorSelectDialog();
+          void ClearFileSettings();
         int GetCharsetEncoding(FarString &name);
         int OnEvent(int Event, int Param);
         void OnMenu()
@@ -459,6 +469,11 @@ int FarSpellEditor::Manager::GetCharsetEncoding(FarString &name)
   return GetACP();
 }
 
+void FarSpellEditor::Manager::ClearFileSettings()
+{
+  reg.DeleteRegKey("", editor_files_key);
+}
+
 // config format: int highlight | string dictinoary | int parser_id
 char *const config_template = "%d|%s|%d";
 char *const default_config_hl = "1|en_US|0";
@@ -536,6 +551,7 @@ FarSpellEditor::~FarSpellEditor()
 
 void FarSpellEditor::Save(FarEdInfo *fei)
 {
+  if (!editors->enable_file_settings) return;
   if (!FarFileInfo::IsDirectory(file_name.GetPath())) throw "invalid file";
   int size = sizeof(config_template)+dict.Length()+32*2;
   char *config_text = (char*)alloca(size);
@@ -995,12 +1011,14 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
   DWORD dlg; // Dialog handle
   int res;
+  bool last_enable_file_settings = enable_file_settings;
   dlg = LoadDialog(hDll, "farspell.dlg", "General config"); // Load dialog
   char* p = GetItemData(dlg, ID_GC_SpellExts);
   strcpy(p, highlight_list.c_str());
   SetItemStatus(dlg, MPluginEnabled, plugin_enabled);
   SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
   SetItemStatus(dlg, MAnotherColoring, !highlight_deletecolor);
+  SetItemStatus(dlg, MFileSettings, enable_file_settings);
   if (from_editor)
     HideItem(dlg, MUnloadDictionaries);
 
@@ -1021,6 +1039,7 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
         suggestions_in_menu = GetItemStatus(dlg, MSuggMenu); 
         highlight_deletecolor = !GetItemStatus(dlg, MAnotherColoring);
         plugin_enabled = GetItemStatus(dlg, MPluginEnabled);
+        enable_file_settings = GetItemStatus(dlg, MFileSettings);
       }
       cont = 0;
       break;
@@ -1029,6 +1048,18 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
       break;
   }
   FreeDialog(dlg); // Free dialog
+  if (!enable_file_settings && last_enable_file_settings)
+  {
+    FarMessage msg(FMSG_MB_YESNO);
+    msg.AddLine(MGeneralConfig);
+    msg.AddLine(MFileSettingWasDisabled);
+    msg.AddLine(MWillDeleteFileSetting);
+    if (msg.Show()==0)
+    {
+      ClearFileSettings();
+      FarMessage().SimpleMsg(FMSG_MB_OK, MGeneralConfig, MFileSettingsRemoved, -1);
+    }
+  }
   return FALSE;
 }
 

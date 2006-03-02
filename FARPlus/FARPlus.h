@@ -14,6 +14,7 @@
 #include "plugin.hpp"
 #include "FARString.h"
 #include "FARArray.h"
+#include "FARMenu.h"
 
 // If this is defined, new features of FAR 1.70 are used.
 // If this is not defined, the plugin will be compatible with FAR 1.65,
@@ -152,7 +153,6 @@ namespace FarSF {
 #endif
 
 // -- Far --------------------------------------------------------------------
-
 class Far
 {
 protected:
@@ -160,7 +160,8 @@ protected:
     friend class FarEd;
     friend class FarDialog;
     friend class FarMessage;
-    friend class FarMenu;
+    friend class FarMenuT<FarMenuItem>;
+    friend class FarMenuT<FarMenuItemEx>;
     friend class FarDirList;
 
     static PluginStartupInfo m_Info;
@@ -492,61 +493,6 @@ public:
     int SimpleMsg (unsigned int Flags, ...);
     int ErrMsg (const char *Text, int ExtraFlags = 0);
     int ErrMsg (int LngIndex, int ExtraFlags = 0);
-};
-
-// -- FarMenu ----------------------------------------------------------------
-
-class FarMenu
-{
-private:
-	FarMenu (const FarMenu &rhs);
-	const FarMenu &operator= (const FarMenu &rhs);
-
-protected:
-    FarString fTitle;
-    unsigned int fFlags;
-    FarString fHelpTopic;
-    FarString fBottom;
-    int *fBreakKeys;
-    int fBreakCode;
-    int fX, fY;
-	int fMaxHeight;
-    FarMenuItem *fItems;
-    int fItemsNumber;
-    bool fOwnsBreakKeys;
-    int InternalAddItem (const char *Text, int Selected, int Checked, int Separator);
-
-public:
-    FarMenu (const char *TitleText, unsigned int Flags=FMENU_WRAPMODE,
-        const char *HelpTopic=NULL);
-    FarMenu (int TitleLngIndex, unsigned int Flags=FMENU_WRAPMODE,
-        const char *HelpTopic=NULL);
-    ~FarMenu();
-
-    void SetLocation (int X, int Y)
-		{ fX = X; fY = Y; }
-    void SetMaxHeight (int MaxHeight)
-		{ fMaxHeight = MaxHeight; }
-    void SetBottomLine (const FarString &Text)
-		{ fBottom = Text; }
-    void SetBottomLine (int LngIndex)
-		{ fBottom = Far::GetMsg (LngIndex); }
-    void SetBreakKeys (int *BreakKeys)
-		{ fOwnsBreakKeys = false; fBreakKeys = BreakKeys; }
-    void SetBreakKeys (int aFirstKey, ...);
-
-    // returns index of new item
-    int AddItem (const char *Text, bool Selected=false, int Checked=0);
-    int AddItem (int LngIndex, bool Selected=false, int Checked=0);
-    int AddSeparator();
-
-    void ClearItems();
-    void SelectItem (int index);
-
-    // returns index of selected item
-    int Show();
-    int GetBreakCode() const
-		{ return fBreakCode; }
 };
 
 // -- FarSaveScreen ----------------------------------------------------------

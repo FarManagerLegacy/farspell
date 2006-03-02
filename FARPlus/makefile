@@ -27,6 +27,7 @@ FARPlusH = FARArray.h \
   FARFile.h \
   FARLog.h \
   FARMemory.h \
+  FARMenu.h \
   FARPlus.h \
   FARRegistry.h \
   FARString.h \

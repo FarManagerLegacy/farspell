@@ -215,7 +215,7 @@ void Far::FreePanelItems (PluginPanelItem *PanelItem, int ItemsNumber)
     }
     delete PanelItem;
 }
-                                            
+
 // -- FarMessage -------------------------------------------------------------
 
 FarMessage::FarMessage (unsigned int Flags, const char *HelpTopic)
@@ -346,7 +346,8 @@ int FarMessage::ErrMsg (int LngIndex, int ExtraFlags)
 
 // -- FarMenu ----------------------------------------------------------------
 
-FarMenu::FarMenu (const char *TitleText, unsigned int Flags,
+template <typename TItems>
+FarMenuT<TItems>::FarMenuT(const char *TitleText, unsigned int Flags,
                   const char *HelpTopic)
   : fTitle         (TitleText),
     fFlags         (Flags),
@@ -363,7 +364,8 @@ FarMenu::FarMenu (const char *TitleText, unsigned int Flags,
 {
 }
 
-FarMenu::FarMenu (int TitleLngIndex, unsigned int Flags,
+template <typename TItems>
+FarMenuT<TItems>::FarMenuT (int TitleLngIndex, unsigned int Flags,
                   const char *HelpTopic)
   : fTitle         (Far::GetMsg (TitleLngIndex)),
     fFlags         (Flags),
@@ -380,13 +382,14 @@ FarMenu::FarMenu (int TitleLngIndex, unsigned int Flags,
 {
 }
 
-FarMenu::~FarMenu()
+template <typename TItems>
+FarMenuT<TItems>::~FarMenuT()
 {
     if (fItems) free (fItems);
     if (fOwnsBreakKeys && fBreakKeys) delete [] fBreakKeys;
 }
 
-int FarMenu::InternalAddItem (const char *Text, int Selected, int Checked, int Separator)
+int FarMenuT<FarMenuItem>::InternalAddItem (const char *Text, int Selected, int Checked, int Separator)
 {
     fItems = (FarMenuItem *) realloc (fItems,
         ++fItemsNumber * sizeof (FarMenuItem));
@@ -397,36 +400,73 @@ int FarMenu::InternalAddItem (const char *Text, int Selected, int Checked, int S
     return fItemsNumber-1;
 }
 
-int FarMenu::AddItem (const char *Text, bool Selected, int Checked)
+int FarMenuT<FarMenuItemEx>::InternalAddItem (const char *Text, int Selected, int Checked, int Separator)
+{
+    fItems = (FarMenuItemEx *) realloc (fItems,
+        ++fItemsNumber * sizeof (FarMenuItemEx));
+    FarMenuItemEx *fItem = fItems+fItemsNumber-1;
+    lstrcpyn (fItem->Text.Text, Text, sizeof (fItem->Text.Text)-1);
+    fItem->Flags = (Selected?MIF_SELECTED:0) 
+                 | (Checked?MIF_CHECKED:0) 
+                 | (Separator?MIF_SEPARATOR:0);
+    return fItemsNumber-1;
+}
+
+template <typename TItems>
+int FarMenuT<TItems>::AddItem (const char *Text, bool Selected, int Checked)
 {
     return InternalAddItem (Text, Selected, Checked, 0);
 }
 
-int FarMenu::AddItem (int LngIndex, bool Selected, int Checked)
+template <typename TItems>
+int FarMenuT<TItems>::AddItem (int LngIndex, bool Selected, int Checked)
 {
     return InternalAddItem (Far::GetMsg (LngIndex), Selected, Checked, 0);
 }
 
-int FarMenu::AddSeparator()
+template <typename TItems>
+int FarMenuT<TItems>::AddSeparator()
 {
     return InternalAddItem ("", 0, 0, 1);
 }
 
-void FarMenu::ClearItems()
+template <typename TItems>
+void FarMenuT<TItems>::ClearItems()
 {
     delete [] fItems;
     fItems = NULL;
     fItemsNumber = 0;
 }
 
-void FarMenu::SelectItem (int index)
+void FarMenuT<FarMenuItem>::SelectItem (int index)
 {
     if (index >= 0 && index < fItemsNumber)
         for (int i=0; i < fItemsNumber; i++)
             fItems [i].Selected = (i == index);
 }
 
-void FarMenu::SetBreakKeys (int aFirstKey, ...)
+void FarMenuT<FarMenuItemEx>::SelectItem (int index)
+{
+    if (index >= 0 && index < fItemsNumber)
+    {
+        for (int i = 0; i < fItemsNumber; i++)
+        {
+            fItems [i].Flags &= ~MIF_SELECTED;
+        }
+        (fItems + index)->Flags |= MIF_SELECTED;
+    }
+}
+
+void FarMenuT<FarMenuItemEx>::DisableItem (int index)
+{
+  if (index >= 0 && index < fItemsNumber)
+  {
+    (fItems + index)->Flags |= MIF_DISABLE;
+  }
+}
+
+template <typename TItems>
+void FarMenuT<TItems>::SetBreakKeys (int aFirstKey, ...)
 {
     int keyCount = 0;
     int curKey = aFirstKey;
@@ -457,7 +497,7 @@ void FarMenu::SetBreakKeys (int aFirstKey, ...)
     *pKey = curKey;  // put terminating NULL
 }
 
-int FarMenu::Show()
+int FarMenuT<FarMenuItem>::Show()
 {
     return Far::m_Info.Menu (Far::m_Info.ModuleNumber,
         fX, fY, fMaxHeight, fFlags,
@@ -465,3 +505,17 @@ int FarMenu::Show()
         fBreakKeys, &fBreakCode,
         fItems, fItemsNumber);
 }
+
+int FarMenuT<FarMenuItemEx>::Show()
+{
+    return Far::m_Info.Menu (Far::m_Info.ModuleNumber,
+        fX, fY, fMaxHeight, fFlags | FMENU_USEEXT,
+        fTitle, fBottom, fHelpTopic,
+        fBreakKeys, &fBreakCode,
+        (FarMenuItem*)fItems, fItemsNumber);
+}
+
+// -- FarMenu[Ex] -------------------------------------------------------------
+
+template class FarMenuT<FarMenuItem>;
+template class FarMenuT<FarMenuItemEx>;

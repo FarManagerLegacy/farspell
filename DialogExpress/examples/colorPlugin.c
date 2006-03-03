@@ -35,7 +35,7 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
 #include "color.c"
 static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
 {
-  int id = ColorSelectId(Param1);
+  int id;
   int nColor;
   switch (Msg) 
   {
@@ -93,11 +93,11 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int item)
   pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | nColor;
   res = Info.DialogEx(Info.ModuleNumber, 
            -1, -1, ColorSelect_Width, ColorSelect_Height, 
-           "Content", pItems, ColorSelect_NItems, 0, 0, 
+           ColorSelect_HelpTopic, pItems, ColorSelect_NItems, 0, 0, 
 	   DlgProc, nColor);
   if (res != -1)
-    nColor = GetRadioStatus(pItems, 45, ColorSelectIndex_0x100)
-           |(GetRadioStatus(pItems, 45, ColorSelectIndex_0x200)<<4);
+    nColor = GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x100)
+           |(GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x200)<<4);
   free(pItems);
   return INVALID_HANDLE_VALUE;
 }

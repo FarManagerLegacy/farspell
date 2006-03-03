@@ -60,7 +60,7 @@ int __inline %[prefix]%[dialog.cid]Index(int nId)
     case %[id]: return %[index];
 %[next item]
   }
-  return 0;
+  return nId;
 }
 
 int __inline %[prefix]%[dialog.cid]Id(int nIndex)
@@ -71,7 +71,7 @@ int __inline %[prefix]%[dialog.cid]Id(int nIndex)
     case %[index]: return %[id];
 %[next item]
   }
-  return 0;
+  return nIndex;
 }
 
 %[foreach item]

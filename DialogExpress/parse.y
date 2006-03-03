@@ -227,7 +227,7 @@ cmd ::= NAME STRING(N) help(H) items(I). {
   pDt->pItems = pParse->pFistDialogItem;
   for (item = pDt->pItems; item; item=item->next)  
     pDt->nItems++;
-  assert(pDt->nItems == I->nIndex+1);
+  assert(!pDt->pItems || pDt->nItems == I->nIndex+1);
   pDt->prev = pParse->pDr->pDialogs;
   pParse->pDr->pDialogs = pDt;
   pParse->pDr->nDialogs++;

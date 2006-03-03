@@ -1,11 +1,11 @@
 colorPlugin.dll: colorPlugin.c color.c colorPlugin.def
 	cl /LD /MD /GL /Ox colorPlugin.c colorPlugin.def /Fm kernel32.lib
 
-color.c: color.dlg
+color.c: color.dlg ../metadialog_c.txt
 	cd ..
 	$(MAKE) -nologo cdialog.exe
 	cd "$(MAKEDIR)"
-	..\cdialog.exe color.dlg > $@
+	..\metadialog.exe ..\metadialog_c.txt color.dlg > $@
 
 clean:
 	-del color.c

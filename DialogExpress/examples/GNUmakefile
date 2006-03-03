@@ -4,9 +4,9 @@ colorPlugin.dll: colorPlugin.o colorPlugin.def
 colorPlugin.o: colorPlugin.c color.c
 	gcc -c -mdll -mno-cygwin -O3 $< -o $@
 
-color.c: color.dlg
+color.c: color.dlg ../metadialog_c.txt
 	$(MAKE) -C .. aided
-	../cdialog.exe $< > $@
+	../metadialog.exe ../metadialog_c.txt $< > $@
 
 clean:
 	-$(RM) color.c

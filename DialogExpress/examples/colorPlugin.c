@@ -35,7 +35,7 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
 #include "color.c"
 static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
 {
-  int id = dlgColorSelectId(Param1);
+  int id = ColorSelectId(Param1);
   int nColor;
   switch (Msg) 
   {
@@ -43,11 +43,11 @@ static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
        Info.SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
        break;
     case DN_CTLCOLORDLGITEM: 
-       if (Param1 == dlgColorSelectIndex_243) 
+       if (Param1 == ColorSelectIndex_243) 
           return Info.SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
        break;
     case DN_BTNCLICK: 
-       id = dlgColorSelectId(Param1);
+       id = ColorSelectId(Param1);
        if (id&0x100) 
        {
          nColor = Info.SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
@@ -80,22 +80,24 @@ static int nColor = 0x0F;
 HANDLE WINAPI _export OpenPlugin(int OpenFrom, int item)
 {
   int res;
-  struct FarDialogItem* pItems = dlgColorSelect(&Info);
+  struct FarDialogItem* pItems = malloc(sizeof(struct FarDialogItem)*ColorSelect_NItems);
   struct FarDialogItem* pItem;
+  FillColorSelect(&Info, pItems);
   // Установить текущий цвет 
-  pItem = pItems+dlgColorSelectIndex_0x100+(nColor&0x0F);
+  pItem = pItems+ColorSelectIndex_0x100+(nColor&0x0F);
   pItem->Selected = 1;
   pItem->Focus = 1;
-  (pItems+dlgColorSelectIndex_0x200+((nColor&0xF0)>>4))->Selected = 1;
+  (pItems+ColorSelectIndex_0x200+((nColor&0xF0)>>4))->Selected = 1;
   // Установить цвет для "образца"
-  pItem = pItems+dlgColorSelectIndex_243;
+  pItem = pItems+ColorSelectIndex_243;
   pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | nColor;
   res = Info.DialogEx(Info.ModuleNumber, 
-           -1, -1, 40+4, 14+2, "Content", pItems, 45, 0, 0, 
+           -1, -1, ColorSelect_Width, ColorSelect_Height, 
+           "Content", pItems, ColorSelect_NItems, 0, 0, 
 	   DlgProc, nColor);
   if (res != -1)
-    nColor = GetRadioStatus(pItems, 45, dlgColorSelectIndex_0x100)
-           |(GetRadioStatus(pItems, 45, dlgColorSelectIndex_0x200)<<4);
+    nColor = GetRadioStatus(pItems, 45, ColorSelectIndex_0x100)
+           |(GetRadioStatus(pItems, 45, ColorSelectIndex_0x200)<<4);
   free(pItems);
   return INVALID_HANDLE_VALUE;
 }

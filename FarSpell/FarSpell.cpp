@@ -43,9 +43,6 @@
 //#include "FARPlus/FARDbg.h"
 #include "FARPlus/FARFile.h"
 
-#define DIALOG_LINK
-#include "DialogGenerator/API/Dialog.h"
-
 //#include "hunspell/hunspell.h"
 #include "hunspell/hunspell.hxx"
 #define hunspell_free free
@@ -269,9 +266,9 @@ class FarSpellEditor
     int EditorId;
     FarSpellEditor *next, *prev;
     class Manager
+    : public Far
     {
       public:
-        HMODULE hDll;
         FarSpellEditor *last;
         FarFileName plugin_root, dict_root;
         FarArray<FarString> cache_engine_langs;
@@ -303,7 +300,6 @@ class FarSpellEditor
           plugin_root(FarFileName(Far::GetModuleName()).GetPath()),
           dict_root(FarFileName(plugin_root+"dict\\"))
         {
-          hDll = GetModuleHandle(Far::GetModuleName());
           last = NULL;
           plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);
           enable_file_settings = reg.GetRegKey("", enable_file_settings_key, true);
@@ -971,83 +967,126 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   }
 }
 
+#include "dialogs.cpp"
+static long WINAPI ColorDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+{
+  int id;
+  int nColor;
+  switch (Msg) 
+  {
+    case DN_INITDIALOG:
+       Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+       break;
+    case DN_CTLCOLORDLGITEM: 
+       if (Param1 == ColorSelectIndex_243) 
+          return Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+       break;
+    case DN_BTNCLICK: 
+       id = ColorSelectId(Param1);
+       if (id&0x100) 
+       {
+         nColor = Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+         nColor = nColor&0xF0 | id&0x0F;
+         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, nColor);
+       }
+       else if (id&0x200) 
+       {
+         nColor = Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+         nColor = nColor&0x0F | id&0xF0;
+         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, nColor);
+       }
+       break;
+  }
+  return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+}
+
+int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
+{
+  int nSelected = 0;
+  for (pItems+=nItem; pItems->Type == DI_RADIOBUTTON; pItems++, nSelected++)
+  {
+    if (pItems->Selected) return nSelected; 
+  }
+  return -1;
+}
+
+
 int FarSpellEditor::Manager::ColorSelectDialog()
 {
-  DWORD dlg; // Dialog handle
+  FarDialogItem* pItems = (FarDialogItem*)malloc(sizeof(FarDialogItem)*ColorSelect_NItems);
+  FillColorSelect(&m_Info, pItems);
   int res;
-  int col1 = highlight_color&0x0F;
-  int col2 = highlight_color&0xF0;
-  dlg = LoadDialog(hDll, "farspell.dlg", "Color Select"); // Load dialog
-  SetRadioStatus(dlg, 1, col1);
-  SetRadioStatus(dlg, 16, col2);
-  do // thanks to Semenov Alexey for very useful example ;)
-  {
-    SetItemColor(dlg, 243, col1+col2);  // Установить цвет для "образца"
-    // Передаются описатель диалога, Id элемента - все элементы с
-    // совпадающим Id изменят цвет.
-
-    res = ShowDialog(dlg);  // Активизировать диалог.
-    col1 = GetRadioStatus(dlg, 1);   // Получить выбранные цвета.
-    col2 = GetRadioStatus(dlg, 16);  // Передаются описатель и Id
-  }
-  // повторять пока диалог не принят
-  // или отвергнуть.
-  // 242 - Id кнопки "Да"
-  // -1  - Id кнопки "Отменить" и
-  // код возвращаемый при ESC.
-  while( res!=242 && res!=-1 );
-
+  int col1 = (highlight_color&0x0F);
+  int col2 = (highlight_color&0xF0)>>4;
+  FarDialogItem* pItem;
+  // Установить текущий цвет 
+  pItem = pItems+ColorSelectIndex_0x100+col1;
+  pItem->Selected = 1;
+  pItem->Focus = 1;
+  (pItems+ColorSelectIndex_0x200+col2)->Selected = 1;
+  // Установить цвет для "образца"
+  pItem = pItems+ColorSelectIndex_243;
+  pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | highlight_color;
+  res = Far::DialogEx(-1, -1, ColorSelect_Width, ColorSelect_Height, 
+           ColorSelect_HelpTopic, pItems, ColorSelect_NItems, 0, 0, 
+	   ColorDlgProc, highlight_color);
   if (res!=-1)
-  {
     // Если диалог не был отвергнут
     // то применить новые цвета.
-    highlight_color = col1+col2;
-  }
-  FreeDialog(dlg); // Free dialog
+    highlight_color = GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x100)
+                    |(GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x200)<<4);
+  free(pItems);
   return FALSE;
 }
 
 int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
-  DWORD dlg; // Dialog handle
+  struct FarDialogItem* pItems = (struct FarDialogItem*)malloc(sizeof(struct FarDialogItem)*GeneralConfig_NItems);
+  struct FarDialogItem* pItem;
+  FillGeneralConfig(&m_Info, pItems);
   int res;
   bool last_enable_file_settings = enable_file_settings;
-  dlg = LoadDialog(hDll, "farspell.dlg", "General config"); // Load dialog
-  char* p = GetItemData(dlg, ID_GC_SpellExts);
+  char *p =  (pItems+GeneralConfigIndex_ID_GC_SpellExts)->Data;
   strcpy(p, highlight_list.c_str());
-  SetItemStatus(dlg, MPluginEnabled, plugin_enabled);
-  SetItemStatus(dlg, MSuggMenu, suggestions_in_menu);
-  SetItemStatus(dlg, MAnotherColoring, !highlight_deletecolor);
-  SetItemStatus(dlg, MFileSettings, enable_file_settings);
+  (pItems+GeneralConfigIndex_MPluginEnabled)->Selected = plugin_enabled;
+  (pItems+GeneralConfigIndex_MSuggMenu)->Selected = suggestions_in_menu;
+  (pItems+GeneralConfigIndex_MAnotherColoring)->Selected = !highlight_deletecolor;
+  (pItems+GeneralConfigIndex_MFileSettings)->Selected = enable_file_settings;
   if (from_editor)
-    HideItem(dlg, MUnloadDictionaries);
+    (pItems+GeneralConfigIndex_MUnloadDictionaries)->Flags |= DIF_DISABLE;
+    
 
-  for (int cont=1; cont;) switch (ShowDialog(dlg))
+  for (int cont=1; cont;) 
   {
-    case MColorSelectBtn:
-      ColorSelectDialog();
-      break;
-    case MUnloadDictionaries:
-      UnloadDictionaries();
-      break;
-    case MOk:
-      {
-        int l = strlen(p);
-        char* news = highlight_list.GetBuffer(l);
-        strncpy(news, p, l);
-        highlight_list.ReleaseBuffer(l);
-        suggestions_in_menu = GetItemStatus(dlg, MSuggMenu); 
-        highlight_deletecolor = !GetItemStatus(dlg, MAnotherColoring);
-        plugin_enabled = GetItemStatus(dlg, MPluginEnabled);
-        enable_file_settings = GetItemStatus(dlg, MFileSettings);
-      }
-      cont = 0;
-      break;
-    case -1: // cancel
-      cont = 0;
-      break;
+    res = Far::DialogEx(-1, -1, GeneralConfig_Width, GeneralConfig_Height, 
+            GeneralConfig_HelpTopic, pItems, GeneralConfig_NItems, 0, 0, 0, 0);
+    switch (GeneralConfigId(res))
+    {
+      case MColorSelectBtn:
+        ColorSelectDialog();
+        break;
+      case MUnloadDictionaries:
+        UnloadDictionaries();
+        break;
+      case -1: // cancel
+        cont = 0;
+        break;
+      case MOk:
+      default:
+        {
+          int l = strlen(p);
+          char* news = highlight_list.GetBuffer(l);
+          strncpy(news, p, l);
+          highlight_list.ReleaseBuffer(l);
+          suggestions_in_menu = (pItems+GeneralConfigIndex_MSuggMenu)->Selected; 
+          highlight_deletecolor = !(pItems+GeneralConfigIndex_MAnotherColoring)->Selected;
+          plugin_enabled = (pItems+GeneralConfigIndex_MPluginEnabled)->Selected;
+          enable_file_settings = (pItems+GeneralConfigIndex_MFileSettings)->Selected;
+        }
+        cont = 0;
+    }
   }
-  FreeDialog(dlg); // Free dialog
+  free(pItems); // Free dialog
   if (!enable_file_settings && last_enable_file_settings)
   {
     FarMessage msg(FMSG_MB_YESNO);
@@ -1193,7 +1232,6 @@ void WINAPI _export SetStartupInfo (const struct PluginStartupInfo *Info)
     Far::AddPluginMenu (MFarSpell);
     Far::AddPluginConfig (MFarSpell);
     FarSpellEditor::Init();
-    DialogInit(FarSpellEditor::editors->hDll, *Info);
 #ifdef _DEBUG
   }
   __except(far_exc_dump(GetExceptionInformation()))

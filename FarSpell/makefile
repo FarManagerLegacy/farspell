@@ -6,7 +6,7 @@ SEVEN_ZIP = "c:\program files\7-zip\7z.exe"
 
 Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
 FARPlus = ..\FARPlus
-DialogAPI = ..\DialogGenerator
+DEX = ..\DialogExpress
 CINCLUDE = -I".." \
  -I"C:\Program Files\Far\PlugDoc\Headers.c" \
  -I"C:\Program Files\Microsoft Visual C++ Toolkit 2003\INCLUDE" \
@@ -48,7 +48,7 @@ CC_DLL = link $(LINKFLAGS)
 .cpp.obj_r:
 	$(CC) /c $< /Fo$@
 !endif !DEBUG
-MYLIBS = $(FARPLUS_OPTS) $(FARPLUS_LIB) $(DialogAPI)\API\dialog.lib $(HUNSPELL_LIBS)
+MYLIBS = $(FARPLUS_OPTS) $(FARPLUS_LIB) $(HUNSPELL_LIBS)
 LIBS = $(MYLIBS) advapi32.lib user32.lib kernel32.lib ole32.lib oleaut32.lib
 
 MJU_SED = ..\make-tools\mju-sed.exe
@@ -114,10 +114,10 @@ $(MJU_SED):
 	$(MAKE) /nologo -f makefile.vc mju-sed.exe
 	cd "$(MAKEDIR)"
 
-farspell.cpp: codepages.cpp
+farspell.cpp: codepages.cpp dialogs.cpp
 
 $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
-	$(MYLIBS)
+ 	$(MYLIBS)
 	-del farspell.dll-release
 	-del farspell.dll-debug
 #	$(CC_DLL) $(LIBS) $(OBJ_FILES) farspell.def /link /opt:noref
@@ -128,9 +128,12 @@ $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
 .rc.res:
 	$(RC) $<
 
-$(DialogAPI)\API\dialog.lib: $(DialogAPI)\API\dialog.def
-	cd $(DialogAPI)\API
-	lib.exe /def:dialog.def
+dialogs.cpp: FarSpell.dlg $(DEX)\metadialog.exe $(DEX)\metadialog_c.txt
+	$(DEX)\metadialog.exe $(DEX)\metadialog_c.txt FarSpell.dlg > $@
+
+$(DEX)\metadialog.exe:
+	cd "$(DEX)"
+	$(MAKE) debug
 	cd "$(MAKEDIR)"
 
 $(FARPLUS_LIB) $(FARPLUS_OPTS):
@@ -156,7 +159,7 @@ clean:
 	-del www\index.html
 	-del farspell\*.* /Q
 	-rmdir farspell
-	-del $(DialogAPI)\API\dialog.lib $(DialogAPI)\API\dialog.exp
+	-del dialogs.cpp
 	cd $(FARPlus)
         -$(MAKE) /nologo clean
 	cd $(Hunspell)\hunspell
@@ -172,11 +175,11 @@ clean:
 
 templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
   $(DIST)\history.txt $(DIST)\todo.txt \
-  $(DIST)\dbghelp.dll $(DIST)\Dialog.gen \
-  $(DIST)\FarSpell.dlg \
+  $(DIST)\dbghelp.dll \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
   $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
   www
+#  $(DIST)\FarSpell.dlg \
 
 www: $(MJU_SED) www\index.html
 
@@ -185,8 +188,8 @@ $(DIST)\file_id.diz: file_id.diz
 	$(MJU_SED) < $** > $@
 $(DIST)\FarSpell.rc: FarSpell.rc
 	$(MJU_SED) < $** > $@
-$(DIST)\FarSpell.dlg: FarSpell.dlg
-	$(MJU_SED) < $** > $@
+#$(DIST)\FarSpell.dlg: FarSpell.dlg
+#	$(MJU_SED) < $** > $@
 $(DIST)\FarSpellEng.hlf: FarSpellEng.hlf
 	$(MJU_SED) < $** > $@
 $(DIST)\FarSpellEng.lng: FarSpellEng.lng
@@ -196,8 +199,6 @@ $(DIST)\FarSpellRus.hlf: FarSpellRus.hlf
 $(DIST)\FarSpellRus.lng: FarSpellRus.lng
 	$(MJU_SED) < $** > $@
 $(DIST)\dbghelp.dll: $(FARPlus)\dbghelp.dll
-	copy $** $@
-$(DIST)\Dialog.gen: $(DialogAPI)\Dialog.gen
 	copy $** $@
 $(DIST)\history.txt: history.txt
 	copy $** $@
@@ -224,8 +225,6 @@ dist: makefile.exinfo templates
  !clean_win9x.reg
  !clean.txt
 $(DIST)\farspell.dll 
-$(DIST)\Dialog.gen 
-$(DIST)\farspell.dlg 
 $(DIST)\file_id.diz 
 $(DIST)\history.txt 
 $(DIST)\todo.txt 

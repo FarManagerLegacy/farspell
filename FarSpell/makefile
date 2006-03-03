@@ -217,9 +217,12 @@ dist: makefile.exinfo templates
 	-@del $(DIST_FILE).7z > nul
 	if exist $(DIST_FILE).7z !error Unable to delete farspell-$(TIMESTAMP)$(DIST_SUFFIX).7z
 	cd $(DIST)
-	$(SEVEN_ZIP) a -t7z -mx9 -ms ..\$(DIST_FILE) file_id.diz
+	$(SEVEN_ZIP) a -t7z -mx9 -ms ..\$(DIST_FILE) file_id.diz 
 	cd ..
 	$(SEVEN_ZIP) a -t7z -mx9 -ms $(DIST_FILE) @<< 
+ !clean_winxp.reg
+ !clean_win9x.reg
+ !clean.txt
 $(DIST)\farspell.dll 
 $(DIST)\Dialog.gen 
 $(DIST)\farspell.dlg 

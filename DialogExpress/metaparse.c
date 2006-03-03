@@ -4,6 +4,13 @@
 #include "metaparse.h"
 
 static char* PredicateStr[] = {
+  "x1?",
+  "y1?",
+  "x2?",
+  "y2?",
+  "focused?",
+  "selected?",
+  "flags?",
   "msgid?", 
   "id?", 
   "history?",
@@ -197,7 +204,10 @@ static void AddCommandArg(char *zCmd, char *zArg, struct Parse *pParse)
       pToken->nPredicate = -1;
       for (pzPred = PredicateStr; *pzPred; pzPred++)
         if (strcmp(*pzPred, zArg)==0) 
+        {
           pToken->nPredicate = pzPred-PredicateStr;
+          break;
+        }
       if (pToken->nPredicate==-1) { 
         PrintLastCaret(stderr, pParse);
         fprintf(stderr, "Unknown predicate '%s'\n", zArg);

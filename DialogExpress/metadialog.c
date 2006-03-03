@@ -212,6 +212,34 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
       case HasCondition:
         bCondition = 1;
         switch (pToken->nPredicate) {
+         case ItemHasX1:
+           assert(pItem);
+           bSkip = pItem->X1==0;
+           break;
+         case ItemHasY1:
+           assert(pItem);
+           bSkip = pItem->Y1==0;
+           break;
+         case ItemHasX2:
+           assert(pItem);
+           bSkip = pItem->X2==0;
+           break;
+         case ItemHasY2:
+           assert(pItem);
+           bSkip = pItem->Y2==0;
+           break;
+         case ItemHasFocused:
+           assert(pItem);
+           bSkip = pItem->Focus==0;
+           break;
+         case ItemHasSelected:
+           assert(pItem);
+           bSkip = pItem->Selected==0;
+           break;
+         case ItemHasFlags:
+           assert(pItem);
+           bSkip = pItem->Flags==0;
+           break;
          case ItemHasMsgidP:
            assert(pDialogItem);
            bSkip = (dialogitem_datasource_type(pDialogItem)!=DI_DATASOURCE_MSGID);

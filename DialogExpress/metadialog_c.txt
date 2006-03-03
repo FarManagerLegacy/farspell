@@ -26,12 +26,19 @@ void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*
   /* Item Index %[index] */
 %[other]
   pItems->Type = %[type];
+%[has x1?]
   pItems->X1 = %[x1];
+%[has y1?]
   pItems->Y1 = %[y1];
+%[has x2?]
   pItems->X2 = %[x2];
+%[has y2?]
   pItems->Y2 = %[y2];
+%[has focused?]
   pItems->Focus = %[focused];
+%[has selected?]
   pItems->Selected = %[selected];
+%[has flags?]
   pItems->Flags = %[flags];
 %[has msgid?]
   strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));

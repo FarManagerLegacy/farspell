@@ -1,6 +1,13 @@
 #pragma once
 
 enum Predicate { 
+  ItemHasX1,
+  ItemHasY1,
+  ItemHasX2,
+  ItemHasY2,
+  ItemHasFocused,
+  ItemHasSelected,
+  ItemHasFlags,
   ItemHasMsgidP, 
   ItemHasIdP, 
   ItemHasHistoryP,

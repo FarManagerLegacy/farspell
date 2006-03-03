@@ -282,13 +282,13 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             assert(pDialog);
             assert(dialogtemplate_items_count(pDialog)>0);
             assert(pItems);
-            fprintf(pFile, "%d", pItems->X2+pItems->X1*2); // ???
+            fprintf(pFile, "%d", pItems->X1+pItems->X2+1);
             break;
           case vDialogHeight:  
             assert(pDialog);
             assert(dialogtemplate_items_count(pDialog)>0);
             assert(pItems);
-            fprintf(pFile, "%d", pItems->Y2+pItems->Y1*2); // ???
+            fprintf(pFile, "%d", pItems->Y1+pItems->Y2+1);
             break;
           case vItemsCount:  
             assert(pDialog);

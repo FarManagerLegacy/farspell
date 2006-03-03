@@ -37,7 +37,7 @@ aided:
 
 !if "$(TARGET)"!="Release"
 # Prevents from build of something useless cdialog.exe
-executables: cdialog.exe$(OUTDIR)
+executables: cdialog.exe$(OUTDIR) metadialog.exe$(OUTDIR)
 $(OUTDIR)\cdialog.exe: cdialog.c $(OUTDIR)\dialogres_static.lib
 	$(CC) -o $@ cdialog.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
 cdialog.exe$(OUTDIR): $(OUTDIR)\cdialog.exe
@@ -46,10 +46,21 @@ cdialog.exe$(OUTDIR): $(OUTDIR)\cdialog.exe
 	-del cdialog.exe.*.debug
 	copy "$(OUTDIR)\cdialog.exe" cdialog.exe
 	echo Build stamp > cdialog.exe$(OUTDIR)
+
+$(OUTDIR)\metadialog.exe: metadialog.c metaparse.c metaparse.h  \
+        	$(OUTDIR)\dialogres_static.lib 
+        $(CC) -o $@ metadialog.c metaparse.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
+metadialog.exe$(OUTDIR): $(OUTDIR)\metadialog.exe
+	-del metadialog.exe.*
+	copy "$(OUTDIR)\metadialog.exe" metadialog.exe
+	echo Build stamp > $@
 !else
-executables: cdialog.exe.msvc.aided-release
+executables: cdialog.exe.msvc.aided-release \
+             metadialog.exe.msvc.aided-release
 cdialog.exe.msvc.aided-release:
-	$(MAKE) TARGET="Aided Release" cdialog.exe.msvc.aided-release
+	$(MAKE) -nologo TARGET="Aided Release" cdialog.exe.msvc.aided-release
+metadialog.exe.msvc.aided-release:
+	$(MAKE) -nologo TARGET="Aided Release" metadialog.exe.msvc.aided-release
 !endif
 
 $(OUTDIR)\dialogres.pdll: $(OUTDIR)\dialogres_static.lib $(OUTDIR)\dialogres_dll.obj dialogres.def
@@ -99,6 +110,7 @@ clean:
 	-del keywordhash.h
 	-del mkkeywordhash.exe 
 	-del cdialog.exe*
+	-del metadialog.exe*
 	-del *.obj
 	-del *.lib
 	-del *.exp

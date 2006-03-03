@@ -2,16 +2,20 @@ metaquote %[]
 begin
 %[foreach dialog]
 /******************************************************************************
- %[dialog id]
+ %[dialog.id]
  ******************************************************************************/
-struct FarDialogItem* %[prefix]%[dialog_id](const struct PluginStartupInfo *pInfo)
+#define %[prefix]%[dialog.cid]_Width %[dialog.width]
+#define %[prefix]%[dialog.cid]_Height %[dialog.height]
+#define %[prefix]%[dialog.cid]_NItems %[items.count]
+#define %[prefix]%[dialog.cid]_HelpTopic %[dialog.helptopic]
+struct FarDialogItem* %[prefix]%[dialog.cid](const struct PluginStartupInfo *pInfo)
 {
   struct FarDialogItem Items[] = { 
 %[foreach item]
 %[has msgid?]
-    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags], /* msgid=%[msgid] */ },
+    { %[type] %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags] /* msgid=%[msgid] */ },
 %[other]
-    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags], %[cdata] },
+    { %[type] %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags]%[cdata] },
 %[next item]
     { 0 },
   };
@@ -20,11 +24,13 @@ struct FarDialogItem* %[prefix]%[dialog_id](const struct PluginStartupInfo *pInf
 %[foreach item]
 %[has msgid?]
   strcpy((pItems+%[index])->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+%[has history?]
+  (pItems+%[index])->History = %[history];
 %[next item]
   return pItems;
 }
 
-int __inline %[prefix]%[dialog_id]Index(int nId)
+int __inline %[prefix]%[dialog.cid]Index(int nId)
 {
   switch(nId)
   {
@@ -36,7 +42,7 @@ int __inline %[prefix]%[dialog_id]Index(int nId)
   return 0;
 }
 
-int __inline %[prefix]%[dialog_id]Id(int nIndex)
+int __inline %[prefix]%[dialog.cid]Id(int nIndex)
 {
   switch(nIndex)
   {
@@ -48,11 +54,12 @@ int __inline %[prefix]%[dialog_id]Id(int nIndex)
 }
 
 %[foreach item]
-%[has id]
-#define %[prefix]%[dialog_id]Index_%[cid] %[index]
+%[has id?]
+#define %[prefix]%[dialog.cid]Index_%[cid] %[index]
 %[next item]
 
 %[foreach item]
-#define %[prefix]%[dialog_id]Id_%[index] %[id]
+#define %[prefix]%[dialog.cid]Id_%[index] %[id]
 %[next item]
 %[next dialog]
+

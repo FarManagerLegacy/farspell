@@ -39,7 +39,7 @@ aided:
 
 ifneq ("$(TARGET)","Release")
 # Prevents from build of something useless cdialog.exe
-executables: cdialog.exe$(OUTDIR)
+executables: cdialog.exe$(OUTDIR) metadialog.exe$(OUTDIR)
 $(OUTDIR)/cdialog.exe: cdialog.c $(OUTDIR)/dialogres-static.a
 	$(CC) -o $@ cdialog.c $(OUTDIR)/dialogres-static.a $(LINKFLAGS)
 cdialog.exe$(OUTDIR): $(OUTDIR)/cdialog.exe
@@ -48,10 +48,19 @@ cdialog.exe$(OUTDIR): $(OUTDIR)/cdialog.exe
 	-$(RM) cdialog.exe.*.debug
 	cp $(OUTDIR)/cdialog.exe cdialog.exe
 	echo Build stamp > cdialog.exe$(OUTDIR)
+$(OUTDIR)/metadialog.exe: metadialog.c metaparse.c metaparse.h \
+             $(OUTDIR)/dialogres-static.a
+	$(CC) -o $@ metadialog.c metaparse.c $(OUTDIR)/dialogres-static.a $(LINKFLAGS)
+metadialog.exe$(OUTDIR): $(OUTDIR)/metadialog.exe
+	-$(RM) metadialog.exe.*
+	cp $(OUTDIR)/metadialog.exe metadialog.exe
+	echo Build stamp > $@
 else
-executables: cdialog.exe.gcc.aided-release
+executables: cdialog.exe.gcc.aided-release metadialog.exe.gcc.aided-release
 cdialog.exe.gcc.aided-release:
-	$(MAKE) TARGET="Aided Release" cdialog.exe.gcc.aided-release
+	$(MAKE) --no-print-directory TARGET="Aided Release" cdialog.exe.gcc.aided-release 
+metadialog.exe.gcc.aided-release:
+	$(MAKE) --no-print-directory TARGET="Aided Release" metadialog.exe.gcc.aided-release 
 endif
 
 $(OUTDIR)/dialogres.pdll: $(OUTDIR)/dialogres-static.a $(OUTDIR)/dialogres_dll.o dialogres.def
@@ -99,7 +108,7 @@ $(LEMON):
 
 clean:
 	-$(RM) --force parse.c parse.h parse.out
-	-$(RM) --force keywordhash.h mkkeywordhash.exe cdialog.exe*
+	-$(RM) --force keywordhash.h mkkeywordhash.exe cdialog.exe* metadialog.exe*
 	-$(RM) --force *.o *.a
 	-$(RM) --force -r .gcc.* 
 	

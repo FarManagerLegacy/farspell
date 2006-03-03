@@ -1,4 +1,5 @@
 metaquote %[]
+target C
 begin
 %[foreach dialog]
 /******************************************************************************
@@ -8,26 +9,39 @@ begin
 #define %[prefix]%[dialog.cid]_Height %[dialog.height]
 #define %[prefix]%[dialog.cid]_NItems %[items.count]
 #define %[prefix]%[dialog.cid]_HelpTopic "%[dialog.helptopic]"
-struct FarDialogItem* %[prefix]%[dialog.cid](const struct PluginStartupInfo *pInfo)
+void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*/ struct FarDialogItem* pItems)
 {
-  struct FarDialogItem Items[] = { 
+#ifdef far_assert
+  far_assert(pItems);
+#else
+#ifdef assert
+  assert(pItems);
+#endif
+#endif
+  memset(pItems, 0, %[prefix]%[dialog.cid]_NItems*sizeof(struct FarDialogItem));
 %[foreach item]
-%[has msgid?]
-    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags] /* msgid=%[msgid] */ },
+%[has id?]
+  /* Item ID %[sid] (%[id]) Index %[index] */
+%[hasn't id?]
+  /* Item Index %[index] */
 %[other]
-    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags]%[cdata] },
-%[next item]
-    { 0 },
-  };
-  struct FarDialogItem *pItems = (struct FarDialogItem *)malloc(sizeof(Items));
-  memcpy(pItems, Items, sizeof(Items));
-%[foreach item]
+  pItems->Type = %[type];
+  pItems->X1 = %[x1];
+  pItems->Y1 = %[y1];
+  pItems->X2 = %[x2];
+  pItems->Y2 = %[y2];
+  pItems->Focus = %[focused];
+  pItems->Selected = %[selected];
+  pItems->Flags = %[flags];
 %[has msgid?]
-  strcpy((pItems+%[index])->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+  strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+%[has text?]
+  strcpy(pItems->Data, "%[text]");
 %[has history?]
-  (pItems+%[index])->History = "%[history]";
+  pItems->History = "%[history]";
+%[common]
+  pItems++;
 %[next item]
-  return pItems;
 }
 
 int __inline %[prefix]%[dialog.cid]Index(int nId)

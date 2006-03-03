@@ -145,12 +145,13 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
   dialogitem *pDialogItem;
   enum dialogres_error rc;
   struct FarDialogItem *pItem, *pItems = NULL;
-  int bSkip, bCondition = 0, bSkipNewline;
+  int bSkip, bCondition = 0, bSkipNewline, bNot;
   TemplateToken *pToken;
   char *sid;
   for (pToken = pTemplate; pToken;)
   {
     bSkipNewline = 0;
+    bNot = 0;
     switch (pToken->nType)
     {
       case Literal:
@@ -206,6 +207,8 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
           pItem = pItems + dialogitem_index(pDialogItem);
         bSkipNewline = 1;
         break;
+      case HasNotCondition:
+        bNot = 1;
       case HasCondition:
         bCondition = 1;
         switch (pToken->nPredicate) {
@@ -226,10 +229,12 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
            assert(0);
         }
         pToken = pToken->next;
+        if (bNot) bSkip = !bSkip;
         if (bSkip) {
           for (;pToken; pToken = pToken->next) 
           {
             if (pToken->nType == HasCondition) break;
+            if (pToken->nType == HasNotCondition) break;
             if (bCondition && pToken->nType == Alternative) break;
             if (pToken->nType == NextItem) break;
             if (pToken->nType == Common) break;

@@ -34,6 +34,7 @@ typedef struct _TemplateToken
     NextDialog,
     ForeachItem,
     NextItem,
+    HasNotCondition,
     HasCondition,
     Alternative,
     Common,

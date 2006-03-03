@@ -173,44 +173,64 @@ static void AddCommandArg(char *zCmd, char *zArg, struct Parse *pParse)
   assert(pToken);
   memset(pToken, 0, sizeof(TemplateToken));
   if ( strcmp(zCmd, "has")==0 )
-  {
     pToken->nType = HasCondition;
-    pToken->nPredicate = -1;
-    for (pzPred = PredicateStr; *pzPred; pzPred++)
-      if (strcmp(*pzPred, zArg)==0) 
-        pToken->nPredicate = pzPred-PredicateStr;
-    if (pToken->nPredicate==-1) { 
-      PrintLastCaret(stderr, pParse);
-      fprintf(stderr, "Unknown predicate '%s'\n", zArg);
-      pParse->nErrors++;
-    }
-  }
+  else if ( strcmp(zCmd, "hasn't")==0 )
+    pToken->nType = HasNotCondition;
+  else if ( strcmp(zCmd, "hasnot")==0 )
+    pToken->nType = HasNotCondition;
   else if (strcmp(zCmd, "foreach")==0)
-  {
     pToken->nType = LoopType(zArg, pParse) ? ForeachDialog : ForeachItem;
-    ppLoopToken = ( pToken->nType == ForeachDialog )
-                  ? &pParse->pDialogLoopToken
-                  : &pParse->pItemLoopToken;
-    if (*ppLoopToken) {
-      PrintLastCaret(stderr, pParse);
-      fprintf(stderr, "Nested loops not supported\n");
-      pParse->nErrors++;
-    }
-    *ppLoopToken = pToken;
-  }
   else if (strcmp(zCmd, "next")==0)
-  {
     pToken->nType = LoopType(zArg, pParse) ? NextDialog : NextItem;
-    ppLoopToken = ( pToken->nType == NextDialog )
-                  ? &pParse->pDialogLoopToken
-                  : &pParse->pItemLoopToken;
-    if (!*ppLoopToken) {
-      PrintLastCaret(stderr, pParse);
-      fprintf(stderr, "Begin of loop not declared\n");
-      pParse->nErrors++;
-    }
-    pToken->pLoop = (*ppLoopToken)->next;
-    *ppLoopToken = NULL;
+  else {
+    PrintLastCaret(stderr, pParse);
+    fprintf(stderr, "Unknown command '%s'\n", zCmd);
+    pParse->nErrors++;
+    pToken->nType = Variable;
+  }
+  switch (pToken->nType)
+  {
+    case HasCondition:
+    case HasNotCondition:
+      pToken->nPredicate = -1;
+      for (pzPred = PredicateStr; *pzPred; pzPred++)
+        if (strcmp(*pzPred, zArg)==0) 
+          pToken->nPredicate = pzPred-PredicateStr;
+      if (pToken->nPredicate==-1) { 
+        PrintLastCaret(stderr, pParse);
+        fprintf(stderr, "Unknown predicate '%s'\n", zArg);
+        pParse->nErrors++;
+      }
+      break;
+    case ForeachDialog:
+    case ForeachItem:
+      ppLoopToken = ( pToken->nType == ForeachDialog )
+                    ? &pParse->pDialogLoopToken
+                    : &pParse->pItemLoopToken;
+      if (*ppLoopToken) {
+        PrintLastCaret(stderr, pParse);
+        fprintf(stderr, "Nested loops not supported\n");
+        pParse->nErrors++;
+      }
+      *ppLoopToken = pToken;
+      break;
+    case NextDialog: 
+    case NextItem:
+      ppLoopToken = ( pToken->nType == NextDialog )
+                    ? &pParse->pDialogLoopToken
+                    : &pParse->pItemLoopToken;
+      if (!*ppLoopToken) {
+        PrintLastCaret(stderr, pParse);
+        fprintf(stderr, "Begin of loop not declared\n");
+        pParse->nErrors++;
+      }
+      pToken->pLoop = (*ppLoopToken)->next;
+      *ppLoopToken = NULL;
+      break;
+    case Variable:
+      break;
+    default:
+      assert("Unexpected pToken->nType");
   }
   AddToken(pToken, pParse);
 }
@@ -396,6 +416,9 @@ void meta_print_template(FILE* pFile, TemplateToken *pTemplate)
         break;
       case HasCondition:
         fprintf(pFile, "%%[has %s]", PredicateStr[pToken->nPredicate]);
+        break;
+      case HasNotCondition:
+        fprintf(pFile, "%%[hasn't %s]", PredicateStr[pToken->nPredicate]);
         break;
       case Variable:
         //fprintf(pFile, "%%[%s]", (char*)(pToken+1));

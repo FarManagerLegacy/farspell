@@ -7,6 +7,7 @@ static char* PredicateStr[] = {
   "msgid?", 
   "id?", 
   "history?",
+  "text?",
   0
 };
 
@@ -30,6 +31,7 @@ static char* VariableStr[] = {
   "selected",  
   "flags",
   "msgid",
+  "text",
   "cdata",
   "history",
   0,

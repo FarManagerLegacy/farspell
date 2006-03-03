@@ -1,6 +1,11 @@
 #pragma once
 
-enum Predicate { ItemHasMsgidP, ItemHasIdP, ItemHasHistoryP };
+enum Predicate { 
+  ItemHasMsgidP, 
+  ItemHasIdP, 
+  ItemHasHistoryP,
+  ItemHasTextP,
+};
 enum Variable { 
   vDialogId, 
   vDialogProgId, 
@@ -21,6 +26,7 @@ enum Variable {
   vItemSelected,
   vItemFlags,
   vItemMsgid,
+  vItemText,
   vItemCData,
   vItemHistory,
 };

@@ -224,6 +224,10 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
            assert(pDialogItem);
            bSkip = !*dialogitem_history(pDialogItem);
            break;
+         case ItemHasTextP:
+           assert(pDialogItem);
+           bSkip = dialogitem_datasource_type(pDialogItem)!=DI_DATASOURCE_TEXT;
+           break;
          default:
            bSkip = 1;
            assert(0);
@@ -345,6 +349,11 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             assert(pDialogItem);
             assert(dialogitem_datasource_type(pDialogItem)==DI_DATASOURCE_MSGID);
             fprintf(pFile, "%3d", dialogitem_datasource_msgid(pDialogItem));
+            break;
+          case vItemText:
+            assert(pDialogItem);
+            assert(dialogitem_datasource_type(pDialogItem)==DI_DATASOURCE_TEXT);
+            fprintf(pFile, "\"%s\"", dialogitem_datasource_text(pDialogItem));
             break;
           case vItemHistory:
             assert(pDialogItem);

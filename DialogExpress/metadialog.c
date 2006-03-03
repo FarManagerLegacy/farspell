@@ -276,7 +276,7 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             break;
           case vDialogHelp: 
             assert(pDialog);
-            fprintf(pFile, "\"%s\"", dialogtemplate_help(pDialog));
+            fprintf(pFile, "%s", dialogtemplate_help(pDialog));
             break;
           case vDialogWidth:  
             assert(pDialog);
@@ -353,13 +353,13 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
           case vItemText:
             assert(pDialogItem);
             assert(dialogitem_datasource_type(pDialogItem)==DI_DATASOURCE_TEXT);
-            fprintf(pFile, "\"%s\"", dialogitem_datasource_text(pDialogItem));
+            fprintf(pFile, "%s", dialogitem_datasource_text(pDialogItem));
             break;
           case vItemHistory:
             assert(pDialogItem);
             assert(dialogitem_history(pDialogItem));
             assert(*dialogitem_history(pDialogItem));
-            fprintf(pFile, "\"%s\"", dialogitem_history(pDialogItem));
+            fprintf(pFile, "%s", dialogitem_history(pDialogItem));
             break;
           case vItemCData:
             assert(pDialogItem);

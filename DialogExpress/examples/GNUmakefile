@@ -5,7 +5,7 @@ colorPlugin.o: colorPlugin.c color.c
 	gcc -c -mdll -mno-cygwin -O3 $< -o $@
 
 color.c: color.dlg
-	$(MAKE) -C .. aided-release
+	$(MAKE) -C .. aided
 	../cdialog.exe $< > $@
 
 clean:

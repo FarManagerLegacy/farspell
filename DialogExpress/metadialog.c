@@ -30,18 +30,18 @@ extern size_t dialogresMemory;
 #endif
 
 static char* DialogItemTypes[] = {
-  "DI_TEXT,       ",
-  "DI_VTEXT,      ",
-  "DI_SINGLEBOX,  ",
-  "DI_DOUBLEBOX,  ",
-  "DI_EDIT,       ",
-  "DI_PSWEDIT,    ",
-  "DI_FIXEDIT,    ",
-  "DI_BUTTON,     ",
-  "DI_CHECKBOX,   ",
-  "DI_RADIOBUTTON,",
-  "DI_COMBOBOX,   ",
-  "DI_LISTBOX,    ",
+  "DI_TEXT       ",
+  "DI_VTEXT      ",
+  "DI_SINGLEBOX  ",
+  "DI_DOUBLEBOX  ",
+  "DI_EDIT       ",
+  "DI_PSWEDIT    ",
+  "DI_FIXEDIT    ",
+  "DI_BUTTON     ",
+  "DI_CHECKBOX   ",
+  "DI_RADIOBUTTON",
+  "DI_COMBOBOX   ",
+  "DI_LISTBOX    ",
 };
 
 void FarDialogItemFlags_to_C(FILE* pFile, 

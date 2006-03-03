@@ -13,9 +13,9 @@ struct FarDialogItem* %[prefix]%[dialog.cid](const struct PluginStartupInfo *pIn
   struct FarDialogItem Items[] = { 
 %[foreach item]
 %[has msgid?]
-    { %[type] %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags] /* msgid=%[msgid] */ },
+    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags] /* msgid=%[msgid] */ },
 %[other]
-    { %[type] %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags]%[cdata] },
+    { %[type], %[x1], %[y1], %[x2], %[y2], %[focused], %[selected], %[flags]%[cdata] },
 %[next item]
     { 0 },
   };

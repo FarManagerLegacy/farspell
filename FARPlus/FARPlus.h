@@ -198,6 +198,12 @@ public:
 
 #ifdef USE_FAR_170
 	static int AdvControl (int Command, void *Param);
+	static int DialogEx(int X1, int Y1, int X2, int Y2,
+                     const char *HelpTopic, struct FarDialogItem *Item,
+                     int ItemsNumber, DWORD Reserved, DWORD Flags,
+                     FARWINDOWPROC DlgProc, long Param);
+	static long SendDlgMessage(HANDLE hDlg, int Msg, int Param1, long Param2);
+	static long DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2);
 #endif
 	static int GetBuildNumber();
 
@@ -292,6 +298,25 @@ inline int Far::AdvControl (int Command, void *Param)
 	return m_Info.AdvControl (m_Info.ModuleNumber, Command, Param);
 }
 
+inline int Far::DialogEx(int X1, int Y1, int X2, int Y2,
+                     const char *HelpTopic, struct FarDialogItem *Item,
+                     int ItemsNumber, DWORD Reserved, DWORD Flags,
+                     FARWINDOWPROC DlgProc, long Param)
+{
+	if (!DlgProc) DlgProc = m_Info.DefDlgProc;
+	return m_Info.DialogEx (m_Info.ModuleNumber, X1, Y1, X2, Y2,
+	   HelpTopic, Item, ItemsNumber, Reserved, Flags, DlgProc, Param);
+}
+
+inline long Far::SendDlgMessage(HANDLE hDlg, int Msg, int Param1, long Param2)
+{
+	return m_Info.SendDlgMessage(hDlg, Msg, Param1, Param2);
+}
+
+inline long Far::DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+{
+	return m_Info.DefDlgProc(hDlg, Msg, Param1, Param2);
+}
 #endif
 
 inline int Far::GetBuildNumber()

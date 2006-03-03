@@ -174,7 +174,7 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
         bSkipNewline = 1;
         break;
       case NextDialog:
-        free(pItems);
+        dialogres_free(pItems);
         pItems = NULL;
         rc = dialogres_prev_dialog(dr, &pDialog);
         pToken = pDialog ? pToken->pLoop : pToken->next;
@@ -419,6 +419,7 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
       if (pToken && pToken->nType == Newline)
         pToken = pToken->next;
   }
+  if (pItems) dialogres_free(pItems);
 }
 
 int process(const char *zFilename, TemplateToken *pTemplate)

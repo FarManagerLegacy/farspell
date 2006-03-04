@@ -246,7 +246,8 @@ void *ParseAlloc(void *(*mallocProc)(size_t)){
 ** "yymajor" is the symbol code, and "yypminor" is a pointer to
 ** the value.
 */
-static void yy_destructor(YYCODETYPE yymajor, YYMINORTYPE *yypminor){
+static void yy_destructor(yyParser *yypParser, YYCODETYPE yymajor, YYMINORTYPE *yypminor){
+  ParseARG_FETCH;
   switch( yymajor ){
     /* Here is inserted the actions which take place when a
     ** terminal or non-terminal is destroyed.  This can happen
@@ -284,7 +285,7 @@ static int yy_pop_parser_stack(yyParser *pParser){
   }
 #endif
   yymajor = yytos->major;
-  yy_destructor( yymajor, &yytos->minor);
+  yy_destructor(pParser, yymajor, &yytos->minor);
   pParser->yyidx--;
   return yymajor;
 }
@@ -661,7 +662,7 @@ void Parse(
              yyTracePrompt,yyTokenName[yymajor]);
         }
 #endif
-        yy_destructor(yymajor,&yyminorunion);
+        yy_destructor(yypParser,yymajor,&yyminorunion);
         yymajor = YYNOCODE;
       }else{
          while(
@@ -672,7 +673,7 @@ void Parse(
           yy_pop_parser_stack(yypParser);
         }
         if( yypParser->yyidx < 0 || yymajor==0 ){
-          yy_destructor(yymajor,&yyminorunion);
+          yy_destructor(yypParser,yymajor,&yyminorunion);
           yy_parse_failed(yypParser);
           yymajor = YYNOCODE;
         }else if( yymx!=YYERRORSYMBOL ){
@@ -697,7 +698,7 @@ void Parse(
         yy_syntax_error(yypParser,yymajor,yyminorunion);
       }
       yypParser->yyerrcnt = 3;
-      yy_destructor(yymajor,&yyminorunion);
+      yy_destructor(yypParser,yymajor,&yyminorunion);
       if( yyendofinput ){
         yy_parse_failed(yypParser);
       }

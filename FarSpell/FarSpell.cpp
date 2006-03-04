@@ -347,6 +347,10 @@ class FarSpellEditor
 #         endif  HARDCODED_MLDATA
           editors = NULL;
         }
+        void EnumDictionaries(FRSUSERFUNC Func, void *param)
+        {
+          FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", Func, 0, param);
+        }
         void UnloadDictionaries()
         {
           cache_engine_langs.Clear();
@@ -808,7 +812,7 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
   FarButtonCtrl dlg_cancel(&dialog, MCancel, DIF_CENTERGROUP);
   FarControl *res;
 
-  FarSF::RecursiveSearch((char*)editors->dict_root.c_str(), "*.aff", ScanDicts, 0, &dlg_languages);
+  editors->EnumDictionaries(ScanDicts, &dlg_languages);
   for (int i=0; i<sizeof(parsers)/sizeof(parsers[0]); i++)
     dlg_parser.AddItem(Far::GetMsg(parsers[i]));
   dlg_languages.SetFlags(DIF_DROPDOWNLIST);
@@ -1071,7 +1075,7 @@ class GeneralConfigDialog: GeneralConfig
       sItems[Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
     ftl::ComboboxItems default_dict_items(&sItems[Index_ID_GC_DefaultDict]);
     default_dict_items.SetText(m->default_dict);
-    FarSF::RecursiveSearch((char*)m->dict_root.c_str(), "*.aff", ScanDicts, 0, &default_dict_items);
+    m->EnumDictionaries(ScanDicts, &default_dict_items);
     for (int cont=1; cont;) 
     {
       default_dict_items.BeforeShow();

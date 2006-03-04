@@ -128,8 +128,8 @@ $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
 .rc.res:
 	$(RC) $<
 
-dialogs.cpp: FarSpell.dlg $(DEX)\metadialog.exe $(DEX)\metadialog_c.txt
-	$(DEX)\metadialog.exe $(DEX)\metadialog_c.txt FarSpell.dlg > $@
+dialogs.cpp: FarSpell.dlg $(DEX)\metadialog.exe $(DEX)\metadialog_cpp.txt
+	$(DEX)\metadialog.exe $(DEX)\metadialog_cpp.txt FarSpell.dlg > $@
 
 $(DEX)\metadialog.exe:
 	cd "$(DEX)"

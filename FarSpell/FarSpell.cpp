@@ -270,7 +270,6 @@ class FarSpellEditor
     int EditorId;
     FarSpellEditor *next, *prev;
     class Manager
-    : public Far
     {
       public:
         FarSpellEditor *last;
@@ -985,11 +984,11 @@ static long WINAPI ColorDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
        Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
        break;
     case DN_CTLCOLORDLGITEM: 
-       if (Param1 == ColorSelectIndex_243) 
+       if (Param1 == ColorSelect::Index_243) 
           return Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
        break;
     case DN_BTNCLICK: 
-       id = ColorSelectId(Param1);
+       id = ColorSelect::ItemId(Param1);
        if (id&0x100) 
        {
          nColor = Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
@@ -1020,29 +1019,25 @@ int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
 
 int FarSpellEditor::Manager::ColorSelectDialog()
 {
-  FarDialogItem* pItems = (FarDialogItem*)malloc(sizeof(FarDialogItem)*ColorSelect_NItems);
-  FillColorSelect(&m_Info, pItems);
+  ColorSelect dlg;
   int res;
   int col1 = (highlight_color&0x0F);
   int col2 = (highlight_color&0xF0)>>4;
   FarDialogItem* pItem;
   // Установить текущий цвет 
-  pItem = pItems+ColorSelectIndex_0x100+col1;
+  pItem = &dlg.sItems[ColorSelect::Index_0x100+col1];
   pItem->Selected = 1;
   pItem->Focus = 1;
-  (pItems+ColorSelectIndex_0x200+col2)->Selected = 1;
+  dlg.sItems[ColorSelect::Index_0x200+col2].Selected = 1;
   // Установить цвет для "образца"
-  pItem = pItems+ColorSelectIndex_243;
+  pItem = &dlg.sItems[ColorSelect::Index_243];
   pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | highlight_color;
-  res = Far::DialogEx(-1, -1, ColorSelect_Width, ColorSelect_Height, 
-           ColorSelect_HelpTopic, pItems, ColorSelect_NItems, 0, 0, 
-	   ColorDlgProc, highlight_color);
+  res = dlg.ShowEx(0, ColorDlgProc, highlight_color);
   if (res!=-1)
     // Если диалог не был отвергнут
     // то применить новые цвета.
-    highlight_color = GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x100)
-                    |(GetRadioStatus(pItems, ColorSelect_NItems, ColorSelectIndex_0x200)<<4);
-  free(pItems);
+    highlight_color = GetRadioStatus(dlg.sItems, ColorSelect::NItems, ColorSelect::Index_0x100)
+                    |(GetRadioStatus(dlg.sItems, ColorSelect::NItems, ColorSelect::Index_0x200)<<4);
   return FALSE;
 }
 
@@ -1062,30 +1057,28 @@ int WINAPI gcScanDicts(
 
 int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
-  struct FarDialogItem* pItems = (struct FarDialogItem*)malloc(sizeof(struct FarDialogItem)*GeneralConfig_NItems);
+  ::GeneralConfig dlg;
   struct FarDialogItem* pItem;
-  FillGeneralConfig(&m_Info, pItems);
   int res;
   bool last_enable_file_settings = enable_file_settings;
-  char *p =  (pItems+GeneralConfigIndex_ID_GC_SpellExts)->Data;
+  char *p =  dlg.sItems[GeneralConfig::Index_ID_GC_SpellExts].Data;
   strcpy(p, highlight_list.c_str());
-  (pItems+GeneralConfigIndex_MPluginEnabled)->Selected = plugin_enabled;
-  (pItems+GeneralConfigIndex_MSuggMenu)->Selected = suggestions_in_menu;
-  (pItems+GeneralConfigIndex_MAnotherColoring)->Selected = !highlight_deletecolor;
-  (pItems+GeneralConfigIndex_MFileSettings)->Selected = enable_file_settings;
+  dlg.sItems[GeneralConfig::Index_MPluginEnabled].Selected = plugin_enabled;
+  dlg.sItems[GeneralConfig::Index_MSuggMenu].Selected = suggestions_in_menu;
+  dlg.sItems[GeneralConfig::Index_MAnotherColoring].Selected = !highlight_deletecolor;
+  dlg.sItems[GeneralConfig::Index_MFileSettings].Selected = enable_file_settings;
   if (from_editor)
-    (pItems+GeneralConfigIndex_MUnloadDictionaries)->Flags |= DIF_DISABLE;
+    dlg.sItems[GeneralConfig::Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
 
-  ftl::ComboboxItems default_dict_items(pItems+GeneralConfigIndex_ID_GC_DefaultDict);
+  ftl::ComboboxItems default_dict_items(&dlg.sItems[GeneralConfig::Index_ID_GC_DefaultDict]);
   default_dict_items.SetText(editors->default_dict);
   FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", gcScanDicts, 0, &default_dict_items);
 
   for (int cont=1; cont;) 
   {
     default_dict_items.BeforeShow();
-    res = Far::DialogEx(-1, -1, GeneralConfig_Width, GeneralConfig_Height, 
-            GeneralConfig_HelpTopic, pItems, GeneralConfig_NItems, 0, 0, 0, 0);
-    switch (GeneralConfigId(res))
+    res = dlg.Show(0);
+    switch (GeneralConfig::ItemId(res))
     {
       case MColorSelectBtn:
         ColorSelectDialog();
@@ -1103,16 +1096,15 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
           char* news = highlight_list.GetBuffer(l);
           strncpy(news, p, l);
           highlight_list.ReleaseBuffer(l);
-          suggestions_in_menu = (pItems+GeneralConfigIndex_MSuggMenu)->Selected; 
-          highlight_deletecolor = !(pItems+GeneralConfigIndex_MAnotherColoring)->Selected;
-          plugin_enabled = (pItems+GeneralConfigIndex_MPluginEnabled)->Selected;
-          enable_file_settings = (pItems+GeneralConfigIndex_MFileSettings)->Selected;
+          suggestions_in_menu = dlg.sItems[GeneralConfig::Index_MSuggMenu].Selected; 
+          highlight_deletecolor = !dlg.sItems[GeneralConfig::Index_MAnotherColoring].Selected;
+          plugin_enabled = dlg.sItems[GeneralConfig::Index_MPluginEnabled].Selected;
+          enable_file_settings = dlg.sItems[GeneralConfig::Index_MFileSettings].Selected;
           editors->default_dict = default_dict_items.GetText();
         }
         cont = 0;
     }
   }
-  free(pItems); // Free dialog
   if (!enable_file_settings && last_enable_file_settings)
   {
     FarMessage msg(FMSG_MB_YESNO);

@@ -42,6 +42,7 @@
 //#include "FARPlus/FARXml.h"
 //#include "FARPlus/FARDbg.h"
 #include "FARPlus/FARFile.h"
+#include "ftl.hpp"
 
 //#include "hunspell/hunspell.h"
 #include "hunspell/hunspell.hxx"
@@ -65,6 +66,7 @@ char *const highlight_color_key = "HighlightColor";
 char *const highlight_deletecolor_key = "HighlightDeleteColor";
 char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
 char *const enable_file_settings_key = "FileSettings";
+char *const default_dict_key = "DefaultDict";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -99,6 +101,7 @@ enum {
 
   MGeneralConfig,
   MPluginEnabled,
+  MDefaultDict,
   MSpellExts,
   MSuggMenu,
   MFileSettings,
@@ -125,6 +128,7 @@ enum {
 // Dialog ID's
 enum {
   ID_GC_SpellExts=300,
+  ID_GC_DefaultDict,
 };
 
 #ifdef _DEBUG
@@ -279,6 +283,7 @@ class FarSpellEditor
         int highlight_color;
         bool suggestions_in_menu;
         bool highlight_deletecolor; 
+        FarString default_dict;
         class FarRegistry1: public FarRegistry
         {  public:
              FarRegistry1 (const char *rootKeyStart, const char *rootKeyBody)
@@ -307,6 +312,7 @@ class FarSpellEditor
           highlight_color = reg.GetRegKey("", highlight_color_key, 0x84);
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
           highlight_deletecolor = reg.GetRegKey("", highlight_deletecolor_key, false);
+          default_dict = reg.GetRegStr("", default_dict_key, "en_US");
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
           ml = NULL;
@@ -330,6 +336,7 @@ class FarSpellEditor
           reg.SetRegKey("", highlight_color_key, highlight_color);
           reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
           reg.SetRegKey("", highlight_deletecolor_key, highlight_deletecolor);
+          reg.SetRegKey("", default_dict_key, default_dict);
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
           if (ml)
@@ -476,7 +483,7 @@ char *const default_config_hl = "1|en_US|0";
 char *const default_config_nhl = "0|en_US|0";
 
 FarSpellEditor::FarSpellEditor():
-  dict("en_US")
+  dict(editors->default_dict)
 {
   //============================
   next = NULL;
@@ -1039,6 +1046,20 @@ int FarSpellEditor::Manager::ColorSelectDialog()
   return FALSE;
 }
 
+
+int WINAPI gcScanDicts(
+  const WIN32_FIND_DATA *FData,
+  const char *FullName,
+  void *Param
+)
+{
+  ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)Param;
+  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
+  if (FarFileInfo::FileExists(name+".dic"))
+    dicts->AddItem(name.GetNameExt());
+  return 1;
+}
+
 int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
   struct FarDialogItem* pItems = (struct FarDialogItem*)malloc(sizeof(struct FarDialogItem)*GeneralConfig_NItems);
@@ -1054,10 +1075,14 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
   (pItems+GeneralConfigIndex_MFileSettings)->Selected = enable_file_settings;
   if (from_editor)
     (pItems+GeneralConfigIndex_MUnloadDictionaries)->Flags |= DIF_DISABLE;
-    
+
+  ftl::ComboboxItems default_dict_items(pItems+GeneralConfigIndex_ID_GC_DefaultDict);
+  default_dict_items.SetText(editors->default_dict);
+  FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", gcScanDicts, 0, &default_dict_items);
 
   for (int cont=1; cont;) 
   {
+    default_dict_items.BeforeShow();
     res = Far::DialogEx(-1, -1, GeneralConfig_Width, GeneralConfig_Height, 
             GeneralConfig_HelpTopic, pItems, GeneralConfig_NItems, 0, 0, 0, 0);
     switch (GeneralConfigId(res))
@@ -1082,6 +1107,7 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
           highlight_deletecolor = !(pItems+GeneralConfigIndex_MAnotherColoring)->Selected;
           plugin_enabled = (pItems+GeneralConfigIndex_MPluginEnabled)->Selected;
           enable_file_settings = (pItems+GeneralConfigIndex_MFileSettings)->Selected;
+          editors->default_dict = default_dict_items.GetText();
         }
         cont = 0;
     }

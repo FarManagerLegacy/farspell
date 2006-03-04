@@ -5,32 +5,43 @@ enum {
   MFarSpell, MLoadingDictionary, MEngineNotInstalled, MNoDictionaries,
   MSuggestion, MReplace, MSkip, MStop, MEditorGeneralConfig, MPreferences, 
   MUnloadDictionaries, MHighlight, MDictianary, MParser,
-  MGeneralConfig, MPluginEnabled, MSpellExts, MSuggMenu, MFileSettings
-  MAnotherColoring, MColorSelectBtn, 
+  MGeneralConfig, MPluginEnabled, MDefaultDict, MSpellExts, MSuggMenu, 
+  MFileSettings, MAnotherColoring, MColorSelectBtn, 
   MSelectColor, MForeground, MBackground, MTest,
   MFileSettingWasDisabled, MWillDeleteFileSetting, MFileSettingsRemoved,
   M_FMT_AUTO_TEXT, M_FMT_TEXT, M_FMT_LATEX, M_FMT_HTML, M_FMT_MAN, M_FMT_FIRST };
 enum { 
   ID_GC_SpellExts=300, 
+  ID_GC_DefaultDict,
 }
 ; Items list
-; name     id x1 y1 x2 y2 
-;                    focus(T/F|0/1) 
-;                      selected(T/F|0/1) 
-;                                      Flags          DefButton Data
+; name     id  x1 y1 x2 y2 
+;           |   |  |  |  | focus(T/F|0/1) 
+;           |   |  |  |  | | selected(T/F|0/1) 
+;           |   |  |  |  | | | Flags DefButton Data
 name "GeneralConfig"
-DOUBLEBOX 0 3 1 55 11 F F               0              0 %LNG% MGeneralConfig
-CHECKBOX MPluginEnabled 5 2  0 0 F F               0 0 %LNG% MPluginEnabled
-TEXT 0      5 3  0 0 F F               0              0 %LNG% MSpellExts
-EDIT ID_GC_SpellExts 5 4 52 0 F F DIF_HISTORY    0 NULL HISTORY="FarSpell.SpellExts"
-CHECKBOX MSuggMenu 7 5  0 0 F F               0              0 %LNG% MSuggMenu
-CHECKBOX MFileSettings 7 6  0 0 F F               0              0 %LNG% MFileSettings
-CHECKBOX MAnotherColoring 7 7  0 0 F F               0              0 %LNG% MAnotherColoring
-BUTTON MColorSelectBtn 5 8 0 0  F F               DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
-BUTTON MUnloadDictionaries 10 8 0 0 F F               DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
-TEXT 0      0  9 0 0 F F               DIF_SEPARATOR   0 NULL
-BUTTON MOk  05 10 0 0 F F               DIF_CENTERGROUP 1 %LNG% MOk
-BUTTON -1   15 10 0 0 F F               DIF_CENTERGROUP 0 %LNG% MCancel
+DOUBLEBOX   0   3  1 55 13 F F 0 0 %LNG% MGeneralConfig
+CHECKBOX MPluginEnabled 
+                5  2  0  0 F F 0 0 %LNG% MPluginEnabled
+TEXT        0   5  3  0  0 F F 0 0 %LNG% MDefaultDict
+COMBOBOX ID_GC_DefaultDict 
+                5  4 52  0 F F DIF_DROPDOWNLIST 0 NULL
+TEXT        0   5  5  0  0 F F 0 0 %LNG% MSpellExts
+EDIT ID_GC_SpellExts 
+                5  6 52  0 F F 0 0 NULL HISTORY="FarSpell.SpellExts"
+CHECKBOX MSuggMenu 
+                7  7  0  0 F F 0 0 %LNG% MSuggMenu
+CHECKBOX MFileSettings 
+                7  8  0  0 F F 0 0 %LNG% MFileSettings
+CHECKBOX MAnotherColoring 
+                7  9  0  0 F F 0 0 %LNG% MAnotherColoring
+BUTTON MColorSelectBtn 
+                5 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
+BUTTON MUnloadDictionaries 
+               11 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
+TEXT        0   0 11  0  0 F F DIF_SEPARATOR   0 NULL
+BUTTON MOk     05 12  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON     -1  15 12  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
 name "ColorSelect"
 ; name     id     x1 y1 x2 y2 focus(T/F | 0/1) 

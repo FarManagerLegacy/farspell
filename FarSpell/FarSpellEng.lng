@@ -15,7 +15,8 @@
 "FarSpell: Spell-check"
 "Loading dictionary %s..."
 "engine not installed!"
-"No dictionaries"
+"No dictionaries installed!"
+"Plugin will be disabled"
 
 "Suggestion"
 "Replace"

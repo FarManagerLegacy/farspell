@@ -86,6 +86,7 @@ enum {
   MLoadingDictionary,
   MEngineNotInstalled,
   MNoDictionaries,
+  MPluginWillBeDisabled,
 
   MSuggestion,
   MReplace,
@@ -312,6 +313,7 @@ class FarSpellEditor
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
           highlight_deletecolor = reg.GetRegKey("", highlight_deletecolor_key, false);
           default_dict = reg.GetRegStr("", default_dict_key, "en_US");
+          CheckDictionaries();
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
           ml = NULL;
@@ -386,6 +388,9 @@ class FarSpellEditor
            if (editor)
               editor->DoMenu(fei, suggestions_in_menu);
         }
+        void CheckDictionaries();
+        static int WINAPI GetDictCount(const WIN32_FIND_DATA *FData, 
+                                       const char *FullName, void *Param);
     };
     static Manager *editors;
     static void Init()
@@ -475,9 +480,38 @@ int FarSpellEditor::Manager::GetCharsetEncoding(FarString &name)
   return GetACP();
 }
 
+
 void FarSpellEditor::Manager::ClearFileSettings()
 {
   reg.DeleteRegKey("", editor_files_key);
+}
+
+void FarSpellEditor::Manager::CheckDictionaries()
+{
+  if (!plugin_enabled) return;
+  int dict_count = 0;
+  EnumDictionaries(GetDictCount, &dict_count);
+  if (dict_count == 0)
+  {
+    FarMessage msg(FMSG_MB_OK, "Contents");
+    msg.AddLine(MFarSpell);
+    msg.AddLine(MNoDictionaries);
+    msg.AddLine(MPluginWillBeDisabled);
+    msg.Show();
+    plugin_enabled = false;
+  }
+}
+
+int WINAPI FarSpellEditor::Manager::GetDictCount(
+  const WIN32_FIND_DATA *FData,
+  const char *FullName,
+  void *Param
+)
+{
+  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
+  if (FarFileInfo::FileExists(name+".dic"))
+     (*(int*)Param)++;
+  return 1;
 }
 
 // config format: int highlight | string dictinoary | int parser_id
@@ -1114,6 +1148,7 @@ int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
   bool last_enable_file_settings = enable_file_settings;
   GeneralConfigDialog().Execute(this, from_editor);
+  CheckDictionaries();
   if (!enable_file_settings && last_enable_file_settings)
   {
     FarMessage msg(FMSG_MB_YESNO);

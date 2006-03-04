@@ -1,0 +1,103 @@
+metaquote %[]
+target C++
+begin
+%[foreach dialog]
+/******************************************************************************
+ %[dialog.id]
+ ******************************************************************************/
+class %[prefix]%[dialog.id]
+: public Far
+{
+  public:
+    enum {
+      Width = %[dialog.width], Height = %[dialog.height], 
+      NItems = %[items.count],
+    };
+    static const char* HelpTopic;
+    static void FillItems(const PluginStartupInfo *pInfo, FarDialogItem* pItems)
+    {
+#ifdef far_assert
+      far_assert(pItems);
+#else
+#ifdef assert
+      assert(pItems);
+#endif
+#endif
+      memset(pItems, 0, NItems*sizeof(FarDialogItem));
+%[foreach item]
+%[has id?]
+      /* Item ID %[sid] (%[id]) Index %[index] */
+%[hasn't id?]
+      /* Item Index %[index] */
+%[other]
+      pItems->Type = %[type];
+%[has x1?]
+      pItems->X1 = %[x1];
+%[has y1?]
+      pItems->Y1 = %[y1];
+%[has x2?]
+      pItems->X2 = %[x2];
+%[has y2?]
+      pItems->Y2 = %[y2];
+%[has focused?]
+      pItems->Focus = %[focused];
+%[has selected?]
+      pItems->Selected = %[selected];
+%[has flags?]
+      pItems->Flags = %[flags];
+%[has msgid?]
+      strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+%[has text?]
+      strcpy(pItems->Data, "%[text]");
+%[has history?]
+      pItems->History = "%[history]";
+%[common]
+      pItems++;
+%[next item]
+    }
+    enum {
+%[foreach item]
+      Id_%[index] = %[id],
+%[has id?]
+      Index_%[cid] = %[index],
+%[next item]
+    };
+    static int ItemIndex(int nId) {
+      switch(nId) {
+%[foreach item]
+%[has id?]
+        case %[id]: return %[index];
+%[next item]
+      }
+      return nId;
+    }
+    static int ItemId(int nIndex) {
+      switch(nIndex) {
+%[foreach item]
+        case %[index]: return %[id];
+%[next item]
+      }
+      return nIndex;
+    }
+  public:
+    FarDialogItem sItems[NItems];
+    %[prefix]%[dialog.id]() {
+      RefillItems();
+    }
+    void RefillItems() {
+      FillItems(&m_Info, sItems);
+    }
+    int ShowEx(DWORD Flags, FARWINDOWPROC DlgProc, long Param)
+    {
+      return Far::DialogEx(-1, -1, Width, Height, HelpTopic, 
+           sItems, NItems, Flags, 0, DlgProc, Param);
+    }
+    int Show(DWORD Flags)
+    {
+      return Far::DialogEx(-1, -1, Width, Height, HelpTopic, 
+           sItems, NItems, Flags, 0, Far::DefDlgProc, 0);
+    }
+};
+const char* %[prefix]%[dialog.id]::HelpTopic = "%[dialog.helptopic]";
+// end of %[dialog.id]
+%[next dialog]

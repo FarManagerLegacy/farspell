@@ -87,6 +87,8 @@ enum {
   MEngineNotInstalled,
   MNoDictionaries,
   MPluginWillBeDisabled,
+  MNoDictionary,
+  MHighlightingWillBeDisabled,
 
   MSuggestion,
   MReplace,
@@ -389,6 +391,7 @@ class FarSpellEditor
               editor->DoMenu(fei, suggestions_in_menu);
         }
         void CheckDictionaries();
+        bool DictionaryExists(const char *dict);
         static int WINAPI GetDictCount(const WIN32_FIND_DATA *FData, 
                                        const char *FullName, void *Param);
     };
@@ -416,6 +419,7 @@ class FarSpellEditor
   public:
     FarSpellEditor();
     ~FarSpellEditor();
+    bool CheckDictionary();
     void DoMenu(FarEdInfo &fei, bool insert_suggestions);
     void Save(FarEdInfo *fei);
     void Redraw(FarEdInfo &fei, int What);
@@ -514,6 +518,16 @@ int WINAPI FarSpellEditor::Manager::GetDictCount(
   return 1;
 }
 
+bool FarSpellEditor::Manager::DictionaryExists(const char *dict)
+{
+  int count = 0;
+  FarFileName name(dict);
+  name.SetExt(".aff");
+  FarSF::RecursiveSearch((char*)dict_root.c_str(), (char*)name.c_str(), 
+    GetDictCount, 0, &count);
+  return count>0;
+}
+
 // config format: int highlight | string dictinoary | int parser_id
 char *const config_template = "%d|%s|%d";
 char *const default_config_hl = "1|en_US|0";
@@ -563,6 +577,7 @@ FarSpellEditor::FarSpellEditor():
     default_config_string = highlight ? default_config_hl : default_config_nhl;
   }
   //RecreateEngine(RS_ALL);
+  CheckDictionary();
 }
 
 FarSpellEditor::~FarSpellEditor()
@@ -587,6 +602,22 @@ FarSpellEditor::~FarSpellEditor()
     prev = NULL;
   }
   //===============================
+}
+
+bool FarSpellEditor::CheckDictionary()
+{
+  bool exists = editors->DictionaryExists(dict);
+  if (highlight && !exists)
+  {
+    FarMessage msg(FMSG_MB_OK, "Contents");
+    msg.AddLine(MFarSpell);
+    msg.AddLine(MNoDictionary);
+    msg.AddLine(dict.c_str());
+    msg.AddLine(MHighlightingWillBeDisabled);
+    msg.Show();
+    highlight = false;
+  }
+  return exists;
 }
 
 void FarSpellEditor::Save(FarEdInfo *fei)
@@ -619,8 +650,11 @@ void FarSpellEditor::RecreateEngine(int what)
 {
   if (what&(RS_DICT))
   {
-    _dict_instance = editors->GetDictInstance(dict);
-    spell_enc = editors->GetCharsetEncoding(FarString(_dict_instance->get_dic_encoding()));
+    if (CheckDictionary())
+    {
+      _dict_instance = editors->GetDictInstance(dict);
+      spell_enc = editors->GetCharsetEncoding(FarString(_dict_instance->get_dic_encoding()));
+    }
   }
   if (what&(RS_PARSER) && GetDict())
   {
@@ -738,6 +772,8 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   char *token;
   Hunspell *dict_inst = GetDict();
   TextParser *parser_inst = GetParser();
+
+  if (!dict_inst || !parser_inst) return;
 
   UpdateDocumentCharset(fei);
   colored_begin = min(colored_begin, top_line);
@@ -894,6 +930,7 @@ class FarEditorSuggestList
       ns = 0;
       Hunspell *dict_inst = editor->GetDict();
       TextParser *parser_inst = editor->GetParser();
+      if (!dict_inst || !parser_inst) return;
       int cpos = fei.CurPos;
       line = fei.CurLine;
       FarString document(FarEd::GetStringText(line));

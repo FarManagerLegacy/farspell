@@ -17,6 +17,8 @@
 "engine not installed!"
 "No dictionaries installed!"
 "Plugin will be disabled"
+"Dictionary not installed:"
+"Highlighting of misspellings will be disabled"
 
 "Suggestion"
 "Replace"

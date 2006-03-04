@@ -974,38 +974,6 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 }
 
 #include "dialogs.cpp"
-static long WINAPI ColorDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
-{
-  int id;
-  int nColor;
-  switch (Msg) 
-  {
-    case DN_INITDIALOG:
-       Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
-       break;
-    case DN_CTLCOLORDLGITEM: 
-       if (Param1 == ColorSelect::Index_243) 
-          return Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
-       break;
-    case DN_BTNCLICK: 
-       id = ColorSelect::ItemId(Param1);
-       if (id&0x100) 
-       {
-         nColor = Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
-         nColor = nColor&0xF0 | id&0x0F;
-         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, nColor);
-       }
-       else if (id&0x200) 
-       {
-         nColor = Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
-         nColor = nColor&0x0F | id&0xF0;
-         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, nColor);
-       }
-       break;
-  }
-  return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
-}
-
 int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
 {
   int nSelected = 0;
@@ -1016,95 +984,132 @@ int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
   return -1;
 }
 
+class ColorDialog: ColorSelect
+{
+  int nCurrentColor;
+  static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+  {
+    int id;
+    ColorDialog *pThis = (ColorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+    switch (Msg) 
+    {
+      case DN_INITDIALOG:
+         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+         break;
+      case DN_CTLCOLORDLGITEM: 
+         if (Param1 == Index_243) 
+            return pThis->nCurrentColor;
+         break;
+      case DN_BTNCLICK: 
+         id = ItemId(Param1);
+         if (id&0x100) 
+         {
+           pThis->nCurrentColor = pThis->nCurrentColor&0xF0 | id&0x0F;
+         }
+         else if (id&0x200) 
+         {
+           pThis->nCurrentColor = pThis->nCurrentColor&0x0F | id&0xF0;
+         }
+         break;
+    }
+    return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+  }
+  public: void Select(int &nColor)
+  {
+    int col1 = (nColor&0x0F);
+    int col2 = (nColor&0xF0)>>4;
+    FarDialogItem* pItem;
+    // Установить текущий цвет 
+    pItem = &sItems[Index_0x100+col1];
+    pItem->Selected = 1;
+    pItem->Focus = 1;
+    sItems[Index_0x200+col2].Selected = 1;
+    // Установить цвет для "образца"
+    pItem = &sItems[Index_243];
+    pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | nColor;
+    nCurrentColor = nColor;
+    if (ShowEx(0, DlgProc, (long)this) != -1)
+      // Если диалог не был отвергнут
+      // то применить новые цвета.
+      nColor = nCurrentColor;
+  }
+};
 
 int FarSpellEditor::Manager::ColorSelectDialog()
 {
-  ColorSelect dlg;
-  int res;
-  int col1 = (highlight_color&0x0F);
-  int col2 = (highlight_color&0xF0)>>4;
-  FarDialogItem* pItem;
-  // Установить текущий цвет 
-  pItem = &dlg.sItems[ColorSelect::Index_0x100+col1];
-  pItem->Selected = 1;
-  pItem->Focus = 1;
-  dlg.sItems[ColorSelect::Index_0x200+col2].Selected = 1;
-  // Установить цвет для "образца"
-  pItem = &dlg.sItems[ColorSelect::Index_243];
-  pItem->Flags = (pItem->Flags&~DIF_COLORMASK) | highlight_color;
-  res = dlg.ShowEx(0, ColorDlgProc, highlight_color);
-  if (res!=-1)
-    // Если диалог не был отвергнут
-    // то применить новые цвета.
-    highlight_color = GetRadioStatus(dlg.sItems, ColorSelect::NItems, ColorSelect::Index_0x100)
-                    |(GetRadioStatus(dlg.sItems, ColorSelect::NItems, ColorSelect::Index_0x200)<<4);
+  ColorDialog().Select(highlight_color);
   return FALSE;
 }
 
 
-int WINAPI gcScanDicts(
-  const WIN32_FIND_DATA *FData,
-  const char *FullName,
-  void *Param
-)
+
+class GeneralConfigDialog: GeneralConfig
 {
-  ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)Param;
-  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
-  if (FarFileInfo::FileExists(name+".dic"))
-    dicts->AddItem(name.GetNameExt());
-  return 1;
-}
+  static int WINAPI ScanDicts(
+    const WIN32_FIND_DATA *FData,
+    const char *FullName,
+    void *Param
+  )
+  {
+    ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)Param;
+    FarFileName name(FullName, strlen(FullName)-4); // *.aff only
+    if (FarFileInfo::FileExists(name+".dic"))
+      dicts->AddItem(name.GetNameExt());
+    return 1;
+  }
+  public: void Execute(FarSpellEditor::Manager *m, bool from_editor)
+  {
+    FarDialogItem* pItem;
+    int res;
+    char *p =  sItems[Index_ID_GC_SpellExts].Data;
+    strcpy(p, m->highlight_list.c_str());
+    sItems[Index_MPluginEnabled].Selected = m->plugin_enabled;
+    sItems[Index_MSuggMenu].Selected = m->suggestions_in_menu;
+    sItems[Index_MAnotherColoring].Selected = !m->highlight_deletecolor;
+    sItems[Index_MFileSettings].Selected = m->enable_file_settings;
+    if (from_editor)
+      sItems[Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
+    ftl::ComboboxItems default_dict_items(&sItems[Index_ID_GC_DefaultDict]);
+    default_dict_items.SetText(m->default_dict);
+    FarSF::RecursiveSearch((char*)m->dict_root.c_str(), "*.aff", ScanDicts, 0, &default_dict_items);
+    for (int cont=1; cont;) 
+    {
+      default_dict_items.BeforeShow();
+      res = Show(0);
+      switch (ItemId(res))
+      {
+        case MColorSelectBtn:
+          m->ColorSelectDialog();
+          break;
+        case MUnloadDictionaries:
+          m->UnloadDictionaries();
+          break;
+        case -1: // cancel
+          cont = 0;
+          break;
+        case MOk:
+        default:
+          {
+            int l = strlen(p);
+            char* news = m->highlight_list.GetBuffer(l);
+            strncpy(news, p, l);
+            m->highlight_list.ReleaseBuffer(l);
+            m->suggestions_in_menu = sItems[Index_MSuggMenu].Selected; 
+            m->highlight_deletecolor = !sItems[Index_MAnotherColoring].Selected;
+            m->plugin_enabled = sItems[Index_MPluginEnabled].Selected;
+            m->enable_file_settings = sItems[Index_MFileSettings].Selected;
+            m->default_dict = default_dict_items.GetText();
+          }
+          cont = 0;
+      }
+    }
+  }
+};
 
 int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {
-  ::GeneralConfig dlg;
-  struct FarDialogItem* pItem;
-  int res;
   bool last_enable_file_settings = enable_file_settings;
-  char *p =  dlg.sItems[GeneralConfig::Index_ID_GC_SpellExts].Data;
-  strcpy(p, highlight_list.c_str());
-  dlg.sItems[GeneralConfig::Index_MPluginEnabled].Selected = plugin_enabled;
-  dlg.sItems[GeneralConfig::Index_MSuggMenu].Selected = suggestions_in_menu;
-  dlg.sItems[GeneralConfig::Index_MAnotherColoring].Selected = !highlight_deletecolor;
-  dlg.sItems[GeneralConfig::Index_MFileSettings].Selected = enable_file_settings;
-  if (from_editor)
-    dlg.sItems[GeneralConfig::Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
-
-  ftl::ComboboxItems default_dict_items(&dlg.sItems[GeneralConfig::Index_ID_GC_DefaultDict]);
-  default_dict_items.SetText(editors->default_dict);
-  FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", gcScanDicts, 0, &default_dict_items);
-
-  for (int cont=1; cont;) 
-  {
-    default_dict_items.BeforeShow();
-    res = dlg.Show(0);
-    switch (GeneralConfig::ItemId(res))
-    {
-      case MColorSelectBtn:
-        ColorSelectDialog();
-        break;
-      case MUnloadDictionaries:
-        UnloadDictionaries();
-        break;
-      case -1: // cancel
-        cont = 0;
-        break;
-      case MOk:
-      default:
-        {
-          int l = strlen(p);
-          char* news = highlight_list.GetBuffer(l);
-          strncpy(news, p, l);
-          highlight_list.ReleaseBuffer(l);
-          suggestions_in_menu = dlg.sItems[GeneralConfig::Index_MSuggMenu].Selected; 
-          highlight_deletecolor = !dlg.sItems[GeneralConfig::Index_MAnotherColoring].Selected;
-          plugin_enabled = dlg.sItems[GeneralConfig::Index_MPluginEnabled].Selected;
-          enable_file_settings = dlg.sItems[GeneralConfig::Index_MFileSettings].Selected;
-          editors->default_dict = default_dict_items.GetText();
-        }
-        cont = 0;
-    }
-  }
+  GeneralConfigDialog().Execute(this, from_editor);
   if (!enable_file_settings && last_enable_file_settings)
   {
     FarMessage msg(FMSG_MB_YESNO);

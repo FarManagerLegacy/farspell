@@ -160,6 +160,15 @@ clean:
 	-del farspell\*.* /Q
 	-rmdir farspell
 	-del dialogs.cpp
+	-del FarSpell.dlg.log
+
+distclean: clean
+	cd $(DEX)
+	$(MAKE) /nologo -f makefile clean
+	cd "$(MAKEDIR)"
+	cd ..\make-tools
+	$(MAKE) /nologo -f makefile.vc clean
+	cd "$(MAKEDIR)"
 	cd $(FARPlus)
         -$(MAKE) /nologo clean
 	cd $(Hunspell)\hunspell
@@ -169,9 +178,6 @@ clean:
         -$(MAKE) /nologo /f makefile.vc clean
         -del makefile.vc
 	cd "$(MAKEDIR)"
-  cd ..\make-tools
-  $(MAKE) /nologo -f makefile.vc clean
-  cd "$(MAKEDIR)"
 
 templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
   $(DIST)\history.txt $(DIST)\todo.txt \

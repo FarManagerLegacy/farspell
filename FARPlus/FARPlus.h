@@ -203,7 +203,7 @@ public:
                      int ItemsNumber, DWORD Reserved, DWORD Flags,
                      FARWINDOWPROC DlgProc, long Param);
 	static long SendDlgMessage(HANDLE hDlg, int Msg, int Param1, long Param2);
-	static long DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2);
+	static long WINAPI DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2);
 #endif
 	static int GetBuildNumber();
 
@@ -313,7 +313,7 @@ inline long Far::SendDlgMessage(HANDLE hDlg, int Msg, int Param1, long Param2)
 	return m_Info.SendDlgMessage(hDlg, Msg, Param1, Param2);
 }
 
-inline long Far::DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+inline long WINAPI Far::DefDlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
 {
 	return m_Info.DefDlgProc(hDlg, Msg, Param1, Param2);
 }

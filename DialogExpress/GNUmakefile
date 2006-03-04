@@ -21,7 +21,7 @@ override OUTDIR = .gcc.aided-release
 endif
 ifeq ("$(TARGET)","Debug")
 override LEMONFLAGS = -c
-override CC = gcc -g $(COMMONFLAGS)
+override CC = gcc -g -D_DEBUG $(COMMONFLAGS)
 override LINKFLAGS =
 override OUTDIR = .gcc.debug
 endif

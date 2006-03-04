@@ -231,9 +231,11 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
     strncpy(pPoolEnd, zFilename, nSize);
     pPoolEnd += nSize;
     DialogTemplateFree(pDr->pDialogs, 1);
+    dialogitemFree(pParse->pFistDialogItem, 1);
   }
   else
   {
+    assert(!pParse->pFistDialogItem);
     nSize = strlen(zFilename)+1;
     pParse->nPoolBytes += nSize + pDr->sErrToken.n+1;
     pDr->pPool = (char*)dialogres_malloc(pParse->nPoolBytes);

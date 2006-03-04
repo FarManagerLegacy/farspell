@@ -243,12 +243,16 @@ help(H) ::= .               { H = contents_token; }
 help(H) ::= HELP STRING(X). { H = unquote(X); pParse->nPoolBytes += H.n+1; }
 
 %type items {struct dialogitem *}
-%destructor items { dialogitemFree($$, 1); }
+%destructor items { 
+  dialogitemFree(pParse->pFistDialogItem, 1); 
+  pParse->pFistDialogItem = NULL;
+}
 items(L) ::= .                    { L = NULL; }
 items(L) ::= items(IS) item(I).   { 
   dialogitem *prev = IS;
   L = I; 
   if (prev) {
+    assert(pParse->pFistDialogItem);
     prev->next = L;
     L->nIndex = prev->nIndex + 1;
   } else { 

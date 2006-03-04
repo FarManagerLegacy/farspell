@@ -31,8 +31,12 @@
 struct MemDbgChunkList
 {
   size_t nBytes;
+  char* xInfoGuard1;
   const char* zFile;
   unsigned  nLine;
+  const char* zFreeFile;
+  unsigned  nFreeLine;
+  char* xInfoGuard2;
   struct MemDbgChunkList* prev;
   struct MemDbgChunkList* next;
   char* xTag;
@@ -68,9 +72,20 @@ void _dialogres_free(void **ppChunk, const char* zFile, unsigned nLine)
   assert(chunk);
   chunk--;
   assert(!IsBadWritePtr(chunk, sizeof(struct MemDbgChunkList)));
-  assert(CHECK_PTAG(&chunk->xTag)); // Freeing of Invalid chunk
-                                   // or corrupted block
+  if (!CHECK_PTAG(&chunk->xTag))
+  {
+    // Freeing of Invalid chunk or corrupted block      
+    fprintf(stderr, "Double free or corrupted block in %s:%d\n", zFile, nLine); 
+    if (CHECK_PTAG(&chunk->xInfoGuard1) && CHECK_PTAG(&chunk->xInfoGuard2))
+    {
+      fprintf(stderr, "\tIt was allocated in %s:%d\n", chunk->zFile, chunk->nLine); 
+      fprintf(stderr, "\tAnd freed in %s:%d\n", chunk->zFreeFile, chunk->nFreeLine); 
+    }
+    exit(STATUS_ACCESS_VIOLATION);                       
+  }
   chunk->xTag = NULL;
+  chunk->zFreeFile = zFile;
+  chunk->nFreeLine = nLine;
   pTag = (char*)chunk+sizeof(struct MemDbgChunkList)+chunk->nBytes;
   if (!CHECK_PTAG(pTag))
   {
@@ -106,6 +121,8 @@ void* _dialogres_malloc(size_t nBytes, const char* zFile, unsigned  nLine)
   //fprintf(stderr, "<%x %s:%d\n", chunk, file, line);
   //fflush(stderr);
   dialogresMemory += nBytes;
+  SET_XTAG(chunk->xInfoGuard1);
+  SET_XTAG(chunk->xInfoGuard2);
   SET_XTAG(chunk->xTag);
   chunk->nBytes = nBytes;
   chunk->zFile = zFile;

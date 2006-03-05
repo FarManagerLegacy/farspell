@@ -1,4 +1,5 @@
 # Boring file regexps:
+^farmenu.ini$
 ^makefile.exinfo$
 ^FarSpell/farspell$
 ^FarSpell/www/index\.html$

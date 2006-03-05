@@ -5,10 +5,10 @@
 ^FarSpell/www/index\.html$
 \.msvc.*$
 \.gcc.*$
-\.*.out$
-\.*.OUT$
-\.*.log$
-\.*.LOG$
+\.out$
+\.OUT$
+\.log$
+\.LOG$
 \.7z$
 \.7Z$
 \.obj_.$

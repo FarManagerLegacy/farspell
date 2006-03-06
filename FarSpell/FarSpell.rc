@@ -9,7 +9,7 @@ FILETYPE 2
  {
   BLOCK "000004E4"
   {
-   VALUE "CompanyName", "Eugene Roshal & FAR Group\000\000"
+   VALUE "CompanyName", "Eugene Roshal && FAR Group\000\000"
    VALUE "FileDescription", "Spell-check plugin for FAR Manager\000"
    VALUE "FileVersion", "alpha &Y&m&d\000\000"
    VALUE "InternalName", "farspell.dll\000"

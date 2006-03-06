@@ -86,7 +86,7 @@ release: makefile.exinfo
 !endif !EXINFO
 
 farspell.dll-release:
-	echo "Release built at &TIMESTAMP" | $(MJU_SED) > $@
+	echo "Release built at &[TIMESTAMP]" | $(MJU_SED) > $@
 
 debug: makefile.exinfo
 	-@mkdir farspell > nul
@@ -97,7 +97,7 @@ debug: makefile.exinfo
 !endif !EXINFO
 
 farspell.dll-debug: $(DIST)\farspell.dll
-	echo "Debug built at &TIMESTAMP" | $(MJU_SED) > $@
+	echo "Debug built at &[TIMESTAMP]" | $(MJU_SED) > $@
 
 makefile.exinfo: $(MJU_SED)
   @echo Put time-stamp to makefile.exinfo
@@ -184,7 +184,6 @@ templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
   $(DIST)\dbghelp.dll \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
   $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
-  www
 #  $(DIST)\FarSpell.dlg \
 
 www: $(MJU_SED) www\index.html
@@ -197,13 +196,13 @@ $(DIST)\FarSpell.rc: FarSpell.rc
 #$(DIST)\FarSpell.dlg: FarSpell.dlg
 #	$(MJU_SED) < $** > $@
 $(DIST)\FarSpellEng.hlf: FarSpellEng.hlf
-	$(MJU_SED) < $** > $@
+	copy $** $@
 $(DIST)\FarSpellEng.lng: FarSpellEng.lng
-	$(MJU_SED) < $** > $@
+	copy $** $@
 $(DIST)\FarSpellRus.hlf: FarSpellRus.hlf
-	$(MJU_SED) < $** > $@
+	copy $** $@
 $(DIST)\FarSpellRus.lng: FarSpellRus.lng
-	$(MJU_SED) < $** > $@
+	copy $** $@
 $(DIST)\dbghelp.dll: $(FARPlus)\dbghelp.dll
 	copy $** $@
 $(DIST)\history.txt: history.txt
@@ -245,3 +244,8 @@ $(DIST)\farspell.pdb
 !endif DEBUG
 <<NOKEEP
 !endif EXINFO
+
+full:
+	$(MAKE) /nologo clean debug dist 
+	$(MAKE) /nologo release dist www
+#	$(MAKE) /nologo www

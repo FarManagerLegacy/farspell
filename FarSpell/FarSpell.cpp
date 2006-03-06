@@ -265,6 +265,9 @@ void ConvertEncoding(FarString &src, int src_enc, FarString &dst, int dst_enc)
   dst.ReleaseBuffer(ac);
 }
 
+// class SpellFactory:
+#include "SpellFactory.hpp"
+
 class FarEditorSuggestList;
 class FarSpellEditor
 {
@@ -276,9 +279,8 @@ class FarSpellEditor
     {
       public:
         FarSpellEditor *last;
-        FarFileName plugin_root, dict_root;
-        FarArray<FarString> cache_engine_langs;
-        FarArray<Hunspell> cache_engine_instances;
+        FarFileName plugin_root;
+        SpellFactory spell_factory;
         FarString highlight_list;
         bool plugin_enabled;
         bool enable_file_settings;
@@ -305,7 +307,7 @@ class FarSpellEditor
         Manager():
           reg(Far::GetRootKey(), "\\FarSpell"),
           plugin_root(FarFileName(Far::GetModuleName()).GetPath()),
-          dict_root(FarFileName(plugin_root+"dict\\"))
+          spell_factory(FarFileName(plugin_root+"dict\\"))
         {
           last = NULL;
           plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);
@@ -351,15 +353,6 @@ class FarSpellEditor
 #         endif  HARDCODED_MLDATA
           editors = NULL;
         }
-        void EnumDictionaries(FRSUSERFUNC Func, void *param)
-        {
-          FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", Func, 0, param);
-        }
-        void UnloadDictionaries()
-        {
-          cache_engine_langs.Clear();
-          cache_engine_instances.Clear();
-        }
         FarSpellEditor* Lookup(int id)
         {
           FarSpellEditor *editor;
@@ -372,7 +365,6 @@ class FarSpellEditor
           }
           return NULL;
         }
-        Hunspell* GetDictInstance(FarString& dict);
         FarLog GetLog()
         {
           return FarLog(plugin_root+"farspell.log");
@@ -404,7 +396,7 @@ class FarSpellEditor
     char *default_config_string;
     int highlight;
     FarFileName file_name;
-    Hunspell* _dict_instance;
+    SpellInstance* _dict_instance;
     FarString dict;
     TextParser* _parser_instance;
     int parser_id;
@@ -414,7 +406,7 @@ class FarSpellEditor
            RS_ALL = RS_DICT|RS_PARSER };
     void RecreateEngine(int what = RS_ALL);
     void DropEngine(int what = RS_ALL);
-    Hunspell* GetDict();
+    SpellInstance* GetDict();
     TextParser* GetParser();
   public:
     FarSpellEditor();
@@ -435,27 +427,6 @@ class FarSpellEditor
 };
 
 FarSpellEditor::Manager *FarSpellEditor::editors = NULL;
-
-Hunspell* FarSpellEditor::Manager::GetDictInstance(FarString& dict)
-{
-  for (int i = 0; i < cache_engine_langs.Count(); i++)
-  {
-     if ((*cache_engine_langs[i]) == dict)
-       return cache_engine_instances[i];
-  }
-  HANDLE screen = Far::SaveScreen();
-  FarMessage wait(0);
-  wait.AddLine(MFarSpell);
-  wait.AddFmt(MLoadingDictionary, dict.c_str());
-  wait.Show();
-  Hunspell* engine = new Hunspell(
-         FarFileName::MakeName(dict_root, dict+".aff").c_str(),
-         FarFileName::MakeName(dict_root, dict+".dic").c_str());
-  cache_engine_langs.Add(new FarString(dict));
-  cache_engine_instances.Add(engine);
-  Far::RestoreScreen(screen);
-  return engine;
-}
 
 int FarSpellEditor::Manager::GetCharsetEncoding(FarString &name)
 {
@@ -493,9 +464,7 @@ void FarSpellEditor::Manager::ClearFileSettings()
 void FarSpellEditor::Manager::CheckDictionaries()
 {
   if (!plugin_enabled) return;
-  int dict_count = 0;
-  EnumDictionaries(GetDictCount, &dict_count);
-  if (dict_count == 0)
+  if (!spell_factory.AnyDictionaryExists())
   {
     FarMessage msg(FMSG_MB_OK, "Contents");
     msg.AddLine(MFarSpell);
@@ -504,28 +473,6 @@ void FarSpellEditor::Manager::CheckDictionaries()
     msg.Show();
     plugin_enabled = false;
   }
-}
-
-int WINAPI FarSpellEditor::Manager::GetDictCount(
-  const WIN32_FIND_DATA *FData,
-  const char *FullName,
-  void *Param
-)
-{
-  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
-  if (FarFileInfo::FileExists(name+".dic"))
-     (*(int*)Param)++;
-  return 1;
-}
-
-bool FarSpellEditor::Manager::DictionaryExists(const char *dict)
-{
-  int count = 0;
-  FarFileName name(dict);
-  name.SetExt(".aff");
-  FarSF::RecursiveSearch((char*)dict_root.c_str(), (char*)name.c_str(), 
-    GetDictCount, 0, &count);
-  return count>0;
 }
 
 // config format: int highlight | string dictinoary | int parser_id
@@ -606,7 +553,7 @@ FarSpellEditor::~FarSpellEditor()
 
 bool FarSpellEditor::CheckDictionary()
 {
-  bool exists = editors->DictionaryExists(dict);
+  bool exists = editors->spell_factory.DictionaryExists(dict);
   if (highlight && !exists)
   {
     FarMessage msg(FMSG_MB_OK, "Contents");
@@ -652,7 +599,7 @@ void FarSpellEditor::RecreateEngine(int what)
   {
     if (CheckDictionary())
     {
-      _dict_instance = editors->GetDictInstance(dict);
+      _dict_instance = editors->spell_factory.GetDictInstance(dict);
       spell_enc = editors->GetCharsetEncoding(FarString(_dict_instance->get_dic_encoding()));
     }
   }
@@ -847,16 +794,10 @@ int FarSpellEditor::ShowSuggestion(int line, int start, int len, const char* wor
 }
 
 
-int WINAPI ScanDicts(
-  const WIN32_FIND_DATA *FData,
-  const char *FullName,
-  void *Param
-)
+int ScanDicts(const FarString& name, void* param)
 {
-  FarComboBox *dlg_languages = (FarComboBox*)Param;
-  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
-  if (FarFileInfo::FileExists(name+".dic"))
-    dlg_languages->AddItem(name.GetNameExt());
+  FarComboBox *dlg_languages = (FarComboBox*)param;
+  dlg_languages->AddItem(name);
   return 1;
 }
 
@@ -882,7 +823,7 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
   FarButtonCtrl dlg_cancel(&dialog, MCancel, DIF_CENTERGROUP);
   FarControl *res;
 
-  editors->EnumDictionaries(ScanDicts, &dlg_languages);
+  editors->spell_factory.EnumDictionaries(ScanDicts, &dlg_languages);
   for (int i=0; i<sizeof(parsers)/sizeof(parsers[0]); i++)
     dlg_parser.AddItem(Far::GetMsg(parsers[i]));
   dlg_languages.SetFlags(DIF_DROPDOWNLIST);
@@ -1120,16 +1061,10 @@ int FarSpellEditor::Manager::ColorSelectDialog()
 
 class GeneralConfigDialog: GeneralConfig
 {
-  static int WINAPI ScanDicts(
-    const WIN32_FIND_DATA *FData,
-    const char *FullName,
-    void *Param
-  )
+  static int ScanDicts(const FarString &name, void* param)
   {
-    ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)Param;
-    FarFileName name(FullName, strlen(FullName)-4); // *.aff only
-    if (FarFileInfo::FileExists(name+".dic"))
-      dicts->AddItem(name.GetNameExt());
+    ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)param;
+    dicts->AddItem(name);
     return 1;
   }
   public: void Execute(FarSpellEditor::Manager *m, bool from_editor)
@@ -1146,7 +1081,7 @@ class GeneralConfigDialog: GeneralConfig
       sItems[Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
     ftl::ComboboxItems default_dict_items(&sItems[Index_ID_GC_DefaultDict]);
     default_dict_items.SetText(m->default_dict);
-    m->EnumDictionaries(ScanDicts, &default_dict_items);
+    m->spell_factory.EnumDictionaries(ScanDicts, &default_dict_items);
     for (int cont=1; cont;) 
     {
       default_dict_items.BeforeShow();
@@ -1157,7 +1092,7 @@ class GeneralConfigDialog: GeneralConfig
           m->ColorSelectDialog();
           break;
         case MUnloadDictionaries:
-          m->UnloadDictionaries();
+          m->spell_factory.UnloadDictionaries();
           break;
         case -1: // cancel
           cont = 0;

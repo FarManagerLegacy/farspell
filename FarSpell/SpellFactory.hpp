@@ -1,6 +1,93 @@
 #pragma once
 
-typedef Hunspell SpellInstance;
+class SpellInstance: public Hunspell
+{
+  public: 
+    class WordList
+    {
+      friend class SpellInstance;
+      public:
+        ~WordList();
+        inline int Count() const;
+        FarStringW& operator[](int index);
+      private:
+        WordList(int _encoding, char** _wlst, int _count);
+        int encoding;
+        char **wlst;
+        int count;
+        FarStringW _word_cache;
+    };
+    SpellInstance(FarFileName &dict_root, FarString &dict)
+    : Hunspell(FarFileName::MakeName(dict_root, dict+".aff").c_str(),
+               FarFileName::MakeName(dict_root, dict+".dic").c_str())
+    {
+      encoding = search_codepage(FarString(get_dic_encoding()));
+    }
+    WordList Suggest(FarStringW &word);
+    bool Check(FarStringW &word);
+    FarStringW GetWordChars();
+  private:
+    int encoding;
+};
+
+SpellInstance::WordList::WordList(int _encoding, char** _wlst, int _count)
+{
+  wlst = _wlst;
+  count = _count;
+  encoding = _encoding;
+}
+
+SpellInstance::WordList::~WordList()
+{
+  if (wlst)
+  {
+    for (int j = 0; j < count; j++)
+      hunspell_free(wlst[j]);
+    hunspell_free(wlst);
+    wlst = NULL;
+  }
+}
+
+inline int SpellInstance::WordList::Count() const
+{
+  return count;
+}
+
+FarStringW& SpellInstance::WordList::operator[](int index) 
+{
+  ToUnicode(encoding,  FarString(wlst[index]), _word_cache);
+  return _word_cache;
+}
+
+SpellInstance::WordList SpellInstance::Suggest(FarStringW &word)
+{
+  FarString aword;
+  char **wlst;
+  ToAscii(encoding, word, aword);
+  int count = suggest(&wlst, aword);
+  return WordList(encoding, wlst, count);
+}
+
+bool SpellInstance::Check(FarStringW &word)
+{
+  FarString aword;
+  ToAscii(encoding, word, aword);
+  return spell(aword.c_str());
+}
+
+FarStringW SpellInstance::GetWordChars()
+{
+  FarStringW word_chars;
+  int wcs_len;
+  if (unsigned short * wcs = get_wordchars_utf16(&wcs_len))
+  {
+    wcsncpy(word_chars.GetBuffer(wcs_len), wcs, wcs_len);
+    return word_chars;
+  } else {
+    ToUnicode(encoding, FarString(get_wordchars()), word_chars);
+    return word_chars;
+  }
+}
 
 class SpellFactory
 {
@@ -47,9 +134,7 @@ SpellInstance* SpellFactory::GetDictInstance(FarString& dict)
   wait.AddLine(MFarSpell);
   wait.AddFmt(MLoadingDictionary, dict.c_str());
   wait.Show();
-  SpellInstance* engine = new SpellInstance(
-         FarFileName::MakeName(dict_root, dict+".aff").c_str(),
-         FarFileName::MakeName(dict_root, dict+".dic").c_str());
+  SpellInstance* engine = new SpellInstance(dict_root, dict);
   cache_engine_langs.Add(new FarString(dict));
   cache_engine_instances.Add(engine);
   Far::RestoreScreen(screen);

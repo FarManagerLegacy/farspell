@@ -36,6 +36,10 @@ namespace FarSF {
     char *RTrim (char *Str);
     char *LTrim (char *Str);
     char *Trim (char *Str);
+    wchar_t *LTrimW (wchar_t *Str);
+    wchar_t *RTrimW (wchar_t *Str);
+    wchar_t *TrimW (wchar_t *Str);
+
     void Unquote (char *Str);
     void qsort (void *base, size_t nelem, size_t width, int (__cdecl *fcmp)(const void *, const void *));
     void *bsearch (const void *key, const void *base, size_t nelem, size_t width, int (__cdecl *fcmp)(const void *, const void *));

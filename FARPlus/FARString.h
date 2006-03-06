@@ -15,19 +15,47 @@
 #pragma once
 #endif
 
-class FarString
+// strncpy template
+template <class TChar> TChar *t_strncpy(TChar *strDest, const TChar *strSource, size_t count);
+
+template <> inline char *t_strncpy<char>(char *strDest, const char *strSource, size_t count)
+{ return strncpy(strDest, strSource, count); }
+
+template <> inline wchar_t *t_strncpy<wchar_t>(wchar_t *strDest, const wchar_t *strSource, size_t count)
+{ return wcsncpy(strDest, strSource, count); }
+
+// strchr template
+template <class TChar> TChar *t_strchr(const TChar *string, int c);
+
+template <> inline char *t_strchr<char>(const char *string, int c)
+{ return strchr(string, c);  }
+
+template <> inline wchar_t *t_strchr<wchar_t>(const wchar_t *string, int c)
+{ return wcschr(string, c); }
+
+// strlen template
+template <class TChar> size_t t_strlen(const TChar *string);
+
+template <> inline size_t t_strlen<char>(const char *string)
+{ return strlen(string); }
+
+template <> inline size_t t_strlen<wchar_t>(const wchar_t *string)
+{ return wcslen(string); }
+
+template <class TChar>
+class FarStringT
 {
 private:
 	class FarStringData
 	{
-		friend class FarString;
+		friend class FarStringT;
 
-		char *fText;
+		TChar *fText;
 		size_t fLength;
 		size_t fCapacity;
 		int fRefCount;
 
-		FarStringData (const char *text, int length = -1);
+		FarStringData (const TChar *text, int length = -1);
 
 		~FarStringData()
 		{
@@ -51,7 +79,7 @@ private:
 		{
 			far_assert (newLength < fCapacity);
 			fLength = newLength;
-            fText [fLength] = '\0';
+			fText [fLength] = '\0';
 		}
 	};
 
@@ -74,15 +102,9 @@ private:
 		}
 	}
 
-	FarStringData *GetEmptyStringData()
-	{
-		if (fEmptyStringData == NULL)
-			fEmptyStringData = new FarStringData ("");
-		fEmptyStringData->AddRef();
-		return fEmptyStringData;
-	}
+	FarStringData *GetEmptyStringData();
 
-	FarStringData *GetStringData (const char *text, size_t length = -1)
+	FarStringData *GetStringData (const TChar *text, size_t length = -1)
 	{
 		if ((text == NULL || *text == '\0') && length == -1)
 			return GetEmptyStringData();
@@ -91,58 +113,58 @@ private:
 		return new FarStringData (text, length);
 	}
 
-	const FarString &Append (const char *text, int addLen);
+	const FarStringT &Append (const TChar *text, int addLen);
 
 public:
-	FarString()
+	FarStringT()
 	{
 		fData = GetEmptyStringData();
 	}
 	
-	FarString (const char *text)
+	FarStringT (const TChar *text)
 	{
 		fData = GetStringData (text);
 	}
 
-	FarString (const char *text, int length)
+	FarStringT (const TChar *text, int length)
 	{
 		fData = GetStringData (text, length);
 	}
 
-	FarString (const FarString &str)
+	FarStringT (const FarStringT &str)
 		: fData (str.fData)
 	{
 		fData->AddRef();
 	}
 
-	FarString (char c, int nCount)
+	FarStringT (TChar c, int nCount)
 	{
 		fData = GetStringData (NULL, nCount);
 		for (int i=0; i<nCount; i++)
 			fData->fText [i] = c;
 	}
 
-	~FarString()
+	~FarStringT()
 	{
 		fData->DecRef();
 	}
 
-	operator const char*() const
+	operator const TChar*() const
 	{
 		return fData->fText;
 	}
 
-	const char *c_str() const
+	const TChar *c_str() const
 	{
 		return fData->fText;
 	}
 
-	const char *data() const
+	const TChar *data() const
 	{
 		return fData->fLength == 0 ? NULL : fData->fText;
 	}
 
-	char *GetBuffer (int nLength = -1)
+	TChar *GetBuffer (int nLength = -1)
 	{
 		UniqueString();
 		if (nLength > 0)
@@ -155,28 +177,29 @@ public:
 		UniqueString();
 		
 		if (newLength == -1)
-			newLength = (fData->fText) ? strlen (fData->fText) : 0;
+			newLength = (fData->fText) ? t_strlen<TChar> (fData->fText) : 0;
 		
 		fData->SetLength (newLength);
 	}
 
-	char operator[] (int index) const
+	TChar operator[] (int index) const
 	{
 		return fData->fText [index];
 	}
 
-	char& operator[] (int index)
+	TChar& operator[] (int index)
 	{
 		return fData->fText [index];
 	}
 
-	const FarString &operator= (char ch)
+	const FarStringT &operator= (TChar ch)
 	{
 		SetLength (1);
 		fData->fText [0] = ch;
+		return *this;
 	}
 	
-	const FarString &operator= (const FarString &rhs)
+	const FarStringT &operator= (const FarStringT &rhs)
 	{
 		if (&rhs != this)
 		{
@@ -187,7 +210,7 @@ public:
 		return *this;
 	}
 	
-	const FarString &operator= (const char *text)
+	const FarStringT &operator= (const TChar *text)
 	{
 		if (text != fData->fText)
 		{
@@ -198,35 +221,35 @@ public:
 		return *this;
 	}
 
-	bool operator== (const FarString &rhs) const	
+	bool operator== (const FarStringT &rhs) const	
 	{
 		if (fData == rhs.fData)
 			return true;
 		if (fData->fLength != rhs.fData->fLength)
 			return false;
-		return memcmp (fData->fText, rhs.fData->fText, fData->fLength) == 0;
+		return memcmp (fData->fText, rhs.fData->fText, fData->fLength*sizeof(TChar)) == 0;
 	}
 		
-	int Compare(const char *Str) const
+	int Compare(const TChar *Str) const
 	{
 		if (Str == NULL)
 			return 1;   // we're greater than an empty string
 
-		return memcmp (fData->fText, Str, fData->fLength+1);
+		return memcmp (fData->fText, Str, (fData->fLength+1)*sizeof(TChar));
 	}
 
-	int Compare (const char *Str, size_t nLength) const
+	int Compare (const TChar *Str, size_t nLength) const
 	{
 		if (Str == NULL)
 			return 1;   // we're greater than an empty string
 
-		return memcmp (fData->fText, Str, nLength);
+		return memcmp (fData->fText, Str, nLength*sizeof(TChar));
 	}
 
-	int CompareNoCase (const char *Str) const;
-	int CompareNoCase (const char *Str, size_t nLength) const;
+	int CompareNoCase (const TChar *Str) const;
+	int CompareNoCase (const TChar *Str, size_t nLength) const;
 
-	void SetText (const char *text, int length)
+	void SetText (const TChar *text, int length)
 	{
 		fData->DecRef();
 		fData = GetStringData (text, length);
@@ -262,56 +285,56 @@ public:
 		SetLength (0);
 	}
 
-	const FarString &operator += (const char *s)
+	const FarStringT &operator += (const TChar *s)
 	{
 		return Append (s, -1);
 	}
 
-	const FarString &operator += (const FarString &str)
+	const FarStringT &operator += (const FarStringT &str)
 	{
 		return Append (str.fData->fText, str.fData->fLength);
 	}
 
-	const FarString &operator += (char c)
+	const FarStringT &operator += (TChar c)
 	{
 		return Append (&c, 1);
 	}
 
-	int Insert (int nIndex, const char *Str, size_t nLength);
+	int Insert (int nIndex, const TChar *Str, size_t nLength);
 	
-	int Insert (int nIndex, const char *Str)
+	int Insert (int nIndex, const TChar *Str)
 	{
 		if (Str && *Str)
-			return Insert (nIndex, Str, strlen (Str));
+			return Insert (nIndex, Str, t_strlen<TChar> (Str));
 		return 0;
 	}
 
-	int Insert (int nIndex, const FarString &Str)
+	int Insert (int nIndex, const FarStringT &Str)
 	{
 		return Insert (nIndex, Str.fData->fText, Str.fData->fLength);
 	}
 
 	int Delete (int nIndex, int nCount = 1);
 	
-	FarString Mid (int nFirst, int nCount) const;
-	FarString Mid (int nFirst) const
+	FarStringT Mid (int nFirst, int nCount) const;
+	FarStringT Mid (int nFirst) const
 	{
 		return Mid (nFirst, fData->fLength - nFirst);
 	}
 
-	FarString Left(int nCount) const
+	FarStringT Left(int nCount) const
 	{
 		return Mid (0, nCount);
 	}
 
-	FarString Right (size_t nCount) const
+	FarStringT Right (size_t nCount) const
 	{
 		if (nCount > fData->fLength)
 			nCount = fData->fLength;
 		return Mid (fData->fLength - nCount, nCount);
 	}
 
-	int IndexOf (char c, int startChar = 0) const
+	int IndexOf (TChar c, int startChar = 0) const
 	{
 		for (unsigned int i=startChar; i < fData->fLength; i++)
 			if (fData->fText [i] == c)
@@ -319,7 +342,7 @@ public:
 		return -1;
 	}
 
-	int LastIndexOf (char c) const
+	int LastIndexOf (TChar c) const
 	{
 		for (int i=fData->fLength; i >= 0; i--)
 			if (fData->fText [i] == c)
@@ -327,8 +350,8 @@ public:
 		return -1;
 	}
 
-	FarString ToOEM() const;
-	FarString ToANSI() const;
+	FarStringT<char> ToOEM() const;
+	FarStringT<char> ToANSI() const;
 	void MakeUpper();
 	void MakeLower();
 	void Trim();
@@ -347,36 +370,41 @@ public:
 	}
 };
 
+typedef FarStringT<char> FarString;
+typedef FarStringT<char> FarStringA;
+typedef FarStringT<wchar_t> FarStringW;
+
 // -- FarStringTokenizer -----------------------------------------------------
 
-class FarStringTokenizer
+template <class TChar>
+class FarStringTokenizerT
 {
 private:
-	const char *fText;
+	const TChar *fText;
 	char fSeparator;
-	const char *fCurPos;
+	const TChar *fCurPos;
 	int fCurIndex;
 	bool fIgnoreWhitespace;
 
-	const char *GetTokenEnd (const char *tokenStart) const;
-	const char *GetTokenStart (const char *tokenEnd) const;
+	const TChar *GetTokenEnd (const TChar *tokenStart) const;
+	const TChar *GetTokenStart (const TChar *tokenEnd) const;
 
-	FarStringTokenizer (const FarStringTokenizer &rhs); // not implemented
-	void operator= (const FarStringTokenizer &rhs);     // not implemented
+	FarStringTokenizerT (const FarStringTokenizerT &rhs); // not implemented
+	void operator= (const FarStringTokenizerT &rhs);     // not implemented
 
 public:
-	FarStringTokenizer()
+	FarStringTokenizerT()
 		: fText (NULL), fSeparator (','), fCurPos (NULL), fCurIndex (-1), fIgnoreWhitespace (true)
 	{
 	}
 
-	FarStringTokenizer (const char *text, char separator = ',', bool ignoreWhitespace = true)
+	FarStringTokenizerT (const TChar *text, TChar separator = ',', bool ignoreWhitespace = true)
 		: fText (NULL)
 	{
 		Attach (text, separator, ignoreWhitespace);
 	}
 
-	void Attach (const char *text, char separator = ',', bool ignoreWhitespace = true);
+	void Attach (const TChar *text, TChar separator = ',', bool ignoreWhitespace = true);
 	bool HasNext() const
 	{ 
 		if (fText == NULL) return false;
@@ -385,9 +413,13 @@ public:
 
 	int GetCurIndex() const
 		{ return fCurIndex; }
-	FarString NextToken();
-	FarString GetToken (int index) const;
+	FarStringT<TChar> NextToken();
+	FarStringT<TChar> GetToken (int index) const;
 };
+
+typedef FarStringTokenizerT<char> FarStringTokenizer;
+typedef FarStringTokenizerT<char> FarStringTokenizerA;
+typedef FarStringTokenizerT<wchar_t> FarStringTokenizerW;
 
 // -- FarFileName ------------------------------------------------------------
 
@@ -423,57 +455,79 @@ public:
 
 // -- FarString implementation -----------------------------------------------
 
-inline FarString operator+ (const FarString &lhs, char c)
+template <class TChar>
+inline FarStringT<TChar> operator+ (const FarStringT<TChar> &lhs, TChar c)
 {
-	FarString result = lhs;
+	FarStringT<TChar> result = lhs;
 	result += c;
 	return result;
 }
 
-inline FarString operator+ (char c, const FarString &rhs)
+template <class TChar>
+inline FarStringT<TChar> operator+ (TChar c, const FarStringT<TChar> &rhs)
 {
-	FarString result (&c, 1);
+	FarStringT<TChar> result (&c, 1);
 	result += rhs;
 	return result;
 }
 
-inline FarString operator+ (const FarString &lhs, const FarString &rhs)
+template <class TChar>
+inline FarStringT<TChar> operator+ (const FarStringT<TChar> &lhs, const FarStringT<TChar> &rhs)
 {
-	FarString result = lhs; 
+	FarStringT<TChar> result = lhs; 
 	result += rhs;
 	return result;
 }
 
-inline FarString operator+ (const char *lhs, const FarString &rhs)
+template <class TChar>
+inline FarStringT<TChar> operator+ (const TChar *lhs, const FarStringT<TChar> &rhs)
 {
-	FarString result = lhs;
+	FarStringT<TChar> result = lhs;
 	result += rhs;
 	return result;
 }
 
-inline FarString operator+ (const FarString &lhs, const char *rhs)
+template <class TChar>
+inline FarStringT<TChar> operator+ (const FarStringT<TChar> &lhs, const TChar *rhs)
 {
-	FarString result = lhs;
+	FarStringT<TChar> result = lhs;
 	result += rhs;
 	return result;
 }
 
-inline bool operator==( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) == 0; }
-inline bool operator==( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) == 0; }
-inline bool operator!=( const FarString& s1, const FarString& s2 ) { return s1.Compare( s2 ) != 0; }
-inline bool operator!=( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) != 0; }
-inline bool operator!=( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) != 0; }
-inline bool operator<( const FarString& s1, const FarString& s2 ) { return s1.Compare( s2 ) < 0; }
-inline bool operator<( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) < 0; }
-inline bool operator<( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) > 0; }
-inline bool operator>( const FarString& s1, const FarString& s2 ) { return s1.Compare( s2 ) > 0; }
-inline bool operator>( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) > 0; }
-inline bool operator>( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) < 0; }
-inline bool operator<=( const FarString& s1, const FarString& s2 ){ return s1.Compare( s2 ) <= 0; }
-inline bool operator<=( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) <= 0; }
-inline bool operator<=( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) >= 0; }
-inline bool operator>=( const FarString& s1, const FarString& s2 ) { return s1.Compare( s2 ) >= 0; }
-inline bool operator>=( const FarString& s1, const char * s2 ) { return s1.Compare( s2 ) >= 0; }
-inline bool operator>=( const char * s1, const FarString& s2 ) { return s2.Compare( s1 ) <= 0; }
+template <class TChar>
+inline bool operator==( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) == 0; }
+template <class TChar>
+inline bool operator==( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) == 0; }
+template <class TChar>
+inline bool operator!=( const FarStringT<TChar>& s1, const FarStringT<TChar>& s2 ) { return s1.Compare( s2 ) != 0; }
+template <class TChar>
+inline bool operator!=( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) != 0; }
+template <class TChar>
+inline bool operator!=( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) != 0; }
+template <class TChar>
+inline bool operator<( const FarStringT<TChar>& s1, const FarStringT<TChar>& s2 ) { return s1.Compare( s2 ) < 0; }
+template <class TChar>
+inline bool operator<( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) < 0; }
+template <class TChar>
+inline bool operator<( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) > 0; }
+template <class TChar>
+inline bool operator>( const FarStringT<TChar>& s1, const FarStringT<TChar>& s2 ) { return s1.Compare( s2 ) > 0; }
+template <class TChar>
+inline bool operator>( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) > 0; }
+template <class TChar>
+inline bool operator>( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) < 0; }
+template <class TChar>
+inline bool operator<=( const FarStringT<TChar>& s1, const FarStringT<TChar>& s2 ){ return s1.Compare( s2 ) <= 0; }
+template <class TChar>
+inline bool operator<=( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) <= 0; }
+template <class TChar>
+inline bool operator<=( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) >= 0; }
+template <class TChar>
+inline bool operator>=( const FarStringT<TChar>& s1, const FarStringT<TChar>& s2 ) { return s1.Compare( s2 ) >= 0; }
+template <class TChar>
+inline bool operator>=( const FarStringT<TChar>& s1, const TChar * s2 ) { return s1.Compare( s2 ) >= 0; }
+template <class TChar>
+inline bool operator>=( const TChar * s1, const FarStringT<TChar>& s2 ) { return s2.Compare( s1 ) <= 0; }
 
 #endif

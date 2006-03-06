@@ -10,26 +10,29 @@
 
 // -- FarStringData ----------------------------------------------------------
 
-FarString::FarStringData *FarString::fEmptyStringData = NULL;
+FarStringT<char>::FarStringData *FarStringT<char>::fEmptyStringData = NULL;
+FarStringT<wchar_t>::FarStringData *FarStringT<wchar_t>::fEmptyStringData = NULL;
 
-FarString::FarStringData::FarStringData (const char *text, int length /*= -1*/)
+template <class TChar>
+FarStringT<TChar>::FarStringData::FarStringData (const TChar *text, int length /*= -1*/)
 	: fText (NULL), fCapacity (0), fRefCount (1)
 {
 	if (length == -1)
-		fLength = strlen (text);
+		fLength = t_strlen<TChar>(text);
 	else
 		fLength = length;
 	SetCapacity (fLength + 1);
 	if (text)
 	{
-		memcpy (fText, text, fLength);
+		memcpy (fText, text, fLength*sizeof(TChar));
 		fText[fLength]='\0'; // ss20051211
 	}
 	else
 		*fText = '\0';
 }
 
-void FarString::FarStringData::SetCapacity (size_t capacity)
+template <class TChar>
+void FarStringT<TChar>::FarStringData::SetCapacity (size_t capacity)
 {
 	const int memDelta = 16;
 	
@@ -37,11 +40,11 @@ void FarString::FarStringData::SetCapacity (size_t capacity)
 		return;
 
 	size_t newCapacity = capacity + memDelta;
-	char *newText = new char [newCapacity];
+	TChar *newText = new TChar [newCapacity];
 	
 	if (fText)
 	{
-		memcpy (newText, fText, fLength + 1);
+		memcpy (newText, fText, (fLength + 1) * sizeof(TChar));
 		delete [] fText;
 		fText = newText;
 	}
@@ -54,25 +57,45 @@ void FarString::FarStringData::SetCapacity (size_t capacity)
 	fCapacity = newCapacity;
 }
 
+
+template <>
+FarStringT<char>::FarStringData *FarStringT<char>::GetEmptyStringData()
+{
+	if (fEmptyStringData == NULL)
+		fEmptyStringData = new FarStringData ("");
+	fEmptyStringData->AddRef();
+	return fEmptyStringData;
+}
+
+template <>
+FarStringT<wchar_t>::FarStringData *FarStringT<wchar_t>::GetEmptyStringData()
+{
+	if (fEmptyStringData == NULL)
+		fEmptyStringData = new FarStringData (L"");
+	fEmptyStringData->AddRef();
+	return fEmptyStringData;
+}
+
 // -- FarString --------------------------------------------------------------
 
-const FarString &FarString::Append (const char *s, int addLen)
+template <class TChar>
+const FarStringT<TChar> &FarStringT<TChar>::Append (const TChar *s, int addLen)
 {
 	if (s != NULL && *s != '\0' && addLen != 0)
 	{
 		if (addLen == -1)
-			addLen = strlen (s);
+			addLen = t_strlen<TChar> (s);
 		int newLength = fData->fLength + addLen;
 		if (IsUnique() && fData->fCapacity > newLength)
 		{
-			strncpy (fData->fText + fData->fLength, s, addLen);	
+			t_strncpy<TChar> (fData->fText + fData->fLength, s, addLen);	
 			fData->SetLength (newLength);
 		}
 		else
 		{
 			FarStringData *newData = new FarStringData (fData->fText, newLength);
-			strncpy (newData->fText + fData->fLength, s, addLen);
-            newData->fText [newLength] = '\0';
+			t_strncpy<TChar> (newData->fText + fData->fLength, s, addLen);
+			newData->fText [newLength] = '\0';
 			fData->DecRef();
 			fData = newData;
 		}
@@ -80,7 +103,8 @@ const FarString &FarString::Append (const char *s, int addLen)
 	return *this;
 }
 
-int FarString::Insert (int nIndex, const char * Str, size_t nLength)
+template <class TChar>
+int FarStringT<TChar>::Insert (int nIndex, const TChar * Str, size_t nLength)
 {
 	far_assert (nIndex >= 0);
 	
@@ -98,9 +122,9 @@ int FarString::Insert (int nIndex, const char * Str, size_t nLength)
 		
 		memmove (fData->fText + nIndex + nLength,
 			fData->fText + nIndex,
-			newLength - nIndex - nLength + 1 );
+			(newLength - nIndex - nLength + 1) * sizeof(TChar) );
 		
-		memmove (fData->fText + nIndex, Str, nLength);
+		memmove (fData->fText + nIndex, Str, nLength*sizeof(TChar));
 		
 		fData->fLength = newLength;
 	}
@@ -108,7 +132,8 @@ int FarString::Insert (int nIndex, const char * Str, size_t nLength)
 	return nLength;	
 }
 
-int FarString::Delete (int nIndex, int nCount /* = 1 */)
+template <class TChar>
+int FarStringT<TChar>::Delete (int nIndex, int nCount /* = 1 */)
 {
 	far_assert (nIndex >= 0);	
 	
@@ -121,7 +146,8 @@ int FarString::Delete (int nIndex, int nCount /* = 1 */)
 		UniqueString();
 		
 		int nBytesToCopy = nNewLength - (nIndex + nCount) + 1;
-		memmove (fData->fText + nIndex, fData->fText + nIndex + nCount, nBytesToCopy);
+		memmove (fData->fText + nIndex, fData->fText + nIndex + nCount, 
+		  nBytesToCopy*sizeof(TChar));
 
 		fData->fLength = nNewLength - nCount;
 	}
@@ -129,7 +155,8 @@ int FarString::Delete (int nIndex, int nCount /* = 1 */)
 	return fData->fLength;	
 }
 
-FarString FarString::Mid (int nFirst, int nCount) const
+template <class TChar>
+FarStringT<TChar> FarStringT<TChar>::Mid (int nFirst, int nCount) const
 {
 	if (nFirst < 0)
 		nFirst = 0;
@@ -152,70 +179,153 @@ FarString FarString::Mid (int nFirst, int nCount) const
 	if (nFirst == 0 && nFirst + nCount == fData->fLength)
 		return *this;
 	
-	return FarString (fData->fText + nFirst, nCount);
+	return FarStringT<TChar> (fData->fText + nFirst, nCount);
 }
 
-FarString FarString::ToOEM() const
+template <>
+FarStringA FarStringT<char>::ToOEM() const
 {
-	FarString result (fData->fText, Length());
+	FarStringA result (fData->fText, Length());
 	CharToOemBuff (fData->fText, result.GetBuffer(), Length());
 	return result;
 }
 
-FarString FarString::ToANSI() const
+template <>
+FarStringA FarStringT<wchar_t>::ToOEM() const
 {
-	FarString result (fData->fText, Length());
+	FarStringA result;
+        int ac = WideCharToMultiByte(CP_OEMCP, 0, fData->fText, Length(), 
+                   result.GetBuffer(Length()), Length(), NULL, NULL);
+        result.ReleaseBuffer(ac);
+	return result;
+}
+
+
+template <>
+FarStringA FarStringT<char>::ToANSI() const
+{
+	FarStringA result (fData->fText, Length());
 	OemToCharBuff (fData->fText, result.GetBuffer(), Length());
 	return result;
 }
 
-void FarString::MakeUpper()
+template <>
+FarStringA FarStringT<wchar_t>::ToANSI() const
 {
-	UniqueString();
-	CharUpperBuff (fData->fText, fData->fLength);
+	FarStringA result;
+        int ac = WideCharToMultiByte(CP_ACP, 0, fData->fText, Length(), 
+                   result.GetBuffer(Length()), Length(), NULL, NULL);
+        result.ReleaseBuffer(ac);
+	return result;
 }
 
-void FarString::MakeLower()
+template <>
+void FarStringT<char>::MakeUpper()
 {
 	UniqueString();
-	CharLowerBuff (fData->fText, fData->fLength);
+	CharUpperBuffA (fData->fText, fData->fLength);
 }
 
-void FarString::Trim()
+template <>
+void FarStringT<wchar_t>::MakeUpper()
+{
+	UniqueString();
+	CharUpperBuffW (fData->fText, fData->fLength);
+}
+
+template <>
+void FarStringT<char>::MakeLower()
+{
+	UniqueString();
+	CharLowerBuffA (fData->fText, fData->fLength);
+}
+
+template <>
+void FarStringT<wchar_t>::MakeLower()
+{
+	UniqueString();
+	CharLowerBuffW (fData->fText, fData->fLength);
+}
+
+template <>
+void FarStringT<char>::Trim()
 {
 	FarSF::Trim (GetBuffer());
 	ReleaseBuffer();
 }
 
-void FarString::TrimLeft()
+template <>
+void FarStringT<wchar_t>::Trim()
+{
+	FarSF::TrimW (GetBuffer());
+	ReleaseBuffer();
+}
+
+template <>
+void FarStringT<char>::TrimLeft()
 {
 	FarSF::LTrim (GetBuffer());
 	ReleaseBuffer();
 }
 
-void FarString::TrimRight()
+template <>
+void FarStringT<wchar_t>::TrimLeft()
+{
+	FarSF::LTrimW (GetBuffer());
+	ReleaseBuffer();
+}
+
+template <>
+void FarStringT<char>::TrimRight()
 {
 	FarSF::RTrim (GetBuffer());
 	ReleaseBuffer();
 }
 
-int FarString::CompareNoCase (const char *Str) const
+template <>
+void FarStringT<wchar_t>::TrimRight()
 {
-	return 2-CompareString (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, fData->fLength,
+	FarSF::RTrimW (GetBuffer());
+	ReleaseBuffer();
+}
+
+
+template <>
+int FarStringT<char>::CompareNoCase (const char *Str) const
+{
+	return 2-CompareStringA (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, fData->fLength,
 		Str, -1);
 }
 
-int FarString::CompareNoCase (const char * Str, size_t nLength) const
+template <>
+int FarStringT<wchar_t>::CompareNoCase (const wchar_t *Str) const
+{
+	return 2-CompareStringW (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, fData->fLength,
+		Str, -1);
+}
+
+template <>
+int FarStringT<char>::CompareNoCase (const char * Str, size_t nLength) const
 {
 	if (nLength > fData->fLength+1)
 		nLength = fData->fLength+1;
-	return 2-CompareString (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, nLength,
+	return 2-CompareStringA (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, nLength,
+		Str, nLength);
+}
+
+template <>
+int FarStringT<wchar_t>::CompareNoCase (const wchar_t * Str, size_t nLength) const
+{
+	if (nLength > fData->fLength+1)
+		nLength = fData->fLength+1;
+	return 2-CompareStringW (LOCALE_USER_DEFAULT, NORM_IGNORECASE, fData->fText, nLength,
 		Str, nLength);
 }
 
 // -- FarStringTokenizer -----------------------------------------------------
 
-void FarStringTokenizer::Attach (const char *text, char separator, bool ignoreWhitespace)
+template <class TChar>
+void FarStringTokenizerT<TChar>::Attach (const TChar *text, TChar separator, bool ignoreWhitespace)
 {
 	fText = text;
 	fSeparator = separator;
@@ -224,62 +334,74 @@ void FarStringTokenizer::Attach (const char *text, char separator, bool ignoreWh
 	fCurPos = GetTokenStart (fText);
 }
 
-const char *FarStringTokenizer::GetTokenEnd (const char *tokenStart) const
+template <class TChar>
+const TChar *FarStringTokenizerT<TChar>::GetTokenEnd (const TChar *tokenStart) const
 {
 	if (*tokenStart == '\"')
 	{
-		const char *closeQuote = strchr (tokenStart+1, '\"');
+		const TChar *closeQuote = t_strchr<TChar> (tokenStart+1, '\"');
 		if (!closeQuote)
-			return tokenStart + strlen (tokenStart);
+			return tokenStart + t_strlen<TChar> (tokenStart);
 		return closeQuote+1;
 	}
 	else 
 	{
-		const char *separator = strchr (tokenStart+1, fSeparator);
+		const TChar *separator = t_strchr<TChar> (tokenStart+1, fSeparator);
 		if (!separator)
-			return tokenStart + strlen (tokenStart);
+			return tokenStart + t_strlen<TChar> (tokenStart);
 		return separator;
 	}
 }
 
-const char *FarStringTokenizer::GetTokenStart (const char *tokenEnd) const
+template <class TChar>
+const TChar *FarStringTokenizerT<TChar>::GetTokenStart (const TChar *tokenEnd) const
 {
 	while (*tokenEnd == fSeparator || (fIgnoreWhitespace && (*tokenEnd == ' ' || *tokenEnd == '\t')))
 		tokenEnd++;
 	return tokenEnd;
 }
 
-FarString FarStringTokenizer::NextToken()
+template <class TChar>
+FarStringT<TChar> FarStringTokenizerT<TChar>::NextToken()
 {
 	// it is not allowed to call NextToken() for a non-attached tokenizer
 	far_assert (fText != NULL);  
-	const char *tokenEnd = GetTokenEnd (fCurPos);
-	FarString token (fCurPos, tokenEnd-fCurPos);
+	const TChar *tokenEnd = GetTokenEnd (fCurPos);
+	FarStringT<TChar> token (fCurPos, tokenEnd-fCurPos);
 	fCurPos = GetTokenStart (tokenEnd);
 	fCurIndex++;
 	return token;
 }
 
-FarString FarStringTokenizer::GetToken (int index) const
+template <class TChar>
+FarStringT<TChar> FarStringTokenizerT<TChar>::GetToken (int index) const
 {
 	// it is not allowed to call GetToken() for a non-attached tokenizer
 	far_assert (fText != NULL);
 	far_assert (index >= 0);
-	const char *curPos = GetTokenStart (fText);
+	const TChar *curPos = GetTokenStart (fText);
 	for (int i=0; i<index; i++)
 	{
 		curPos = GetTokenEnd (curPos);
 		curPos = GetTokenStart (curPos);
 		if (*curPos == '\0')
-			return FarString();
+			return FarStringT<TChar>();
 	}
-	const char *tokenEnd = GetTokenEnd (curPos);
+	const TChar *tokenEnd = GetTokenEnd (curPos);
 	
-	FarString result (curPos, tokenEnd-curPos);
+	FarStringT<TChar> result (curPos, tokenEnd-curPos);
 	if (fIgnoreWhitespace)
 		result.TrimRight();
 	return result;
 }
+
+// Compile template instances 
+
+template class FarStringT<char>;
+template class FarStringT<wchar_t>;
+
+template class FarStringTokenizerT<char>;
+template class FarStringTokenizerT<wchar_t>;
 
 // -- FarFileName ------------------------------------------------------------
 

@@ -262,6 +262,38 @@ int Execute(HANDLE hPlugin,const char *CmdStr,bool HideOutput,
 	else return ExitCode;
 }
 
+// Unicode versions of *Trim
+ 
+wchar_t *LTrimW (wchar_t *Str)
+{
+    if (Str)
+    {
+        wchar_t *p = Str;
+        while (iswspace ((wint_t) *p))
+            p++;
+        if (p != Str)
+            memmove (Str, p, (wcslen (p)+1)*sizeof(wchar_t));
+    }
+    return Str;
+}
+
+wchar_t *RTrimW (wchar_t *Str)
+{
+    if (Str)
+    {
+        wchar_t *p = Str + wcslen (Str)-1;
+        while (p >= Str && iswspace ((wint_t) *p))
+            p--;
+        *++p = 0;
+    }
+    return Str;
+}
+
+wchar_t *TrimW (wchar_t *Str)
+{
+    return RTrimW (LTrimW (Str));
+}
+
 
 #ifndef USE_FAR_170
 
@@ -373,7 +405,7 @@ char *Trim (char *Str)
 {
     return RTrim (LTrim (Str));
 }
-
+ 
 void Unquote (char *Str)
 {
     if (!Str) return;

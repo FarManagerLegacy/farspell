@@ -177,11 +177,14 @@ void Bug()
 }
 #endif _DEBUG
 
+// class SpellFactory:
+#include "SpellFactory.hpp"
+
 enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
 
 
 template <class  _Parser>
-TextParser * createParser(Hunspell* speller)
+TextParser * createParser(SpellInstance* speller)
 {
   if (struct unicode_info2 * uconv = speller->get_utf_conv())
   {
@@ -192,12 +195,12 @@ TextParser * createParser(Hunspell* speller)
     return new _Parser(speller->get_wordchars());
 }
 
-template <> TextParser * createParser<FirstParser>(Hunspell* speller)
+template <> TextParser * createParser<FirstParser>(SpellInstance* speller)
 {
   return new FirstParser(speller->get_wordchars());
 }
 
-TextParser * newParser(Hunspell* speller, int format, const char * extension)
+TextParser * newParser(SpellInstance* speller, int format, const char * extension)
 // from hunspell-1.1.2/src/tools/hunspell.cxx
 {
     TextParser * p = NULL;
@@ -264,9 +267,6 @@ void ConvertEncoding(FarString &src, int src_enc, FarString &dst, int dst_enc)
   ac = WideCharToMultiByte(dst_enc, 0, w, wc, dst.GetBuffer(ac+1), ac, NULL, NULL);
   dst.ReleaseBuffer(ac);
 }
-
-// class SpellFactory:
-#include "SpellFactory.hpp"
 
 class FarEditorSuggestList;
 class FarSpellEditor
@@ -610,7 +610,7 @@ void FarSpellEditor::RecreateEngine(int what)
   }
 }
 
-Hunspell* FarSpellEditor::GetDict()
+SpellInstance* FarSpellEditor::GetDict()
 {
   if (!_dict_instance) RecreateEngine(RS_DICT);
   return _dict_instance;
@@ -717,7 +717,7 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
 {
   FarString document;
   char *token;
-  Hunspell *dict_inst = GetDict();
+  SpellInstance *dict_inst = GetDict();
   TextParser *parser_inst = GetParser();
 
   if (!dict_inst || !parser_inst) return;
@@ -869,7 +869,7 @@ class FarEditorSuggestList
       token = NULL;
       wlst = NULL;
       ns = 0;
-      Hunspell *dict_inst = editor->GetDict();
+      SpellInstance *dict_inst = editor->GetDict();
       TextParser *parser_inst = editor->GetParser();
       if (!dict_inst || !parser_inst) return;
       int cpos = fei.CurPos;

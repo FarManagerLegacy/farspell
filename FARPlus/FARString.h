@@ -374,6 +374,10 @@ typedef FarStringT<char> FarString;
 typedef FarStringT<char> FarStringA;
 typedef FarStringT<wchar_t> FarStringW;
 
+void ToUnicode(int codepage, const FarStringA &src, FarStringW &dest);
+void ToAscii(int codepage, const FarStringW &src, FarStringA &dest);
+
+
 // -- FarStringTokenizer -----------------------------------------------------
 
 template <class TChar>

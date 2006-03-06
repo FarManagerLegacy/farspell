@@ -395,6 +395,23 @@ FarStringT<TChar> FarStringTokenizerT<TChar>::GetToken (int index) const
 	return result;
 }
 
+void ToUnicode(int codepage, const FarStringA &src, FarStringW &dest)
+{
+  int l = src.Length();
+  l = MultiByteToWideChar(codepage, 0, src.c_str(), l, NULL, 0);
+  l = MultiByteToWideChar(codepage, 0, src.c_str(), l, 
+    dest.GetBuffer(l), l);
+  dest.ReleaseBuffer(l);
+}
+void ToAscii(int codepage, const FarStringW &src, FarStringA &dest)
+{
+  int l = src.Length();
+  l = WideCharToMultiByte(codepage, 0, src.c_str(), l, NULL, 0, NULL, NULL);
+  l = WideCharToMultiByte(codepage, 0, src.c_str(), l, dest.GetBuffer(l), l,
+    NULL, NULL);
+  dest.ReleaseBuffer(l);
+}
+
 // Compile template instances 
 
 template class FarStringT<char>;

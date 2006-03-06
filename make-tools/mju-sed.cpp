@@ -10,11 +10,12 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <strstream>
 #include <windows.h>
 
 using std::string;
 
-string get_filesize(string &sFilename)
+string get_filesize(const string &sFilename)
 {
   WIN32_FIND_DATA fd;
   HANDLE h;
@@ -34,7 +35,7 @@ string get_filesize(string &sFilename)
   return "";
 }
 
-void put_file(string &sFilename, std::ostreambuf_iterator<char> dest)
+void put_file(const string &sFilename, std::ostreambuf_iterator<char> dest)
 {
   std::ifstream src(sFilename.c_str());
   if (!src.good()) {
@@ -85,28 +86,54 @@ public:
   }
 };
 
+char escape_end(char begin_quote)
+{
+  switch (begin_quote)
+  {
+    case '(': return ')';
+    case '[': return ']';
+    case '{': return '}';
+    case '|': case '!': 
+    case '+': case '#': 
+    case '-': case '=': 
+    case '@': case '~': 
+    case '*': case '$': 
+    case '%': case '^': 
+    case '\\': case '/': 
+      return begin_quote;
+    default:
+      return 0;
+  }
+}
 class TemplateEngine
 {
   enum State { 
     passthrough, 
     escape,
-    brackets,
+    escape_region,
   };
   string sch;
 public:
   char cEscape;
-  char cQuote;
-  char cLB; 
-  char cRB;
   TemplateEngine()
   : sch("0")
   {
     cEscape = '&';
-    cQuote = '"';
-    cLB = '['; cRB = ']';
   }
+
+  string Process(const Environment &env, const string &src)
+  {
+    std::istrstream str_src(src.c_str(), src.length());
+    std::ostrstream str_dest;
+    Process(env, std::istreambuf_iterator<char>(str_src),
+                 std::istreambuf_iterator<char>(),
+                 std::ostreambuf_iterator<char>(str_dest));
+    str_dest << '\0';
+    return str_dest.str();
+  }
+
   void Process(
-    Environment &env,
+    const Environment &env,
     std::istreambuf_iterator<char> src_begin,
     std::istreambuf_iterator<char> src_end,
     std::ostreambuf_iterator<char> dest
@@ -115,6 +142,7 @@ public:
     State state = passthrough;
     string accumulator;
     string value;
+    char cEscapeEnd;
 
     for (std::istreambuf_iterator<char> &src(src_begin); 
          src != src_end; src++)
@@ -134,8 +162,8 @@ public:
           if (ch == cEscape) {
             *dest = cEscape;
             state = passthrough;
-          } else  if (ch == cLB) {
-            state = brackets;
+          } else  if (cEscapeEnd = escape_end(ch)) {
+            state = escape_region;
             accumulator.erase();
           } else if ((sch[0] = ch) && (env.has(sch, value))) {
               std::copy(value.begin(), value.end(), dest);
@@ -145,19 +173,19 @@ public:
             exit(1);
           }
           break;
-        case brackets:
-          if (ch == cRB)
+        case escape_region:
+          if (ch == cEscapeEnd)
           {
             string::size_type i = accumulator.find(' ');
             if (i != string::npos)
             {
-              string cmd(accumulator.substr(0, i));
-              string arg(accumulator.substr(i+1));
+              const string cmd(accumulator.substr(0, i));
+              const string arg(accumulator.substr(i+1));
               if (cmd == "filesize") {
-                value = get_filesize(arg);
+                value = get_filesize(Process(env, arg));
                 std::copy(value.begin(), value.end(), dest);
               } else if (cmd == "file")
-                put_file(arg, dest);
+                put_file(Process(env, arg), dest);
               else {
                 std::cerr << "Invalid escape command `"  << cmd << ":" << arg <<"'\n";
                 exit(1);
@@ -192,12 +220,7 @@ int main(int argc, char *argv[])
   { 
     int l = strlen(argv[1]);
     if (l>0) engine.cEscape = argv[1][0];
-    if (l>2)
-    {
-      engine.cLB = argv[1][1];
-      engine.cRB = argv[1][2];
-    }
-    std::cerr << "Using escape " << engine.cEscape << engine.cLB << engine.cRB << "\n";
+    std::cerr << "Using escape " << engine.cEscape << "\n";
   }
 
   engine.Process(env, std::istreambuf_iterator<char>(std::cin),

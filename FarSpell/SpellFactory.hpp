@@ -41,6 +41,7 @@ SpellInstance* SpellFactory::GetDictInstance(FarString& dict)
      if ((*cache_engine_langs[i]) == dict)
        return cache_engine_instances[i];
   }
+  if (!DictionaryExists(dict)) return NULL;
   HANDLE screen = Far::SaveScreen();
   FarMessage wait(0);
   wait.AddLine(MFarSpell);

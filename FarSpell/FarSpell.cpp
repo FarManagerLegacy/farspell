@@ -140,61 +140,6 @@ enum {
 // class ParserFactory:
 #include "ParserFactory.hpp"
 
-enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
-
-
-template <class  _Parser>
-TextParser * createParser(SpellInstance* speller)
-{
-  if (struct unicode_info2 * uconv = speller->get_utf_conv())
-  {
-    int wcs_len;
-    unsigned short * wcs = speller->get_wordchars_utf16(&wcs_len);
-    return new _Parser(uconv, wcs, wcs_len);
-  } else
-    return new _Parser(speller->get_wordchars());
-}
-
-template <> TextParser * createParser<FirstParser>(SpellInstance* speller)
-{
-  return new FirstParser(speller->get_wordchars());
-}
-
-TextParser * newParser(SpellInstance* speller, int format, const char * extension)
-// from hunspell-1.1.2/src/tools/hunspell.cxx
-{
-    TextParser * p = NULL;
-
-    switch (format)
-    {
-      case FMT_TEXT: p = createParser<TextParser>(speller); break;
-      case FMT_LATEX: p = createParser<LaTeXParser>(speller); break;
-      case FMT_HTML: p = createParser<HTMLParser>(speller); break;
-      case FMT_MAN: p = createParser<ManParser>(speller); break;
-      case FMT_FIRST: p = createParser<FirstParser>(speller);
-    }
-
-    if ((!p) && (extension)) {
-  if ((strcmp(extension, ".html") == 0) ||
-          (strcmp(extension, ".htm") == 0) ||
-          (strcmp(extension, ".xhtml") == 0) ||
-          (strcmp(extension, ".docbook") == 0) ||
-          (strcmp(extension, ".sgml") == 0) ||
-      (strcmp(extension, ".xml") == 0)) {
-          p = createParser<HTMLParser>(speller);
-  } else if (((extension[0] > '0') && (extension[0] <= '9'))) {
-          p = createParser<ManParser>(speller);
-  } else if ((strcmp(extension, ".tex") == 0)) {
-          p = createParser<LaTeXParser>(speller);
-  }
-    }
-
-    if (!p)
-      p = createParser<TextParser>(speller);
-    return p;
-}
-
-
 FarString HRString(HRESULT hr)
 {
   char *msg;
@@ -355,7 +300,7 @@ class FarSpellEditor
     FarFileName file_name;
     SpellInstance* _dict_instance;
     FarString dict;
-    TextParser* _parser_instance;
+    ParserInstance* _parser_instance;
     int parser_id;
     int spell_enc, doc_enc, doc_tablenum, doc_ansi;
     int colored_begin, colored_end;
@@ -452,7 +397,7 @@ FarSpellEditor::FarSpellEditor():
   file_name = fei.FileName;
   highlight = 1;
   default_config_string = default_config_hl;
-  parser_id = FMT_AUTO_TEXT;
+  parser_id = ParserFactory::FMT_AUTO_TEXT;
   _dict_instance = NULL;
   _parser_instance = NULL;
   colored_begin = INT_MAX;
@@ -562,8 +507,10 @@ void FarSpellEditor::RecreateEngine(int what)
   }
   if (what&(RS_PARSER) && GetDict())
   {
-    if (_parser_instance) delete _parser_instance;
-    _parser_instance = newParser(GetDict(), parser_id, file_name.GetExt());
+    _parser_instance = ParserFactory::CreateParserInstance(
+       parser_id, 
+       doc_enc, _dict_instance->GetWordChars(), 
+       file_name);
   }
 }
 
@@ -671,6 +618,7 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
 {
   FarString document;
   char *token;
+  FarStringW token_wide;
   SpellInstance *dict_inst = GetDict();
   TextParser *parser_inst = GetParser();
 
@@ -686,11 +634,11 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
       FarEd::DeleteColor(line_no);
     document = FarEd::GetStringText(line_no);
     document.Delete(MAXLNLEN, document.Length());
-    ConvertEncoding(document, doc_enc, document, spell_enc);
     parser_inst->put_line((char*)document.c_str());
     while ((token = parser_inst->next_token()))
     {
-      if (!dict_inst->spell(token))
+      ToUnicode(doc_enc, token, token_wide);
+      if (!dict_inst->Check(token_wide))
       {
         int pos = parser_inst->get_tokenpos();
         FarEd::AddColor(line_no, pos, pos+strlen(token)-1, editors->highlight_color);
@@ -809,11 +757,10 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 
 class FarEditorSuggestList
 {
-    char **wlst;
     int tpos, tlen;
     int line;
     char *token;
-    int ns;
+    SpellInstance::WordList *word_list;
     FarSpellEditor* editor;
     FarString _word_cache;
   public:
@@ -821,20 +768,20 @@ class FarEditorSuggestList
     : editor(_editor)
     {
       token = NULL;
-      wlst = NULL;
-      ns = 0;
+      word_list = NULL;
       SpellInstance *dict_inst = editor->GetDict();
-      TextParser *parser_inst = editor->GetParser();
+      ParserInstance *parser_inst = editor->GetParser();
       if (!dict_inst || !parser_inst) return;
       int cpos = fei.CurPos;
       line = fei.CurLine;
       FarString document(FarEd::GetStringText(line));
+      FarStringW token_wide;
 
-      ConvertEncoding(document, editor->doc_enc, document, editor->spell_enc);
       parser_inst->put_line((char*)document.c_str());
       while ((token = parser_inst->next_token()))
       {
-        if (!dict_inst->spell(token))
+        ToUnicode(_editor->doc_enc, token, token_wide);
+        if (!dict_inst->Check(token_wide))
         {
           tpos = parser_inst->get_tokenpos();
           tlen = strlen(token);
@@ -846,19 +793,17 @@ class FarEditorSuggestList
       }
       if (token)
       {
-        ns = dict_inst->suggest(&wlst, token);
+        word_list = dict_inst->Suggest(token_wide);
         hunspell_free(token);
         token = NULL;
       }
     }
     ~FarEditorSuggestList()
     {
-      if (wlst)
+      if (word_list)
       {
-        for (int j = 0; j < ns; j++)
-          hunspell_free(wlst[j]);
-        hunspell_free(wlst);
-        wlst = NULL;
+        delete word_list;
+        word_list = NULL;
       }
       if (token)
       {
@@ -868,22 +813,22 @@ class FarEditorSuggestList
     }
     inline int Count() const
     {
-      return ns;
+      return word_list ? word_list->Count() : 0;
     }
     FarString& operator[](int index) 
     {
-      _word_cache = wlst[index];
-      ConvertEncoding(_word_cache, editor->spell_enc, _word_cache, GetOEMCP());
+      far_assert(word_list && word_list->Count() && index<word_list->Count() && index >= 0);
+      ToAscii(GetOEMCP(), (*word_list)[index], _word_cache);
       return _word_cache;
     }
     bool Apply(int index) 
     {
-      if (!ns || !wlst || index>=ns || index < 0) throw "Bad Apply";
+      far_assert(word_list && word_list->Count() && index<word_list->Count() && index >= 0);
       FarEd::SetPos(line, tpos);
       for (int i=0; i<tlen; i++)
         FarEd::DeleteChar();
-      FarString s(wlst[index]);
-      ConvertEncoding(s, editor->spell_enc, s, GetOEMCP());
+      FarString s;
+      ToAscii(GetOEMCP(), (*word_list)[index], s);
       FarEd::InsertText(s);
     }
 };

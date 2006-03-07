@@ -23,7 +23,7 @@ class SpellInstance: public Hunspell
     {
       encoding = search_codepage(FarString(get_dic_encoding()));
     }
-    WordList Suggest(FarStringW &word);
+    WordList *Suggest(FarStringW &word);
     bool Check(FarStringW &word);
     FarStringW GetWordChars();
   private:
@@ -59,13 +59,13 @@ FarStringW& SpellInstance::WordList::operator[](int index)
   return _word_cache;
 }
 
-SpellInstance::WordList SpellInstance::Suggest(FarStringW &word)
+SpellInstance::WordList *SpellInstance::Suggest(FarStringW &word)
 {
   FarString aword;
   char **wlst;
   ToAscii(encoding, word, aword);
   int count = suggest(&wlst, aword);
-  return WordList(encoding, wlst, count);
+  return new WordList(encoding, wlst, count);
 }
 
 bool SpellInstance::Check(FarStringW &word)

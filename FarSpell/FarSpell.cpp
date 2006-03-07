@@ -137,6 +137,9 @@ enum {
 // class SpellFactory:
 #include "SpellFactory.hpp"
 
+// class ParserFactory:
+#include "ParserFactory.hpp"
+
 enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
 
 

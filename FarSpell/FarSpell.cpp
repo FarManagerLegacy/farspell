@@ -343,9 +343,6 @@ class FarSpellEditor
               editor->DoMenu(fei, suggestions_in_menu);
         }
         void CheckDictionaries();
-        bool DictionaryExists(const char *dict);
-        static int WINAPI GetDictCount(const WIN32_FIND_DATA *FData, 
-                                       const char *FullName, void *Param);
     };
     static Manager *editors;
     static void Init()

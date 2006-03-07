@@ -343,7 +343,10 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             break;
           case vItemType:
             assert(pItem);
-            fprintf(pFile, "%s", DialogItemTypes[pItem->Type]);
+            if (pItem->Type == DI_USERCONTROL) 
+              fprintf(pFile, "DI_USERCONTROL");
+            else
+              fprintf(pFile, "%s", DialogItemTypes[pItem->Type]);
             break;
           case vItemX1:  
             assert(pItem);

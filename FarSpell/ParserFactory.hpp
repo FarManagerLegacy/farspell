@@ -6,30 +6,42 @@ typedef TextParser ParserInstance;
 class ParserFactory
 {
   public:
-    ParserInstance* CreateParserInstance(const char* parser_id, FarStringA &wordchars, FarFileName &file_name);
-  private:
     enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
-    ParserInstance * newHunspellParser(const char *wordchars, int format, const char *extension);
+    static char * HunspellParser[];
+    static ParserInstance* CreateParserInstance(const char *parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name);
+    static ParserInstance* CreateParserInstance(int parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name);
+  private:
+    static ParserInstance * newHunspellParser(const char *wordchars, int format, const char *extension);
 };
 
-ParserInstance* ParserFactory::CreateParserInstance(const char* parser_id, FarString &wordchars, FarFileName &file_name)
+char * ParserFactory::HunspellParser[] = 
 {
-  static char * HunspellParser[] = 
-  {
-    "FMT_AUTO_TEXT", 
-    "FMT_TEXT", 
-    "FMT_LATEX", 
-    "FMT_HTML", 
-    "FMT_MAN", 
-    "FMT_FIRST",
-    0
-  };
+  "FMT_AUTO_TEXT", 
+  "FMT_TEXT", 
+  "FMT_LATEX", 
+  "FMT_HTML", 
+  "FMT_MAN", 
+  "FMT_FIRST",
+  0
+};
+
+ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name)
+{
   for (char **i = HunspellParser; *i; i++);
   {
     if (strcmp(*i, parser_id)==0)
-      return newHunspellParser(wordchars.c_str(), i-HunspellParser, file_name.GetExt().c_str());
+    {
+      return CreateParserInstance(i-HunspellParser, encoding, wordchars, file_name);
+    }
   }
   return NULL;
+}
+
+ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name)
+{
+  FarString wordchars_ascii;
+  ToAscii(encoding, wordchars, wordchars_ascii);
+  return newHunspellParser(wordchars_ascii.c_str(), parser_id, file_name.GetExt().c_str());
 }
 
 ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int format, const char *extension)

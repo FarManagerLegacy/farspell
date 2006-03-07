@@ -134,49 +134,6 @@ enum {
   ID_GC_DefaultDict,
 };
 
-#ifdef _DEBUG
-class C { public: int c; C():c(0x10){} virtual void c_proc() {} };
-class C1: public virtual C { public: int c1; C1():c1(1){C::c=0x20;} /*virtualvoid c1_proc() {}*/  };
-class C2: public virtual C { public: int c2; C2():c2(2){C::c=0x30;} virtual void c2_proc() {} };
-class C1_2:
-  public C1,
-  public C2,
-  public virtual C,
-  public IUnknown
-  {
-        int cnt;
-        HRESULT __stdcall IUnknown::QueryInterface(const IID &,void ** ) { return E_FAIL; }
-        ULONG __stdcall IUnknown::AddRef(void) {  return E_FAIL;  }
-        ULONG __stdcall IUnknown::Release(void) { return E_FAIL;  }
-  public:
-        virtual void c1_2() {}
-    int c3;
-    C1_2(int x):c3(3) {}
-  };
-
-bool enable_bug = false;
-void Bug()
-{
-  if (!enable_bug) return;
-  enable_bug = false;
-  typedef enum { A=0, B, C,D=0xF } t_enum;
-  typedef union { char* s; int i; } t_union;
-  t_enum _en_var = D;
-  int *w=(int*)1;
-  void *x=MessageBoxA;
-  wchar_t wc[11] = L"wide test!";
-  register int reg = 123;
-  t_union un = {"union"};
-  C1_2 z(1);
-  /*fprintf(stderr, "virtual address = %X %X %X %X\r\n",
-    z.C1_2::C1::c,
-    z.C1_2::C2::c,
-    &z.C1_2::C1::c,
-    &z.C1_2::C2::c);*/
-  *w=1;
-}
-#endif _DEBUG
-
 // class SpellFactory:
 #include "SpellFactory.hpp"
 
@@ -676,9 +633,6 @@ void FarSpellEditor::Redraw(FarEdInfo &fei, int What)
        HighlightRange(fei, fei.CurLine, fei.CurLine);
        break;
   }
-#ifdef _DEBUG
-  Bug();
-#endif _DEBUG
 }
 
 
@@ -955,12 +909,6 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 
   menu.AddItem(MEditorGeneralConfig);
 
-# ifdef _DEBUG
-  i = menu.AddItem("Test dump");
-  if (!editors->plugin_enabled)
-    menu.DisableItem(i);
-# endif _DEBUG
-
   int res = menu.Show();
 
   if (res==-1)
@@ -977,9 +925,6 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     {
       case 0: ShowPreferences(fei); break;
       case 1: editors->GeneralConfig(true); break;
-#     ifdef _DEBUG
-      case 2: enable_bug = true;
-#     endif _DEBUG
     }
   }
   if (sl)

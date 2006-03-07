@@ -1,0 +1,22 @@
+.Language=English,English
+
+"Ok"
+"Cancel"
+"Edit"
+
+"DialogExpress Viewer"
+"Select Dialog"
+
+"Error"
+"OS Error #%d"
+"Out of memory"
+"Incomplete statement"
+"Syntax error"
+"Unknown identifier"
+"Illegal token"
+"Divide by zero"
+"Parser stack overflow"
+"Not found"
+"File too large"
+"Unknown error"
+"in %s at %d:%d"

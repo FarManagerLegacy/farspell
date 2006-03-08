@@ -17,16 +17,16 @@ class SpellInstance: public Hunspell
         int count;
         FarStringW _word_cache;
     };
-    SpellInstance(FarFileName &dict_root, FarString &dict)
-    : Hunspell(FarFileName::MakeName(dict_root, dict+".aff").c_str(),
-               FarFileName::MakeName(dict_root, dict+".dic").c_str())
-    {
-      encoding = search_codepage(FarString(get_dic_encoding()));
-    }
+    SpellInstance( FarString &reg_root, FarFileName &dict_root, 
+                   FarString &dict);
     WordList *Suggest(FarStringW &word);
     bool Check(FarStringW &word);
-    FarStringW GetWordChars();
+    const FarStringW &GetWordChars() {  return word_chars; }
+    void SetWordChars(FarStringW &new_wc);
   private:
+    FarStringW GetWordChars_FromDict();
+    FarRegistry reg;
+    FarStringW word_chars;
     int encoding;
 };
 
@@ -68,6 +68,33 @@ SpellInstance::WordList *SpellInstance::Suggest(FarStringW &word)
   return new WordList(encoding, wlst, count);
 }
 
+SpellInstance::SpellInstance( FarString &reg_root, FarFileName &dict_root, FarString &dict)
+: Hunspell(FarFileName::MakeName(dict_root, dict+".aff").c_str(),
+           FarFileName::MakeName(dict_root, dict+".dic").c_str())
+, reg(reg_root, dict)
+{
+  encoding = search_codepage(FarString(get_dic_encoding()));
+  FarStringW orig_word_chars(GetWordChars_FromDict());
+  DWORD str_size = reg.GetValueSize("", "WordChars");
+  if ((int)str_size>0 && (str_size&1)==0) {
+    if (reg.GetRegKey("", "WordChars", 
+                      word_chars.GetBuffer(str_size/sizeof(wchar_t)), str_size, 
+                      orig_word_chars.data(), 
+                      orig_word_chars.Length()*sizeof(wchar_t)))
+      word_chars.ReleaseBuffer(str_size/sizeof(wchar_t));
+    else
+      word_chars.ReleaseBuffer(orig_word_chars.Length());
+  }
+  else 
+    word_chars = orig_word_chars;
+}
+
+void SpellInstance::SetWordChars(FarStringW &new_wc)
+{
+  word_chars = new_wc;
+  reg.SetRegKey("", "WordChars", (char*)word_chars.c_str(), word_chars.Length()*sizeof(wchar_t));
+}
+
 bool SpellInstance::Check(FarStringW &word)
 {
   FarString aword;
@@ -75,7 +102,7 @@ bool SpellInstance::Check(FarStringW &word)
   return spell(aword.c_str());
 }
 
-FarStringW SpellInstance::GetWordChars()
+FarStringW SpellInstance::GetWordChars_FromDict()
 {
   FarStringW word_chars;
   int wcs_len;
@@ -93,8 +120,9 @@ class SpellFactory
 {
   public:
     typedef int (*SpellFactoryEnumProc)(const FarString& name, void* param);
-    SpellFactory(FarFileName &_dict_root)
+    SpellFactory(FarFileName &_dict_root, FarString &_reg_root)
     : dict_root(_dict_root)
+    , reg_root(_reg_root+"\\Hunspell\\")
     {
     }
     ~SpellFactory() {};
@@ -108,6 +136,7 @@ class SpellFactory
     }
     void EnumDictionaries(SpellFactoryEnumProc enum_proc, void* param);
   private:
+    FarString reg_root;
     FarFileName dict_root;
     FarArray<FarString> cache_engine_langs;
     FarArray<SpellInstance> cache_engine_instances;
@@ -134,7 +163,7 @@ SpellInstance* SpellFactory::GetDictInstance(FarString& dict)
   wait.AddLine(MFarSpell);
   wait.AddFmt(MLoadingDictionary, dict.c_str());
   wait.Show();
-  SpellInstance* engine = new SpellInstance(dict_root, dict);
+  SpellInstance* engine = new SpellInstance(reg_root, dict_root, dict);
   cache_engine_langs.Add(new FarString(dict));
   cache_engine_instances.Add(engine);
   Far::RestoreScreen(screen);

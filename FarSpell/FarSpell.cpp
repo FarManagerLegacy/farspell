@@ -843,7 +843,7 @@ class FarEditorSuggestList
       ToAscii(GetOEMCP(), (*word_list)[index], _word_cache);
       return _word_cache;
     }
-    bool Apply(int index) 
+    void Apply(int index) 
     {
       far_assert(word_list && word_list->Count() && index<word_list->Count() && index >= 0);
       FarEd::SetPos(line, tpos);

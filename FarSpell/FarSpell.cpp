@@ -409,7 +409,7 @@ FarSpellEditor::FarSpellEditor():
     //editors->GetLog().Message("%s=%s", file_name.c_str(), config.c_str());
     FarStringTokenizer tokenizer (config, '|');
     int i = 0;
-    while (tokenizer.HasNext())
+    while (tokenizer.HasNext() && tokenizer.GetCurIndex() < 4) 
     {
       switch (i)
       {

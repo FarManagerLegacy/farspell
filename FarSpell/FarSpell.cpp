@@ -301,7 +301,7 @@ class FarSpellEditor
     SpellInstance* _dict_instance;
     FarString dict;
     ParserInstance* _parser_instance;
-    int parser_id;
+    FarString parser_id;
     int spell_enc, doc_enc, doc_tablenum, doc_ansi;
     int colored_begin, colored_end;
     enum { RS_DICT = 0x1, RS_PARSER = 0x2,
@@ -378,9 +378,9 @@ void FarSpellEditor::Manager::CheckDictionaries()
 }
 
 // config format: int highlight | string dictinoary | int parser_id
-char *const config_template = "%d|%s|%d";
-char *const default_config_hl = "1|en_US|0";
-char *const default_config_nhl = "0|en_US|0";
+char *const config_template = "%d|%s||%s";
+char *const default_config_hl = "1|en_US||*";
+char *const default_config_nhl = "0|en_US||*";
 
 FarSpellEditor::FarSpellEditor():
   dict(editors->default_dict)
@@ -397,7 +397,7 @@ FarSpellEditor::FarSpellEditor():
   file_name = fei.FileName;
   highlight = 1;
   default_config_string = default_config_hl;
-  parser_id = ParserFactory::FMT_AUTO_TEXT;
+  parser_id = "*";
   _dict_instance = NULL;
   _parser_instance = NULL;
   colored_begin = INT_MAX;
@@ -408,17 +408,14 @@ FarSpellEditor::FarSpellEditor():
   {
     //editors->GetLog().Message("%s=%s", file_name.c_str(), config.c_str());
     FarStringTokenizer tokenizer (config, '|');
-    int i = 0;
-    while (tokenizer.HasNext() && tokenizer.GetCurIndex() < 4) 
-    {
+    for (int i = 0; i<4 && tokenizer.HasNext(); i++) 
       switch (i)
       {
         case 0: highlight = atoi(tokenizer.NextToken()); break;
         case 1: dict = tokenizer.NextToken(); break;
-        case 2: parser_id = atoi(tokenizer.NextToken()); break;
+        case 2: tokenizer.NextToken(); break;
+        case 3: parser_id = tokenizer.NextToken(); break;
       }
-      i++;
-    }
   }
   else
   {
@@ -426,6 +423,8 @@ FarSpellEditor::FarSpellEditor():
     default_config_string = highlight ? default_config_hl : default_config_nhl;
   }
   //RecreateEngine(RS_ALL);
+  if (parser_id.IsEmpty())
+    parser_id = "*";
   CheckDictionary();
 }
 
@@ -473,12 +472,12 @@ void FarSpellEditor::Save(FarEdInfo *fei)
 {
   if (!editors->enable_file_settings) return;
   if (!FarFileInfo::IsDirectory(file_name.GetPath())) throw "invalid file";
-  int size = sizeof(config_template)+dict.Length()+32*2;
+  int size = sizeof(config_template)+dict.Length()+parser_id.Length()+32*2;
   char *config_text = (char*)alloca(size);
   _snprintf(config_text, size-sizeof(char), config_template,
      highlight,
      dict.c_str(),
-     parser_id);
+     parser_id.c_str());
   if (strcmp(default_config_string, config_text))
     editors->reg.SetRegKey(editor_files_key, file_name, config_text);
   else
@@ -508,7 +507,7 @@ void FarSpellEditor::RecreateEngine(int what)
   if (what&(RS_PARSER) && GetDict())
   {
     _parser_instance = ParserFactory::CreateParserInstance(
-       parser_id, 
+       parser_id.c_str(), 
        doc_enc, _dict_instance->GetWordChars(), 
        file_name);
   }
@@ -703,31 +702,37 @@ int ScanDicts(const FarString& name, void* param)
   return 1;
 }
 
+class ParserEnumerator {
+  public:
+    FarComboBox *dlg_parsers;
+    FarStringArray parser_ids;
+};
+
+int ScanParsers(const char* id, const char* name, void* param)
+{
+  ParserEnumerator *pe = (ParserEnumerator*)param;
+  pe->dlg_parsers->AddItem(name);
+  pe->parser_ids.Add(id);
+  return 1;
+}
+
 void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 {
-  static int parsers[] =
-  {
-    M_FMT_AUTO_TEXT,
-    M_FMT_TEXT,
-    M_FMT_LATEX,
-    M_FMT_HTML,
-    M_FMT_MAN,
-    M_FMT_FIRST,
-  };
   FarDialog dialog(MPreferences, "Contents");
   FarCheckCtrl dlg_highlight(&dialog, MHighlight, highlight);
   FarTextCtrl dlg_languages_label(&dialog, MDictianary, -1);
   FarComboBox dlg_languages(&dialog, &dict, -1, 32);
-  FarString s(Far::GetMsg(parsers[parser_id]));
+  FarString s(ParserFactory::GetParserName(parser_id));
   FarTextCtrl dlg_parser_label(&dialog, MParser, -1);
   FarComboBox dlg_parser(&dialog, &s, -1, 32);
   FarButtonCtrl dlg_ok(&dialog, MOk, DIF_CENTERGROUP);
   FarButtonCtrl dlg_cancel(&dialog, MCancel, DIF_CENTERGROUP);
   FarControl *res;
+  ParserEnumerator parser_enumumerator;
 
   editors->spell_factory.EnumDictionaries(ScanDicts, &dlg_languages);
-  for (int i=0; i<sizeof(parsers)/sizeof(parsers[0]); i++)
-    dlg_parser.AddItem(Far::GetMsg(parsers[i]));
+  parser_enumumerator.dlg_parsers = &dlg_parser;
+  ParserFactory::EnumParsers(ScanParsers, &parser_enumumerator);
   dlg_languages.SetFlags(DIF_DROPDOWNLIST);
   dlg_parser.SetFlags(DIF_DROPDOWNLIST);
   dialog.SetDefaultControl(&dlg_ok);
@@ -737,16 +742,20 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
   if (res == &dlg_ok)
   {
     FarString new_dict = dlg_languages.GetText();
-    int new_parser_id = dlg_parser.GetListPos();
+    const char *new_parser_id;
+    if (dlg_parser.GetListPos()>=0)
+      new_parser_id = parser_enumumerator.parser_ids[dlg_parser.GetListPos()];
+    else
+      new_parser_id = NULL;
     highlight = dlg_highlight.GetSelected();
     if (new_dict.Length() && dict != new_dict)
     {
       dict = new_dict;
-      if (new_parser_id != -1) parser_id = new_parser_id;
+      if (new_parser_id) parser_id = new_parser_id;
       DropEngine(RS_ALL);
       ClearAndRedraw(fei);
     }
-    else if (new_parser_id != -1  &&  new_parser_id != parser_id)
+    else if (new_parser_id && strcmp(new_parser_id, parser_id.c_str()) != 0)
     {
       parser_id = new_parser_id;
       DropEngine(RS_PARSER);

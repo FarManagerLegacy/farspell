@@ -344,13 +344,15 @@ const TChar *FarStringTokenizerT<TChar>::GetTokenEnd (const TChar *tokenStart) c
 			return tokenStart + t_strlen<TChar> (tokenStart);
 		return closeQuote+1;
 	}
-	else 
+	else if (*tokenStart) 
 	{
 		const TChar *separator = t_strchr<TChar> (tokenStart+1, fSeparator);
 		if (!separator)
 			return tokenStart + t_strlen<TChar> (tokenStart);
 		return separator;
 	}
+	else
+		return tokenStart;
 }
 
 template <class TChar>

@@ -27,7 +27,7 @@ char * ParserFactory::HunspellParser[] =
 
 ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name)
 {
-  for (char **i = HunspellParser; *i; i++);
+  for (char **i = HunspellParser; *i; i++)
     if (strcmp(*i, parser_id)==0)
       return CreateParserInstance(i-HunspellParser, encoding, wordchars, file_name);
   return CreateParserInstance(0, encoding, wordchars, file_name);

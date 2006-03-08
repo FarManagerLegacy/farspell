@@ -9,8 +9,8 @@ class ParserFactory
     typedef (*SpellFactoryEnumProc)(const char* id, const char* name, void* param);
     static void EnumParsers(SpellFactoryEnumProc proc, void* param);
     static const char* GetParserName(const char *parser_id);
-    static ParserInstance* CreateParserInstance(const char *parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name);
-    static ParserInstance* CreateParserInstance(int parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name);
+    static ParserInstance* CreateParserInstance(const char *parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name);
+    static ParserInstance* CreateParserInstance(int parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name);
   private:
     enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
     static char * HunspellParser[];
@@ -54,7 +54,7 @@ const char* ParserFactory::GetParserName(const char *parser_id)
   return Far::GetMsg(MsgIds[FMT_AUTO_TEXT]);
 }
 
-ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name)
+ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name)
 {
   for (char **i = HunspellParser; *i; i++)
     if (strcmp(*i, parser_id)==0)
@@ -62,7 +62,7 @@ ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int e
   return CreateParserInstance(FMT_AUTO_TEXT, encoding, wordchars, file_name);
 }
 
-ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding, FarStringW &wordchars, FarFileName &file_name)
+ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name)
 {
   far_assert(parser_id>=FMT_AUTO_TEXT);
   far_assert(parser_id<=FMT_FIRST);

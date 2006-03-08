@@ -74,10 +74,16 @@ public:
     bool SetRegKey(const char *Key,const char *ValueName,
         const char *ValueData,HKEY hRoot=HKEY_CURRENT_USER);
     bool SetRegKey(const char *Key,const char *ValueName,
+        const void*ValueData, DWORD ValueSize,HKEY hRoot=HKEY_CURRENT_USER);
+    bool SetRegKey(const char *Key,const char *ValueName,
         DWORD ValueData,HKEY hRoot=HKEY_CURRENT_USER);
+
+    int GetValueSize(const char *Key, const char *ValueName, HKEY hRoot=HKEY_CURRENT_USER);
 
     int GetRegKey (const char *Key, const char *ValueName,
         char *ValueData,const char *Default,DWORD DataSize,HKEY hRoot=HKEY_CURRENT_USER);
+    int GetRegKey (const char *Key, const char *ValueName,
+        void *ValueData,DWORD &DataSize,const void *Default,DWORD DefaultSize,HKEY hRoot=HKEY_CURRENT_USER);
     int GetRegKey (const char *Key, const char *ValueName,
         int &ValueData,DWORD Default,HKEY hRoot=HKEY_CURRENT_USER);
     int GetRegKey (const char *Key, const char *ValueName,

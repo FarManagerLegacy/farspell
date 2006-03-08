@@ -16,6 +16,16 @@ bool FarRegistry::SetRegKey (const char *Key, const char *ValueName, const char 
 	return true;
 }
 
+bool FarRegistry::SetRegKey (const char *Key, const char *ValueName, const void*ValueData, DWORD ValueSize, HKEY hRoot)
+{
+    HKEY hKey=CreateRegKey(hRoot,Key);
+	if (!hKey)
+		return false;
+    RegSetValueEx (hKey, ValueName, 0, REG_BINARY, (BYTE *) ValueData, ValueSize);
+    RegCloseKey(hKey);
+	return true;
+}
+
 
 bool FarRegistry::SetRegKey (const char *Key, const char *ValueName, DWORD ValueData, HKEY hRoot)
 {
@@ -28,6 +38,17 @@ bool FarRegistry::SetRegKey (const char *Key, const char *ValueName, DWORD Value
 }
 
 
+int FarRegistry::GetValueSize(const char *Key, const char *ValueName, HKEY hRoot)
+{
+    HKEY hKey=OpenRegKey(hRoot,Key,true);
+    DWORD Type, Size;
+    int ExitCode = RegQueryValueEx(hKey, ValueName, 0, &Type, NULL, &Size);
+    RegCloseKey(hKey);
+    if (hKey==NULL || ExitCode!=ERROR_SUCCESS)
+        return -1;
+    return Size;
+}
+
 int FarRegistry::GetRegKey (const char *Key, const char *ValueName, char *ValueData,
                     const char *Default, DWORD DataSize, HKEY hRoot)
 {
@@ -38,6 +59,22 @@ int FarRegistry::GetRegKey (const char *Key, const char *ValueName, char *ValueD
     if (hKey==NULL || ExitCode!=ERROR_SUCCESS)
     {
         lstrcpy(ValueData,Default);
+        return(FALSE);
+    }
+    return(TRUE);
+}
+
+int FarRegistry::GetRegKey (const char *Key, const char *ValueName, void*ValueData,
+    DWORD &DataSize,const void *Default,DWORD DefaultSize, HKEY hRoot)
+{
+    HKEY hKey=OpenRegKey(hRoot,Key,true);
+    DWORD Type;
+    int ExitCode=RegQueryValueEx(hKey,ValueName,0,&Type, (BYTE *) ValueData,&DataSize);
+    RegCloseKey(hKey);
+    if (hKey==NULL || ExitCode!=ERROR_SUCCESS)
+    {
+        if (Default && DefaultSize)
+          memcpy(ValueData,Default,DefaultSize);
         return(FALSE);
     }
     return(TRUE);

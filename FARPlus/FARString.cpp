@@ -344,6 +344,8 @@ const TChar *FarStringTokenizerT<TChar>::GetTokenEnd (const TChar *tokenStart) c
 			return tokenStart + t_strlen<TChar> (tokenStart);
 		return closeQuote+1;
 	}
+	else if (*tokenStart == '|')
+		return tokenStart;
 	else if (*tokenStart) 
 	{
 		const TChar *separator = t_strchr<TChar> (tokenStart+1, fSeparator);
@@ -358,8 +360,11 @@ const TChar *FarStringTokenizerT<TChar>::GetTokenEnd (const TChar *tokenStart) c
 template <class TChar>
 const TChar *FarStringTokenizerT<TChar>::GetTokenStart (const TChar *tokenEnd) const
 {
-	while (*tokenEnd == fSeparator || (fIgnoreWhitespace && (*tokenEnd == ' ' || *tokenEnd == '\t')))
+	if (*tokenEnd == fSeparator)
 		tokenEnd++;
+	if (fIgnoreWhitespace)
+		while (*tokenEnd == ' ' || *tokenEnd == '\t')
+			tokenEnd++;
 	return tokenEnd;
 }
 

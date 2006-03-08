@@ -184,6 +184,7 @@ templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
   $(DIST)\dbghelp.dll \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
   $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
+  $(DIST)\WordChars.reg
 #  $(DIST)\FarSpell.dlg \
 
 www: $(MJU_SED) www\index.html
@@ -209,6 +210,8 @@ $(DIST)\history.txt: history.txt
 	copy $** $@
 $(DIST)\todo.txt: todo.txt
 	copy $** $@
+$(DIST)\WordChars.reg: WordChars.reg
+	copy $** $@
 www\index.html: www\index_t.html
   $(MJU_SED) < $** > $@
 
@@ -233,6 +236,7 @@ $(DIST)\farspell.dll
 $(DIST)\file_id.diz 
 $(DIST)\history.txt 
 $(DIST)\todo.txt 
+$(DIST)\WordChars.reg
 $(DIST)\FarSpellEng.hlf 
 $(DIST)\FarSpellEng.lng 
 $(DIST)\FarSpellRus.hlf 

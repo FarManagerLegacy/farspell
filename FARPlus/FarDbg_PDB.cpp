@@ -225,6 +225,7 @@ class DebugEnumSymbolDump
         pal = pal->prev;
       }
       *wp=0;
+      return full_name;
     }
 
     bool IsIncluded(DWORD_PTR offset)

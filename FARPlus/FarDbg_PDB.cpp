@@ -1264,7 +1264,8 @@ void FarDumpStackCb( PEXCEPTION_POINTERS pExcPtrs, FarDumpCallback callback, voi
                 desd.SymEnumSymbols();
     }
     callback(param, "======== global variables output =====\r\n" );
-    desd.SymEnumSymbols(GetModuleBase(hProcess, (DWORD)pExcPtrs->ExceptionRecord->ExceptionAddress));
+    if (pExcPtrs)
+      desd.SymEnumSymbols(GetModuleBase(hProcess, (DWORD)pExcPtrs->ExceptionRecord->ExceptionAddress));
   }
   if ( symbols_err == 0)
     SymCleanup( hProcess );

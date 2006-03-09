@@ -843,13 +843,19 @@ class FarEditorSuggestList
     }
     FarString& operator[](int index) 
     {
-      far_assert(word_list && word_list->Count() && index<word_list->Count() && index >= 0);
+      far_assert(word_list);
+      far_assert(word_list->Count());
+      far_assert(index < word_list->Count());
+      far_assert(index >= 0);
       ToAscii(GetOEMCP(), (*word_list)[index], _word_cache);
       return _word_cache;
     }
     void Apply(int index) 
     {
-      far_assert(word_list && word_list->Count() && index<word_list->Count() && index >= 0);
+      far_assert(word_list);
+      far_assert(word_list->Count());
+      far_assert(index < word_list->Count());
+      far_assert(index >= 0);
       FarEd::SetPos(line, tpos);
       for (int i=0; i<tlen; i++)
         FarEd::DeleteChar();

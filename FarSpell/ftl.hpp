@@ -33,6 +33,13 @@ public:
 	}
 };
 
+class ListboxItems: public BaseListItems
+{
+public:
+	ListboxItems(FarDialogItem *item)
+		: BaseListItems(item) {};
+};
+
 class ComboboxItems: public BaseListItems
 {
 public:

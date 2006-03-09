@@ -748,6 +748,7 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 
 class FarEditorSuggestList
 {
+    int ascii_cp;
     int tpos, tlen;
     int line;
     char *token;
@@ -760,6 +761,7 @@ class FarEditorSuggestList
     FarEditorSuggestList(FarEdInfo &fei, FarSpellEditor* _editor)
     : editor(_editor)
     {
+      ascii_cp = editor->doc_enc;
       token = NULL;
       word_list = NULL;
       SpellInstance *dict_inst = editor->GetDict();
@@ -773,7 +775,7 @@ class FarEditorSuggestList
       parser_inst->put_line((char*)document.c_str());
       while ((token = parser_inst->next_token()))
       {
-        ToUnicode(_editor->doc_enc, token, token_wide);
+        ToUnicode(ascii_cp, token, token_wide);
         if (!dict_inst->Check(token_wide))
         {
           tpos = parser_inst->get_tokenpos();
@@ -813,7 +815,8 @@ class FarEditorSuggestList
     {
       if (!current_word_oem.IsEmpty())
         return current_word_oem; 
-      ToAscii(GetOEMCP(), current_word_wide, current_word_oem);
+      ToAscii(ascii_cp, current_word_wide, current_word_oem);
+      FarEd::EditorToOem(current_word_oem);
       return current_word_oem;
     }
     FarString& operator[](int index) 
@@ -822,7 +825,8 @@ class FarEditorSuggestList
       far_assert(word_list->Count());
       far_assert(index < word_list->Count());
       far_assert(index >= 0);
-      ToAscii(GetOEMCP(), (*word_list)[index], _word_cache);
+      ToAscii(ascii_cp, (*word_list)[index], _word_cache);
+      FarEd::EditorToOem(_word_cache);
       return _word_cache;
     }
     void Apply(FarString &word_oem)
@@ -839,7 +843,8 @@ class FarEditorSuggestList
       far_assert(index < word_list->Count());
       far_assert(index >= 0);
       FarString s;
-      ToAscii(GetOEMCP(), (*word_list)[index], s);
+      ToAscii(ascii_cp, (*word_list)[index], s);
+      FarEd::EditorToOem(s);
       Apply(s);
     }
 };

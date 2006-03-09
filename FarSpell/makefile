@@ -155,7 +155,7 @@ $(HUNSPELL_LIBS): $(Hunspell)\hunspell\makefile.vc $(Hunspell)\parsers\makefile.
 	cd "$(MAKEDIR)"
 
 clean:
-	-del farspell.dll* farspell.exp farspell.ilk farspell.lib *.obj* *.pdb $(MJU_SED)
+	-del farspell.dll* farspell.exp farspell.ilk farspell.lib *.obj* *.pdb
 	-del www\index.html
 	-del farspell\*.* /Q
 	-rmdir farspell

@@ -309,7 +309,7 @@ class FarSpellEditor
     void RecreateEngine(int what = RS_ALL);
     void DropEngine(int what = RS_ALL);
     SpellInstance* GetDict();
-    TextParser* GetParser(FarEdInfo &fei);
+    ParserInstance* GetParser(FarEdInfo &fei);
   public:
     FarSpellEditor();
     ~FarSpellEditor();
@@ -524,7 +524,7 @@ SpellInstance* FarSpellEditor::GetDict()
   return _dict_instance;
 }
 
-TextParser* FarSpellEditor::GetParser(FarEdInfo &fei)
+ParserInstance* FarSpellEditor::GetParser(FarEdInfo &fei)
 {
   UpdateDocumentCharset(fei);
   if (!_parser_instance) RecreateEngine(RS_PARSER);
@@ -634,7 +634,7 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   FarStringW token_wide;
   
   SpellInstance *dict_inst = GetDict();
-  TextParser *parser_inst = GetParser(fei);
+  ParserInstance *parser_inst = GetParser(fei);
   if (!dict_inst || !parser_inst) return;
 
   colored_begin = min(colored_begin, top_line);

@@ -135,6 +135,9 @@ enum {
   ID_GC_DefaultDict,
 };
 
+// Generated dialogs:
+#include "dialogs.cpp"
+
 // class SpellFactory:
 #include "SpellFactory.hpp"
 
@@ -902,7 +905,6 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   }
 }
 
-#include "dialogs.cpp"
 int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
 {
   int nSelected = 0;

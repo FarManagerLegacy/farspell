@@ -153,6 +153,8 @@ ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding,
   far_assert(parser_id<=FMT_FIRST);
   FarString wordchars_ascii;
   ToAscii(encoding, wordchars, wordchars_ascii);
+  for(int i=wordchars_ascii.Length()-1;  i>=0; i--)
+    if (wordchars_ascii[i]=='?') wordchars_ascii.Delete(i);
   return newHunspellParser(wordchars_ascii.c_str(), parser_id, file_name.GetExt().c_str());
 }
 

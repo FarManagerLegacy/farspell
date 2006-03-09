@@ -133,6 +133,8 @@ enum {
 enum {
   ID_GC_SpellExts=300,
   ID_GC_DefaultDict,
+  ID_S_Word,
+  ID_S_WordList,
 };
 
 // Generated dialogs:
@@ -324,7 +326,7 @@ class FarSpellEditor
     void HighlightRange(FarEdInfo &fei, int top_line, int bottom_line);
     void ClearAndRedraw(FarEdInfo &fei);
     void ShowPreferences(FarEdInfo &fei);
-    int ShowSuggestion(int line, int start, int len, const char* word, char ** wlst, int ns);
+    void ShowSuggestion(FarEdInfo &fei);
     void UpdateDocumentCharset(FarEdInfo &fei);
     virtual void ReportError (int line, int col, const char *expected)
     {
@@ -675,43 +677,6 @@ void FarSpellEditor::ClearAndRedraw(FarEdInfo &fei)
   Redraw(fei, (int)EEREDRAW_ALL);
 }
 
-int FarSpellEditor::ShowSuggestion(int line, int start, int len, const char* word, char ** wlst, int ns)
-{
-  FarEdInfo fei;
-  FarDialog dialog(MSuggestion);
-  int scr_x;
-  int scr_y;
-  FarString str_word(word, len);
-  ConvertEncoding(str_word, spell_enc, str_word, GetOEMCP());
-  FarComboBox dlg_variants(&dialog, &str_word, -1, 32);
-  FarButtonCtrl dlg_replace(&dialog, MReplace);
-  FarButtonCtrl dlg_preferences(&dialog, MPreferences);
-  FarButtonCtrl dlg_cancel(&dialog, MCancel);
-  FarControl *res;
-  FarString s;
-
-  for (int j = 0; j < ns; j++)
-  {
-    s = wlst[j];
-    ConvertEncoding(s, spell_enc, s, GetOEMCP());
-    dlg_variants.AddItem(s);
-  }
-  res = dialog.Show();
-  if (res == &dlg_replace)
-  {
-    FarEd::SetPos(line, start);
-    for (int i=0; i<len; i++)
-      FarEd::DeleteChar();
-    s = wlst[dlg_variants.GetListPos()];
-    ConvertEncoding(s, spell_enc, s, GetOEMCP());
-    FarEd::InsertText(s);
-    return 1;
-  }
-  if (res == &dlg_preferences) return 0;
-  return -1;
-}
-
-
 int ScanDicts(const FarString& name, void* param)
 {
   FarComboBox *dlg_languages = (FarComboBox*)param;
@@ -879,6 +844,60 @@ class FarEditorSuggestList
     }
 };
 
+class SuggestionDialog: Suggestion
+{
+  private:
+    FarEditorSuggestList &sl;
+    ftl::ListboxItems lbi;
+  public:
+    static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+    {
+      SuggestionDialog *pThis = (SuggestionDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+      switch (Msg) 
+      {
+        case DN_INITDIALOG:
+           Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+           break;
+        case DN_LISTCHANGE:
+           if (pThis && Param2>=0)
+             Far::SendDlgMessage(hDlg, DM_SETTEXTPTR, Index_ID_S_Word, 
+               (long)pThis->sl[Param2].c_str());
+      }
+      return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+    }
+    SuggestionDialog(FarEditorSuggestList &_sl, bool stop_button)
+    : sl(_sl), lbi(&sItems[Index_ID_S_WordList])
+    {
+      strncpy(sItems[Index_ID_S_Word].Data, sl.GetWord().c_str(), sizeof(sItems[0].Data));
+      for (int i = 0; i < sl.Count(); i++)
+        lbi.AddItem(sl[i].c_str());
+      if (!stop_button)
+        sItems[Index_MStop].Flags |= DIF_DISABLE;
+
+      lbi.BeforeShow();
+      int idx = ShowEx(0, DlgProc, (long)this);
+      switch (ItemId(idx)) 
+      {
+        case MSkip: break;
+        case ID_S_Word:
+          sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
+          break;
+        case ID_S_WordList:
+        case MReplace: 
+          if ((idx=lbi.GetListPos()) >= 0)
+            sl.Apply(idx);
+          break;
+        case MStop: break;
+      }
+    }
+};
+
+void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
+{
+  FarEditorSuggestList sl(fei, this);
+  SuggestionDialog sd(sl, false);
+}
+
 void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 {
   FarEditorSuggestList *sl 
@@ -894,6 +913,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     menu.AddSeparator();
     static_part = sl->Count()+1;
   }
+  menu.AddItem(MSuggestion);
   i = menu.AddItem(MPreferences);
   if (!editors->plugin_enabled)
     menu.DisableItem(i);
@@ -914,8 +934,9 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   {
     switch (res-static_part)
     {
-      case 0: ShowPreferences(fei); break;
-      case 1: editors->GeneralConfig(true); break;
+      case 0: ShowSuggestion(fei); break;
+      case 1: ShowPreferences(fei); break;
+      case 2: editors->GeneralConfig(true); break;
     }
   }
   if (sl)

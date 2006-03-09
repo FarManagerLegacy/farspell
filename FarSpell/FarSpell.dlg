@@ -15,6 +15,8 @@ enum {
 enum { 
   ID_GC_SpellExts=300, 
   ID_GC_DefaultDict,
+  ID_S_Word,
+  ID_S_WordList,
 }
 ; Items list
 ; name     id  x1 y1 x2 y2 
@@ -97,3 +99,10 @@ TEXT 0   5  12 0 0  F F DIF_SEPARATOR   0 NULL
 BUTTON 242  05 13 0 0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON -1   15 13 0 0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
+name "Suggestion"
+DOUBLEBOX   0     3  1 40 12 F F 0 0 %LNG% MSuggestion
+EDIT   ID_S_Word  5  2 38  0 F F 0 0 NULL
+LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
+BUTTON MSkip      5  10 0  0 F F 0 1 %LNG% MSkip
+BUTTON MReplace   20 10 0  0 F F 0 0 %LNG% MReplace
+BUTTON MStop      5  11 0  0 F F 0 0 %LNG% MStop

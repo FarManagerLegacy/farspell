@@ -645,7 +645,7 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
     if (editors->highlight_deletecolor)
       FarEd::DeleteColor(line_no);
     document = FarEd::GetStringText(line_no);
-    document.Delete(MAXLNLEN, document.Length());
+    document.Delete(ParserInstance::MaxLineLength, document.Length());
     parser_inst->put_line((char*)document.c_str());
     while ((token = parser_inst->next_token()))
     {

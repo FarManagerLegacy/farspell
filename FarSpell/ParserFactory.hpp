@@ -1,7 +1,52 @@
 #pragma once
 
-// TODO: MAXLNLEN in class.
-typedef TextParser ParserInstance;
+class ParserInstance
+{
+  friend class ParserFactory;
+  public:
+    enum {
+      MaxLineLength = MAXLNLEN
+    };
+    void put_line(char *line);
+    char *next_token();
+    int get_tokenpos();
+    ~ParserInstance();
+  private:
+    ParserInstance(TextParser *hunspell_parser);
+    TextParser *parser;
+};
+
+ParserInstance::ParserInstance(TextParser *hunspell_parser) 
+{
+  far_assert(hunspell_parser);
+  parser = hunspell_parser;
+}
+
+ParserInstance::~ParserInstance() 
+{
+  if (parser) {
+    delete parser;
+    parser = NULL;
+  }
+}
+
+void ParserInstance::put_line(char *line)
+{
+  far_assert(parser);
+  parser->put_line(line);
+}
+
+char *ParserInstance::next_token()
+{
+  far_assert(parser);
+  return parser->next_token();
+}
+
+int ParserInstance::get_tokenpos()
+{
+  far_assert(parser);
+  return parser->get_tokenpos();
+}
 
 class ParserFactory
 {
@@ -74,7 +119,7 @@ ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding,
 ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int format, const char *extension)
 // from hunspell-1.1.2/src/tools/hunspell.cxx
 {
-    ParserInstance * p = NULL;
+    TextParser *p = NULL;
     switch (format)
     {
       case FMT_TEXT: p = new TextParser(wordchars); break;
@@ -101,5 +146,5 @@ ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int for
 
     if (!p)
       p = new TextParser(wordchars);
-    return p;
+    return new ParserInstance(p);
 }

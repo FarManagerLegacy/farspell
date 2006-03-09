@@ -789,6 +789,8 @@ class FarEditorSuggestList
     SpellInstance::WordList *word_list;
     FarSpellEditor* editor;
     FarString _word_cache;
+    FarStringW current_word_wide;
+    FarString current_word_oem;
   public:
     FarEditorSuggestList(FarEdInfo &fei, FarSpellEditor* _editor)
     : editor(_editor)
@@ -822,6 +824,7 @@ class FarEditorSuggestList
         word_list = dict_inst->Suggest(token_wide);
         hunspell_free(token);
         token = NULL;
+        current_word_wide = token_wide;
       }
     }
     ~FarEditorSuggestList()
@@ -840,6 +843,13 @@ class FarEditorSuggestList
     inline int Count() const
     {
       return word_list ? word_list->Count() : 0;
+    }
+    const FarString &GetWord() 
+    {
+      if (!current_word_oem.IsEmpty())
+        return current_word_oem; 
+      ToAscii(GetOEMCP(), current_word_wide, current_word_oem);
+      return current_word_oem;
     }
     FarString& operator[](int index) 
     {

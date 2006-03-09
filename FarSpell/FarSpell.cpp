@@ -47,6 +47,7 @@
 //#include "hunspell/hunspell.h"
 #include "hunspell/hunspell.hxx"
 #define hunspell_free free
+#define hunspell_malloc malloc
 #include "parsers/textparser.hxx"
 #include "parsers/textparser.hxx"
 #include "parsers/htmlparser.hxx"

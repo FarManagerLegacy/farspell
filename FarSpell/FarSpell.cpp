@@ -477,10 +477,33 @@ bool FarSpellEditor::CheckDictionary()
   return exists;
 }
 
+bool IsLegalFullPath(FarFileName &name)
+{
+  if (name.Length()<3) return false;
+  const char c = name[0];
+  if (c=='\\' && name[1]=='\\' ) 
+    return true;
+  if ((c>='a' && c <='z') || (c>='A' && c<='Z') 
+    && name[1]==':' && name[2]=='\\')
+    return true;
+  return false;
+}
+
 void FarSpellEditor::Save(FarEdInfo *fei)
 {
   if (!editors->enable_file_settings) return;
-  if (!FarFileInfo::IsDirectory(file_name.GetPath())) throw "invalid file";
+  if (!IsLegalFullPath(file_name)) {
+    editors->GetLog().Message("Saving to ill file name '%s'", file_name.c_str());
+#ifdef _DEBUG
+    FarMessage msg(FMSG_WARNING);
+    msg.AddLine("FarSpell: Debug");
+    msg.AddLine("Saving to ill file name:");
+    msg.AddLine(file_name.c_str());
+    msg.AddButton(MOk);
+    msg.Show();
+#endif
+    return;
+  }
   int size = sizeof(config_template)+dict.Length()+parser_id.Length()+32*2;
   char *config_text = (char*)alloca(size);
   _snprintf(config_text, size-sizeof(char), config_template,

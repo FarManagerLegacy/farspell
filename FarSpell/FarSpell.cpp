@@ -492,6 +492,10 @@ bool IsLegalFullPath(FarFileName &name)
 void FarSpellEditor::Save(FarEdInfo *fei)
 {
   if (!editors->enable_file_settings) return;
+  if (fei) {
+    if (file_name.Compare(fei->FileName)!=0) Save(NULL);
+    file_name = fei->FileName;
+  }
   if (!IsLegalFullPath(file_name)) {
     editors->GetLog().Message("Saving to ill file name '%s'", file_name.c_str());
 #ifdef _DEBUG

@@ -56,7 +56,7 @@ debug: all
 release:
 	-@$(MAKE) --no-print-directory TARGET=Release all
 aided:
-	-@$(MAKE) --no-print-directory "TARGET=Aided Release" all
+	-@$(MAKE) --no-print-directory 'TARGET=Aided Release' all
 
 ifneq ("$(TARGET)","Release")
 # Prevents from build of something useless cdialog.exe
@@ -79,9 +79,9 @@ metadialog.exe$(OUTDIR): $(OUTDIR)/metadialog.exe
 else
 executables: cdialog.exe.gcc.aided-release metadialog.exe.gcc.aided-release
 cdialog.exe.gcc.aided-release:
-	$(MAKE) --no-print-directory TARGET="Aided Release" cdialog.exe.gcc.aided-release 
+	$(MAKE) --no-print-directory 'TARGET=Aided Release' cdialog.exe.gcc.aided-release 
 metadialog.exe.gcc.aided-release:
-	$(MAKE) --no-print-directory TARGET="Aided Release" metadialog.exe.gcc.aided-release 
+	$(MAKE) --no-print-directory 'TARGET=Aided Release' metadialog.exe.gcc.aided-release 
 endif
 
 $(OUTDIR)/dialogres.pdll: $(OUTDIR)/dialogres-static.a $(OUTDIR)/dialogres_dll.o dialogres.def

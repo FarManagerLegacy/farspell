@@ -63,6 +63,7 @@
 static Token null_token =     { "",  1, 0, 0, 0};
 static Token contents_token = { "Contents", 1, 8, 0, 0};
 static Token version_token =  { "Dex.2006",  1, 8, 0, 0};
+Token dialogres_itemid_is_msgid_token =  { "%LNG%",  1, 5, 0, 0};
 
 /*char* strFromToken(Token sTok)
 {
@@ -324,7 +325,8 @@ bool(F) selected(S) cexpr(FLAGS) bool(DEF).
 %type item_id{Token}
 item_id(ID) ::= INTEGER(N).          { ID = N; }
 item_id(ID) ::= MINUS(M) INTEGER(N). { ID = M; ID.n+=N.z-ID.z+N.n; }
-item_id(ID) ::= id(I).            { ID = I; }
+item_id(ID) ::= id(I).               { ID = I; }
+item_id(ID) ::= label_lng.           { ID = dialogres_itemid_is_msgid_token; }  
 
 %type bool{int}
 //focus(F) ::= 0.  { F = 0; }

@@ -627,6 +627,7 @@ void dialogitemDataSourceFree(struct DataSource* pData)
 //extern FILE *yyTraceFILE;
 struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, struct FarDialogItem *pFarDialogItem, struct DataSource *pDataSource)
 {
+  extern Token dialogres_itemid_is_msgid_token;
   static Token null_token =     { "",  1, 0, 0, 0 };
   struct dialogitem* pDialogItem = ALLOC_STRUCT(dialogitem);
   if (!pDialogItem)
@@ -638,15 +639,20 @@ struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, struct F
   //fflush(yyTraceFILE);
   assert(sId.n);
   assert(sId.z);
-  pDialogItem->sId = sId;
-  pDialogItem->nId = LookupIntBind(pParse, sId);
+  if (sId.z == dialogres_itemid_is_msgid_token.z) {
+    assert(pDataSource);
+    assert(pDataSource->nType == DI_DATASOURCE_MSGID);  // FIXME: produce parser error.
+    pDialogItem->sId = pDataSource->msg_data.sMsgId;
+  }  else
+    pDialogItem->sId = sId;
+  pDialogItem->nId = LookupIntBind(pParse, pDialogItem->sId);
   if (pParse->rc == dialogres_UnknownIdentifier)
   {
     pDialogItem->nId = toint(sId);
     clearToken(&pParse->sErrToken);
     pParse->rc = dialogres_Ok;
   }
-  pParse->nPoolBytes += sId.n+1;
+  pParse->nPoolBytes += pDialogItem->sId.n+1;
   pFarDialogItem->Type = nType;
   pDialogItem->pFarDialogItem = pFarDialogItem;    
   pDialogItem->pDataSource = pDataSource;

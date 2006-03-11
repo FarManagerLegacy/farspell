@@ -201,7 +201,7 @@ distclean: clean
 	cd "$(MAKEDIR)"
 
 templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
-  $(DIST)\history.txt $(DIST)\todo.txt \
+  $(DIST)\history.txt $(DIST)\todo.txt $(DIST)\TechInfo.txt \
   $(DIST)\dbghelp.dll \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
   $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
@@ -234,7 +234,9 @@ $(DIST)\todo.txt: todo.txt
 $(DIST)\WordChars.reg: WordChars.reg
 	copy $** $@
 www\index.html: www\index_t.html
-  $(MJU_SED) < $** > $@
+	$(MJU_SED) < $** > $@
+$(DIST)\TechInfo.txt: TechInfo.txt
+	$(MJU_SED) < $** > $@
 
 dist: makefile.exinfo templates
 !ifndef EXINFO
@@ -257,6 +259,7 @@ $(DIST)\farspell.dll
 $(DIST)\file_id.diz 
 $(DIST)\history.txt 
 $(DIST)\todo.txt 
+$(DIST)\TechInfo.txt
 $(DIST)\WordChars.reg
 $(DIST)\FarSpellEng.hlf 
 $(DIST)\FarSpellEng.lng 

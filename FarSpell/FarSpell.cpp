@@ -68,6 +68,7 @@ char *const highlight_deletecolor_key = "HighlightDeleteColor";
 char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
 char *const enable_file_settings_key = "FileSettings";
 char *const default_dict_key = "DefaultDict";
+char *const oem_cp_source_key = "OEMCodepageSource";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -198,6 +199,7 @@ class FarSpellEditor
         int highlight_color;
         bool suggestions_in_menu;
         bool highlight_deletecolor; 
+        int oem_cp_source; enum { OEM_from_GetOEMCP,  OEM_from_GetConsoleOutputCP };
         FarString default_dict;
         class FarRegistry1: public FarRegistry
         {  public:
@@ -228,6 +230,10 @@ class FarSpellEditor
           suggestions_in_menu = reg.GetRegKey("", suggestions_in_menu_key, 0x1);
           highlight_deletecolor = reg.GetRegKey("", highlight_deletecolor_key, false);
           default_dict = reg.GetRegStr("", default_dict_key, "en_US");
+          FarString s(reg.GetRegStr("", oem_cp_source_key, "GetOEMCP"));
+          if (s == "GetOEMCP") oem_cp_source = OEM_from_GetOEMCP;
+          else if (s == "GetConsoleOutputCP")  oem_cp_source = OEM_from_GetConsoleOutputCP;
+          else oem_cp_source = atoi(s.c_str());
           CheckDictionaries();
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
@@ -253,6 +259,20 @@ class FarSpellEditor
           reg.SetRegKey("", suggestions_in_menu_key, suggestions_in_menu);
           reg.SetRegKey("", highlight_deletecolor_key, highlight_deletecolor);
           reg.SetRegKey("", default_dict_key, default_dict);
+          switch (oem_cp_source)
+          {
+            case OEM_from_GetOEMCP:
+              reg.SetRegKey("", oem_cp_source_key, "GetOEMCP");
+              break;
+            case OEM_from_GetConsoleOutputCP:
+              reg.SetRegKey("", oem_cp_source_key, "GetConsoleOutputCP");
+              break;
+            default: {
+                char buf[32];
+                reg.SetRegKey("", oem_cp_source_key, itoa(oem_cp_source, buf, 10));
+              }
+              break;
+          }
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
           if (ml)
@@ -285,6 +305,7 @@ class FarSpellEditor
           int ColorSelectDialog();
           void ClearFileSettings();
         int GetCharsetEncoding(FarString &name);
+        int GetOEMCP();
         int OnEvent(int Event, int Param);
         void OnMenu()
         {
@@ -363,6 +384,19 @@ int FarSpellEditor::Manager::GetCharsetEncoding(FarString &name)
   return GetACP();
 }
 
+int FarSpellEditor::Manager::GetOEMCP()
+{
+  switch (oem_cp_source)
+  {
+    case OEM_from_GetOEMCP:
+      return ::GetOEMCP();
+      break;
+    case OEM_from_GetConsoleOutputCP:
+      return ::GetConsoleOutputCP();
+    default:
+      return oem_cp_source;
+  }
+}
 
 void FarSpellEditor::Manager::ClearFileSettings()
 {
@@ -652,7 +686,7 @@ void FarSpellEditor::UpdateDocumentCharset(FarEdInfo &fei)
     doc_enc = editors->GetCharsetEncoding(doc_cs);
   }
   else
-    doc_enc = fei.AnsiMode ? GetACP() : GetOEMCP();
+    doc_enc = fei.AnsiMode ? GetACP() : editors->GetOEMCP();
   doc_tablenum = fei.TableNum;
   doc_ansi = fei.AnsiMode;
   // charset changed: current parser charset incorrect.

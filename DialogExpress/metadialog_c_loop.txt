@@ -1,0 +1,119 @@
+metaquote %[]
+target C
+begin
+#ifndef _C_INIT_DIALOG_ITEM_DEFINED
+#define _C_INIT_DIALOG_ITEM_DEFINED
+#if defined(_MSC_VER)
+#  pragma pack(push,1)
+#else
+#  pragma pack(1)
+#endif
+struct InitDialogItem {
+  unsigned char Type;
+  unsigned X1:7;
+  unsigned Focus:1;
+  unsigned Y1:7;
+  unsigned Selected:1;
+  unsigned char X2;
+  unsigned char Y2;
+  unsigned int Flags;
+};  
+#if defined(_MSC_VER)
+#  pragma pack(pop)
+#else
+#  pragma pack()
+#endif
+
+void InitDialogItems(const struct InitDialogItem *pInitItems, 
+                     struct FarDialogItem* pItems,
+                     unsigned const nItems)
+{
+  struct InitDialogItem *i;
+  struct FarDialogItem* j;
+  memset(pItems, 0, nItems*sizeof(struct FarDialogItem));
+  for((i=pInitItems),(j=pItems); j<(pItems+nItems); i++,j++)
+  {
+    j->Type  = i->Type;
+    j->X1    = i->X1;
+    j->Focus = i->Focus;
+    j->Y1    = i->Y1;
+    j->Selected = i->Selected;
+    j->X2    = i->X2;
+    j->Y2    = i->Y2;
+    j->Flags = i->Flags;
+  }
+}
+#endif _C_INIT_DIALOG_ITEM_DEFINED
+%[foreach dialog]
+/******************************************************************************
+ %[dialog.id]
+ ******************************************************************************/
+#define %[prefix]%[dialog.cid]_Width %[dialog.width]
+#define %[prefix]%[dialog.cid]_Height %[dialog.height]
+#define %[prefix]%[dialog.cid]_NItems %[items.count]
+#define %[prefix]%[dialog.cid]_HelpTopic "%[dialog.helptopic]"
+void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*/ struct FarDialogItem* pItems)
+{
+  static struct InitDialogItem sInitItems[] = {
+%[foreach item]
+%[has id?]
+    /* Item ID %[sid] (%[id]) Index %[index] */
+%[hasn't id?]
+    /* Item Index %[index] */
+%[other]
+    { %[type], %[x1], %[focused], %[y1], %[selected], %[x2], %[y2], %[flags] },
+%[next item]
+  };
+#ifdef far_assert
+  far_assert(pItems);
+#else
+#ifdef assert
+  assert(pItems);
+#endif
+#endif
+  InitDialogItems(sInitItems, pItems, %[prefix]%[dialog.cid]_NItems);
+%[foreach item]
+%[has msgid?]
+  strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+%[has text?]
+  strcpy(pItems->Data, "%[text]");
+%[has history?]
+  pItems->History = "%[history]";
+%[common]
+  pItems++;
+%[next item]
+}
+
+int __inline %[prefix]%[dialog.cid]Index(int nId)
+{
+  switch(nId)
+  {
+%[foreach item]
+%[has id?]
+    case %[id]: return %[index];
+%[next item]
+  }
+  return nId;
+}
+
+int __inline %[prefix]%[dialog.cid]Id(int nIndex)
+{
+  switch(nIndex)
+  {
+%[foreach item]
+    case %[index]: return %[id];
+%[next item]
+  }
+  return nIndex;
+}
+
+%[foreach item]
+%[has id?]
+#define %[prefix]%[dialog.cid]Index_%[cid] %[index]
+%[next item]
+
+%[foreach item]
+#define %[prefix]%[dialog.cid]Id_%[index] %[id]
+%[next item]
+%[next dialog]
+

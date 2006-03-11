@@ -74,7 +74,7 @@ void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*
   InitDialogItems(sInitItems, pItems, %[prefix]%[dialog.cid]_NItems);
 %[foreach item]
 %[has msgid?]
-  strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[msgid]));
+  strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[smsgid]));
 %[has text?]
   strcpy(pItems->Data, "%[text]");
 %[has history?]

@@ -15,6 +15,9 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Contributor(s):
+      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
 #include <assert.h>
@@ -380,6 +383,11 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             assert(pDialogItem);
             assert(dialogitem_datasource_type(pDialogItem)==DI_DATASOURCE_MSGID);
             fprintf(pFile, "%3d", dialogitem_datasource_msgid(pDialogItem));
+            break;
+          case vItemMsgidLiteral:
+            assert(pDialogItem);
+            assert(dialogitem_datasource_type(pDialogItem)==DI_DATASOURCE_MSGID);
+            fprintf(pFile, "%s", dialogitem_datasource_smsgid(pDialogItem));
             break;
           case vItemText:
             assert(pDialogItem);

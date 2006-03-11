@@ -24,4 +24,5 @@ EXPORTS
 	dialogitem_index
 	dialogitem_datasource_text
 	dialogitem_datasource_msgid
+	dialogitem_datasource_smsgid
 	dialogitem_history

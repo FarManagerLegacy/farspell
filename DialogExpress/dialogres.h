@@ -91,5 +91,6 @@ const char* dialogitem_sid(dialogitem *pDi);
 int dialogitem_index(dialogitem *pDi);
 const char *dialogitem_datasource_text(dialogitem *pDi);
 int dialogitem_datasource_msgid(dialogitem *pDi);
+const char* dialogitem_datasource_smsgid(dialogitem *pDi);
 const char *dialogitem_history(dialogitem *pDi);
 

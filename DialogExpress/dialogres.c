@@ -15,6 +15,9 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Contributor(s):
+      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
 #include <assert.h>
@@ -444,7 +447,15 @@ int dialogitem_datasource_msgid(dialogitem *pDi)
   assert(pDi);
   assert(pDi->pDataSource);
   assert(pDi->pDataSource->nType==DI_DATASOURCE_MSGID);
-  return pDi->pDataSource->nMsgId;
+  return pDi->pDataSource->msg_data.nMsgId;
+}
+
+const char* dialogitem_datasource_smsgid(dialogitem *pDi)
+{
+  assert(pDi);
+  assert(pDi->pDataSource);
+  assert(pDi->pDataSource->nType==DI_DATASOURCE_MSGID);
+  return pDi->pDataSource->msg_data.sMsgId.z;
 }
 
 const char *dialogitem_history(dialogitem *pDi)
@@ -499,7 +510,9 @@ STATIC void Collect_dialogitem(struct dialogitem *pItem, char **ppPool)
     switch (pItem->pDataSource->nType)
     {
        case DI_DATASOURCE_NULL: 
+         break;
        case DI_DATASOURCE_MSGID: 
+         Collect_Token(&pItem->pDataSource->msg_data.sMsgId, ppPool); 
          break;
        case DI_DATASOURCE_TEXT: 
          Collect_Token(&pItem->pDataSource->txt_data, ppPool); 

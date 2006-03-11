@@ -15,6 +15,9 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Contributor(s):
+      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
 // All token codes are small integers with #defines that begin with "TK_"
@@ -339,7 +342,12 @@ selected(S) ::= bool(F).  { S = F; }
 data_source(D) ::= NULL.                    { D = dialogitemDataSourceAlloc(DI_DATASOURCE_NULL); }
 data_source(D) ::= label_ver.               { D = dialogitemDataSourceAlloc(DI_DATASOURCE_TEXT); D->txt_data = version_token;  }
 data_source(D) ::= label_txt_def STRING(S). { D = dialogitemDataSourceAlloc(DI_DATASOURCE_TEXT); D->txt_data = unquote(S); pParse->nPoolBytes += S.n-1; }
-data_source(D) ::= label_lng ID(I).         { D = dialogitemDataSourceAlloc(DI_DATASOURCE_MSGID); D->nMsgId = LookupIntBind(pParse, I); }
+data_source(D) ::= label_lng ID(I). { 
+  D = dialogitemDataSourceAlloc(DI_DATASOURCE_MSGID); 
+  D->msg_data.nMsgId = LookupIntBind(pParse, I); 
+  D->msg_data.sMsgId = I; 
+  pParse->nPoolBytes += I.n+1;
+}
 data_source(D) ::= label_reg reg_root_def(R) STRING(S) reg_default(DEF). {
   D = dialogitemDataSourceAlloc(DI_DATASOURCE_REGISTRY); 
   D->reg_data.root = R; 

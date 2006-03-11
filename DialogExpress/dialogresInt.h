@@ -112,9 +112,11 @@ struct DataSource {
   int nType;
   union {
     Token txt_data;
-    unsigned nMsgId;
-    struct
-    {
+    struct {
+      unsigned nMsgId;
+      Token sMsgId;
+    } msg_data;
+    struct {
       HKEY root;
       Token key;
       struct RegDefault def;

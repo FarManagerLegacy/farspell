@@ -68,5 +68,5 @@ mid-char-conf-1: Хранить список символов, которые могут быть только
 Ссылки:
 [Unicode-1] The Unicode Standard, Version 4.0 : 
   the Unicode Consortium /Joan Aliprand... [et al.]. 
-[*] Форум http://forum.farmanager.com/viewtopic.php?t=1087
   URL: http://www.unicode.org/versions/Unicode4.0.0/ch06.pdf
+[*] Форум http://forum.farmanager.com/viewtopic.php?t=1087

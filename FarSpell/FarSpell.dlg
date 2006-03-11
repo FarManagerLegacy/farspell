@@ -103,6 +103,6 @@ name "Suggestion"
 DOUBLEBOX   0     3  1 40 12 F F 0 0 %LNG% MSuggestion
 EDIT   ID_S_Word  5  2 38  0 F F 0 0 NULL
 LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
-BUTTON MSkip      5  10 0  0 F F 0 1 %LNG% MSkip
-BUTTON MReplace   20 10 0  0 F F 0 0 %LNG% MReplace
-BUTTON MStop      5  11 0  0 F F 0 0 %LNG% MStop
+BUTTON MSkip      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
+BUTTON MReplace   20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
+BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop

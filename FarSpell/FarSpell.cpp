@@ -916,7 +916,9 @@ class SuggestionDialog: Suggestion
   private:
     FarEditorSuggestList &sl;
     ftl::ListboxItems lbi;
-  public:
+  public: 
+    enum dlg { skip=-1, stop=-2, /* positive value is new word length */ };
+    int result;
     static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
     {
       SuggestionDialog *pThis = (SuggestionDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
@@ -945,16 +947,22 @@ class SuggestionDialog: Suggestion
       int idx = ShowEx(0, DlgProc, (long)this);
       switch (ItemId(idx)) 
       {
-        case MSkip: break;
+        case MSkip: 
+          result = skip;
+          break;
         case ID_S_Word:
-          sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
+          result = sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
           break;
         case ID_S_WordList:
         case MReplace: 
           if ((idx=lbi.GetListPos()) >= 0)
-            sl.Apply(idx);
+            result = sl.Apply(idx);
+          else
+            result = skip;
           break;
-        case MStop: break;
+        case MStop: 
+        default:
+          result = stop;
       }
     }
 };

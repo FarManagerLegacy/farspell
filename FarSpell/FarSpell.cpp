@@ -890,14 +890,15 @@ class FarEditorSuggestList
       FarEd::EditorToOem(_word_cache);
       return _word_cache;
     }
-    void Apply(FarString &word_oem)
+    int Apply(FarString &word_oem)
     {
       FarEd::SetPos(line, tpos);
       for (int i=0; i<tlen; i++)
         FarEd::DeleteChar();
       FarEd::InsertText(word_oem);
+      return word_oem.Length();
     }
-    void Apply(int index) 
+    int Apply(int index) 
     {
       far_assert(word_list);
       far_assert(word_list->Count());
@@ -906,7 +907,7 @@ class FarEditorSuggestList
       FarString s;
       ToAscii(ascii_cp, (*word_list)[index], s);
       FarEd::EditorToOem(s);
-      Apply(s);
+      return Apply(s);
     }
 };
 

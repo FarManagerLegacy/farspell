@@ -417,6 +417,13 @@ void ToUnicode(int codepage, const char* src, FarStringW& dest)
   l = MultiByteToWideChar(codepage, 0, src, l, dest.GetBuffer(l), l);
   dest.ReleaseBuffer(l);
 }
+void ToUnicode(int codepage, const char* src, size_t len, FarStringW& dest)
+{
+  int 
+  l = MultiByteToWideChar(codepage, 0, src, len, NULL, 0);
+  l = MultiByteToWideChar(codepage, 0, src, len, dest.GetBuffer(l), l);
+  dest.ReleaseBuffer(l);
+}
 
 void ToAscii(int codepage, const FarStringW &src, FarStringA &dest)
 {
@@ -431,6 +438,14 @@ void ToAscii(int codepage, const wchar_t* src, FarStringA &dest)
   int
   l = WideCharToMultiByte(codepage, 0, src, -1, NULL, 0, NULL, NULL);
   l = WideCharToMultiByte(codepage, 0, src, l, dest.GetBuffer(l), l,
+    NULL, NULL);
+  dest.ReleaseBuffer(l);
+}
+void ToAscii(int codepage, const wchar_t* src, size_t len, FarStringA &dest)
+{
+  int
+  l = WideCharToMultiByte(codepage, 0, src, len, NULL, 0, NULL, NULL);
+  l = WideCharToMultiByte(codepage, 0, src, len, dest.GetBuffer(l), l,
     NULL, NULL);
   dest.ReleaseBuffer(l);
 }

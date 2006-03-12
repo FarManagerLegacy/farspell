@@ -376,9 +376,11 @@ typedef FarStringT<wchar_t> FarStringW;
 
 void ToUnicode(int codepage, const FarStringA &src, FarStringW &dest);
 void ToUnicode(int codepage, const char* src, FarStringW& dest);
+void ToUnicode(int codepage, const char* src, size_t len, FarStringW& dest);
 
 void ToAscii(int codepage, const FarStringW &src, FarStringA &dest);
 void ToAscii(int codepage, const wchar_t* src, FarStringA &dest);
+void ToAscii(int codepage, const wchar_t* src, size_t len, FarStringA &dest);
 
 
 // -- FarStringTokenizer -----------------------------------------------------

@@ -948,6 +948,7 @@ class SuggestionDialog: public Suggestion
   private:
     FarEditorSuggestList &sl;
     ftl::ListboxItems lbi;
+    int edit_unchanged_flag;
   public: 
     enum dlg { skip=-1, stop=-2, /* positive value is new word length */ };
     private: static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
@@ -957,6 +958,10 @@ class SuggestionDialog: public Suggestion
       {
         case DN_INITDIALOG:
            Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+           break;
+        case DN_CLOSE:
+           pThis->edit_unchanged_flag = 
+             Far::SendDlgMessage(hDlg, DM_EDITUNCHANGEDFLAG, Index_ID_S_Word, -1);
            break;
         case DN_LISTCHANGE:
            if (pThis && Param2>=0)
@@ -976,12 +981,16 @@ class SuggestionDialog: public Suggestion
     }
     private: int AfterShow(int item_index)
     {
+      FarSpellEditor::editors->GetLog().Message("edit_unchanged_flag=%d", edit_unchanged_flag);
       switch (ItemId(item_index)) 
       {
         case MSkip: 
           return skip;
         case ID_S_Word:
-          return sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
+          if (edit_unchanged_flag)
+            return skip;
+          else
+            return sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
         case ID_S_WordList:
         case MReplace: 
           int idx;

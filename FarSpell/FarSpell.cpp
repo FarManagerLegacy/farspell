@@ -95,6 +95,7 @@ enum {
   MHighlightingWillBeDisabled,
 
   MSuggestion,
+  MOnlySetCursor,
   MSpellcheck,
   MForwardSpellcheck,
   MBackwardSpellcheck,
@@ -1006,14 +1007,45 @@ void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
 class SpellcheckDialog: SpellcheckDlg
 {
   public:
+    static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+    {
+      switch (Msg) 
+      {
+        case DN_HOTKEY:
+          switch(Param2&0xFF)
+          {
+            case 'F': 
+              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MForwardSpellcheck, 0);
+              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MForwardSpellcheck, BSTATE_CHECKED);
+              return FALSE;
+            case 'B': 
+              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MBackwardSpellcheck, 0);
+              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MBackwardSpellcheck, BSTATE_CHECKED);
+              return FALSE;
+            case 'S': 
+              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MSuggestion, 0);
+              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MSuggestion, BSTATE_CHECKED);
+              return FALSE;
+            case 'C': 
+              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MOnlySetCursor, 0);
+              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MOnlySetCursor, BSTATE_CHECKED);
+              return FALSE;
+          }
+          break;
+      }
+      return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+    }
     bool Execute(FarEdInfo &fei, FarSpellEditor* e)
     {
       if (e->editors->spellcheck_forward)
         sItems[Index_MForwardSpellcheck].Selected = 1;
       else
         sItems[Index_MBackwardSpellcheck].Selected = 1;
-      sItems[Index_MSuggestion].Selected = e->editors->spellcheck_suggestion;
-      if (Show(0)>=0) {
+      if (e->editors->spellcheck_suggestion)
+        sItems[Index_MSuggestion].Selected = 1;
+      else
+        sItems[Index_MOnlySetCursor].Selected = 1;
+      if (ShowEx(0, DlgProc, 0)>=0) {
         e->editors->spellcheck_forward = sItems[Index_MForwardSpellcheck].Selected;
         e->editors->spellcheck_suggestion = sItems[Index_MSuggestion].Selected;
         return true;

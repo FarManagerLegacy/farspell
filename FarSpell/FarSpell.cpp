@@ -724,11 +724,12 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   colored_begin = min(colored_begin, top_line);
   colored_end = max(colored_end, bottom_line);
   //GetLog().Message("top=%d bot=%d", top_line, bottom_line);
-  for (int line_no=top_line; line_no<bottom_line; line_no++)
+  FarEd::SetPos(top_line, -1);
+  for (int line_no=top_line; line_no<bottom_line; FarEd::SetPos(++line_no, -1))
   {
     if (editors->highlight_deletecolor)
       FarEd::DeleteColor(line_no);
-    document = FarEd::GetStringText(line_no);
+    document = FarEd::GetCurStringText();
     document.Delete(ParserInstance::MaxLineLength, document.Length());
     parser_inst->put_line((char*)document.c_str());
     while ((token = parser_inst->next_token()))
@@ -742,6 +743,8 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
       hunspell_free(token);
     }
   }
+  FarEd::SetPos(fei.CurLine, -1);
+  FarEd::SetViewPos(fei.TopScreenLine, -1);
 }
 
 void FarSpellEditor::ClearAndRedraw(FarEdInfo &fei)

@@ -943,7 +943,7 @@ class FarEditorSuggestList
     }
 };
 
-class SuggestionDialog: Suggestion
+class SuggestionDialog: public Suggestion
 {
   private:
     FarEditorSuggestList &sl;

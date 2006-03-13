@@ -950,8 +950,7 @@ class SuggestionDialog: Suggestion
     ftl::ListboxItems lbi;
   public: 
     enum dlg { skip=-1, stop=-2, /* positive value is new word length */ };
-    int result;
-    static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+    private: static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
     {
       SuggestionDialog *pThis = (SuggestionDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
       switch (Msg) 
@@ -966,7 +965,7 @@ class SuggestionDialog: Suggestion
       }
       return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
     }
-    SuggestionDialog(FarEditorSuggestList &_sl, bool stop_button)
+    public: SuggestionDialog(FarEditorSuggestList &_sl, bool stop_button)
     : sl(_sl), lbi(&sItems[Index_ID_S_WordList])
     {
       strncpy(sItems[Index_ID_S_Word].Data, sl.GetWord().c_str(), sizeof(sItems[0].Data));
@@ -974,28 +973,38 @@ class SuggestionDialog: Suggestion
         lbi.AddItem(sl[i].c_str());
       if (!stop_button)
         sItems[Index_MStop].Flags |= DIF_DISABLE;
-
-      lbi.BeforeShow();
-      int idx = ShowEx(0, DlgProc, (long)this);
-      switch (ItemId(idx)) 
+    }
+    private: int AfterShow(int item_index)
+    {
+      switch (ItemId(item_index)) 
       {
         case MSkip: 
-          result = skip;
-          break;
+          return skip;
         case ID_S_Word:
-          result = sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
-          break;
+          return sl.Apply(FarString((char*)&sItems[Index_ID_S_Word].Data));
         case ID_S_WordList:
         case MReplace: 
+          int idx;
           if ((idx=lbi.GetListPos()) >= 0)
-            result = sl.Apply(idx);
+            return sl.Apply(idx);
           else
-            result = skip;
-          break;
+            return skip;
         case MStop: 
         default:
-          result = stop;
+          return stop;
       }
+    }
+    public: int Execute()
+    {
+      lbi.BeforeShow();
+      int idx = ShowEx(0, DlgProc, (long)this);
+      return AfterShow(idx);
+    }
+    public: int Execute(int X, int Y)
+    {
+      lbi.BeforeShow();
+      int idx = ShowEx(X, Y, 0, DlgProc, (long)this);
+      return AfterShow(idx);
     }
 };
 
@@ -1003,6 +1012,7 @@ void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
 {
   FarEditorSuggestList sl(fei, this);
   SuggestionDialog sd(sl, false);
+  sd.Execute();
 }
 
 class SpellcheckDialog: SpellcheckDlg
@@ -1135,12 +1145,13 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
           FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
           FarEditorSuggestList sl(fei, this, token->begin, token->len);
           SuggestionDialog sd(sl, true);
-          if (sd.result==SuggestionDialog::stop) 
+          int result = sd.Execute();
+          if (result==SuggestionDialog::stop) 
             loop = false; // сказали прекратить проверку.
-          else if (sd.result>=0)  {
-            if (int const fixup = sd.result - token->len) 
+          else if (result>=0)  {
+            if (int const fixup = result - token->len) 
             { // размер слова изменился:
-              token->len = sd.result;
+              token->len = result;
               // пересчитаем положение всех следующих слов:
               for (Token *t = token+1; t<token_end; t++) 
                 t->pos += fixup;
@@ -1157,7 +1168,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
               t->begin = t->end = doc + t->pos;
               t->end += t->len;
             }
-          } // if sd.result>=0...
+          } // if result>=0...
         } else 
           loop = false; // диалог с советом не показывали, значит прекращаем.
       } // if ...

@@ -1162,7 +1162,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
             show_upper ? 1 : fei.WindowSizeY-SuggestionDialog::Height);
           if (result==SuggestionDialog::stop) 
             loop = false; // сказали прекратить проверку.
-          else if (result>=0)  {
+          else if (result>=0 && !(fei.CurState&ECSTATE_LOCKED))  {
             if (int const fixup = result - token->len) 
             { // размер слова изменился:
               token->len = result;

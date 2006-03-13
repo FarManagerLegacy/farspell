@@ -1034,28 +1034,22 @@ class SpellcheckDialog: SpellcheckDlg
   public:
     static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
     {
+      static const struct { char c; int idx; } HotKeyMap[] = {
+        { 'F', Index_MForwardSpellcheck },
+        { 'B', Index_MBackwardSpellcheck },
+        { 'S', Index_MSuggestion },
+        { 'C', Index_MOnlySetCursor }
+      };
       switch (Msg) 
       {
         case DN_HOTKEY:
-          switch(Param2&0xFF)
-          {
-            case 'F': 
-              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MForwardSpellcheck, 0);
-              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MForwardSpellcheck, BSTATE_CHECKED);
+          char const c = Param2&0xFF;
+          for (int i = 0; i<sizeof(HotKeyMap)/sizeof(HotKeyMap[0]); i++)
+            if (HotKeyMap[i].c == c) {
+              Far::SendDlgMessage(hDlg, DM_SETFOCUS, HotKeyMap[i].idx, 0);
+              Far::SendDlgMessage(hDlg, DM_SETCHECK, HotKeyMap[i].idx, BSTATE_CHECKED);
               return FALSE;
-            case 'B': 
-              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MBackwardSpellcheck, 0);
-              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MBackwardSpellcheck, BSTATE_CHECKED);
-              return FALSE;
-            case 'S': 
-              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MSuggestion, 0);
-              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MSuggestion, BSTATE_CHECKED);
-              return FALSE;
-            case 'C': 
-              Far::SendDlgMessage(hDlg, DM_SETFOCUS, Index_MOnlySetCursor, 0);
-              Far::SendDlgMessage(hDlg, DM_SETCHECK, Index_MOnlySetCursor, BSTATE_CHECKED);
-              return FALSE;
-          }
+            }
           break;
       }
       return Far::DefDlgProc(hDlg, Msg, Param1, Param2);

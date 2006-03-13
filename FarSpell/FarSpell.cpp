@@ -848,6 +848,7 @@ class FarEditorSuggestList
       int cpos = fei.CurPos;
       line = fei.CurLine;
       FarString document(FarEd::GetStringText(line));
+      document.Delete(ParserInstance::MaxLineLength, document.Length());
       FarStringW token_wide;
 
       parser_inst->put_line((char*)document.c_str());

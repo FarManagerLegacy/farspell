@@ -211,6 +211,9 @@ FarEdInfo::FarEdInfo()
 		TableNum       = ei.TableNum;
 		Options        = ei.Options;
 		TabSize        = ei.TabSize;
+                BookMarkCount  = ei.BookMarkCount;
+                CurState       = ei.CurState;
+                memcpy(Reserved, ei.Reserved, sizeof(ei.Reserved));
 	}
 }
 

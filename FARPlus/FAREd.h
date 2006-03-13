@@ -105,6 +105,9 @@ public:
     int TableNum;
     DWORD Options;
     int TabSize;
+    int BookMarkCount;
+    DWORD CurState;
+    DWORD Reserved[6];
 };
 
 // -- inline functions -------------------------------------------------------

@@ -85,4 +85,14 @@ public:
 	}
 };
 
+int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
+{
+  int nSelected = 0;
+  for (pItems+=nItem; pItems->Type == DI_RADIOBUTTON; pItems++, nSelected++)
+  {
+    if (pItems->Selected) return nSelected; 
+  }
+  return -1;
+}
+
 };

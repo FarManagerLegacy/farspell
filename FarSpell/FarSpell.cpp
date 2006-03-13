@@ -1138,14 +1138,19 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
         FarEd::SetPos(-1, fei.CurPos=token->pos);
         if (editors->spellcheck_suggestion)
         {
-          if (fei.CurLine<(fei.TotalLines-fei.WindowSizeY-1))
-            FarEd::SetViewPos(fei.CurLine-1, -1);
-          else
-            FarEd::SetViewPos(fei.CurLine-fei.WindowSizeY+2, -1);
+          bool show_upper;
+          if (fei.CurLine<(fei.TotalLines-fei.WindowSizeY-1)) {
+            FarEd::SetViewPos(fei.CurLine-1-3, -1);
+            show_upper = false;
+          } else {
+            FarEd::SetViewPos(fei.CurLine-fei.WindowSizeY+2+3, -1);
+            show_upper = true;
+          }
           FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
           FarEditorSuggestList sl(fei, this, token->begin, token->len);
           SuggestionDialog sd(sl, true);
-          int result = sd.Execute();
+          int result = sd.Execute(-1, 
+            show_upper ? 1 : fei.WindowSizeY-SuggestionDialog::Height);
           if (result==SuggestionDialog::stop) 
             loop = false; // сказали прекратить проверку.
           else if (result>=0)  {

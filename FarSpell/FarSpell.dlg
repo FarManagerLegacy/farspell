@@ -4,7 +4,8 @@ enum {
   MExitFAR, MDbgSeeMore, MExceptionIn, MError, MOk, MCancel,
   MFarSpell, MLoadingDictionary, MEngineNotInstalled, MNoDictionaries, 
   MPluginWillBeDisabled, MNoDictionary, MHighlightingWillBeDisabled, 
-  MSuggestion, MReplace, MSkip, MStop, 
+  MSuggestion,  MSpellcheck, MForwardSpellcheck, MBackwardSpellcheck,
+  MReplace, MSkip, MStop, 
   MEditorGeneralConfig, MPreferences, 
   MUnloadDictionaries, MHighlight, MDictianary, MParser,
   MGeneralConfig, MPluginEnabled, MDefaultDict, MSpellExts, MSuggMenu, 
@@ -106,3 +107,12 @@ LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
 BUTTON MSkip      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
 BUTTON MReplace   20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
 BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
+
+name "SpellcheckDlg"
+;                x1 y1 x2 y2
+DOUBLEBOX   -10   3  1 40  6 F F 0 0 %LNG% MSpellcheck
+RADIOBUTTON %LNG% 6  2  0  0 F F 0 0 %LNG% MForwardSpellcheck
+RADIOBUTTON %LNG% 6  3  0  0 F F 0 0 %LNG% MBackwardSpellcheck
+CHECKBOX    %LNG% 6  4  0  0 F F 0 0 %LNG% MSuggestion
+BUTTON      %LNG% 6  5  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON      -11   6  5  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel

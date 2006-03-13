@@ -69,6 +69,8 @@ char *const suggestions_in_menu_key = "AreSuggesionsInMenu";
 char *const enable_file_settings_key = "FileSettings";
 char *const default_dict_key = "DefaultDict";
 char *const oem_cp_source_key = "OEMCodepageSource";
+char *const spellcheck_forward_key = "Spellcheck_Forward";
+char *const spellcheck_suggestion_key = "Spellcheck_Suggestion";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -93,9 +95,13 @@ enum {
   MHighlightingWillBeDisabled,
 
   MSuggestion,
+  MSpellcheck,
+  MForwardSpellcheck,
+  MBackwardSpellcheck,
   MReplace,
   MSkip,
   MStop,
+  MSpellcheckDone,
   MPreferences,
   MEditorGeneralConfig,
   MUnloadDictionaries,
@@ -200,6 +206,9 @@ class FarSpellEditor
         bool suggestions_in_menu;
         bool highlight_deletecolor; 
         int oem_cp_source; enum { OEM_from_GetOEMCP,  OEM_from_GetConsoleOutputCP };
+        bool spellcheck_forward;
+        bool spellcheck_suggestion;
+
         FarString default_dict;
         class FarRegistry1: public FarRegistry
         {  public:
@@ -234,6 +243,9 @@ class FarSpellEditor
           if (s == "GetOEMCP") oem_cp_source = OEM_from_GetOEMCP;
           else if (s == "GetConsoleOutputCP")  oem_cp_source = OEM_from_GetConsoleOutputCP;
           else oem_cp_source = atoi(s.c_str());
+          spellcheck_forward  = reg.GetRegKey("", spellcheck_forward_key, true);
+          spellcheck_suggestion = reg.GetRegKey("", spellcheck_suggestion_key, true);
+
           CheckDictionaries();
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
@@ -273,6 +285,9 @@ class FarSpellEditor
               }
               break;
           }
+          reg.SetRegKey("", spellcheck_forward_key, spellcheck_forward );
+          reg.SetRegKey("", spellcheck_suggestion_key, spellcheck_suggestion);
+
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
           if (ml)
@@ -348,6 +363,7 @@ class FarSpellEditor
     void ClearAndRedraw(FarEdInfo &fei);
     void ShowPreferences(FarEdInfo &fei);
     void ShowSuggestion(FarEdInfo &fei);
+    void Spellcheck(FarEdInfo &fei);
     void UpdateDocumentCharset(FarEdInfo &fei);
     virtual void ReportError (int line, int col, const char *expected)
     {
@@ -855,6 +871,20 @@ class FarEditorSuggestList
         current_word_wide = token_wide;
       }
     }
+    FarEditorSuggestList(const FarEdInfo &fei, FarSpellEditor* _editor, const char *_token, int _len)
+    : editor(_editor)
+    {
+      ascii_cp = editor->doc_enc;
+      token = NULL;
+      word_list = NULL;
+      line = fei.CurLine;
+      tpos = fei.CurPos;
+      tlen = _len;
+      SpellInstance *dict_inst = editor->GetDict();
+      if (!dict_inst) return;
+      ToUnicode(ascii_cp, _token, _len, current_word_wide);
+      word_list = dict_inst->Suggest(current_word_wide);
+    }
     ~FarEditorSuggestList()
     {
       if (word_list)
@@ -973,6 +1003,160 @@ void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
   SuggestionDialog sd(sl, false);
 }
 
+class SpellcheckDialog: SpellcheckDlg
+{
+  public:
+    bool Execute(FarEdInfo &fei, FarSpellEditor* e)
+    {
+      if (e->editors->spellcheck_forward)
+        sItems[Index_MForwardSpellcheck].Selected = 1;
+      else
+        sItems[Index_MBackwardSpellcheck].Selected = 1;
+      sItems[Index_MSuggestion].Selected = e->editors->spellcheck_suggestion;
+      if (Show(0)>=0) {
+        e->editors->spellcheck_forward = sItems[Index_MForwardSpellcheck].Selected;
+        e->editors->spellcheck_suggestion = sItems[Index_MSuggestion].Selected;
+        return true;
+      }
+      return false;
+    }
+};
+
+struct Token 
+{ 
+  // слово в строке задаётся интервалом [begin, end=begin+len) :
+  const char* begin; // указатель на подстроку, не оканчивется нулём.
+                     // == full_str+pos
+  const char* end;   // указатель конца подстроки, в слово не включется.
+  unsigned len;     // длина слова.
+  unsigned pos;     // положение слова в строке.
+  //int level;        // код для мультисловарей.
+};
+
+void FarSpellEditor::Spellcheck(FarEdInfo &fei)
+{
+  SpellcheckDialog sc;
+  if (!sc.Execute(fei, this)) return;
+#if 0
+  {
+    FarMessage msg(0);
+    msg.AddLine("Sorry, not yet implemented.");
+    msg.AddButton(MOk);
+    msg.Show();
+    return;
+  }
+#endif
+  SpellInstance *const dict_inst = GetDict();
+  ParserInstance *const parser_inst = GetParser(fei);
+  if (!dict_inst || !parser_inst) return;
+  // Направление поиска ошибки:
+  int const dir_step = editors->spellcheck_forward? +1 : -1; 
+  FarDataArray<Token> tokens; // массив проверяемых слов в строке.
+  FarString document;
+  FarStringW token_wide;
+  bool loop = true;  // проверять ещё?
+  bool text_terminated = false; // достигли границы текста
+
+  document = FarEd::GetCurStringText();
+  document.Delete(ParserInstance::MaxLineLength, document.Length());
+
+  const char *skip_begin = document.c_str()+fei.CurPos; 
+  // skip_begin задаёт начало слова, которое уже не нужно проверять.
+
+  for(;;) /* будем выходить по средине цикла. */ { 
+    parser_inst->put_line((char*)document.c_str());
+    // Соберём все слова текущей строки в массив tokens:
+    tokens.Clear(); 
+    while (char *token = parser_inst->next_token()) 
+    {
+      struct Token s;
+      s.pos = parser_inst->get_tokenpos();
+      s.begin = s.end = document.c_str() + s.pos;
+      s.end += s.len = strlen(token);
+      tokens.Add(s);
+      hunspell_free(token);
+    } // while (token = ...
+    // token_begin --- начало массива слов.
+    // token_end --- конец массива слов, который не входит в массив.
+    Token *const token_begin = tokens.GetItems(); 
+    Token *const token_end = token_begin+tokens.Count(); 
+    // пройдёмся по всем словам:
+    for (Token *token = (dir_step>0) ? token_begin : token_end-1; 
+         loop && token>=token_begin && token<token_end; // условие, проверяется
+         token += dir_step)                                      // всегда.
+     if ( ( !skip_begin )
+       || ( dir_step>0 && token->begin > skip_begin ) 
+       || ( dir_step<0 && token->end < skip_begin ) 
+        )
+    {
+      ToUnicode(doc_enc, token->begin, token->len, token_wide);
+      if (!dict_inst->Check(token_wide))
+      {
+        FarEd::SetPos(-1, fei.CurPos=token->pos);
+        if (editors->spellcheck_suggestion)
+        {
+          if (fei.CurLine<(fei.TotalLines-fei.WindowSizeY-1))
+            FarEd::SetViewPos(fei.CurLine-1, -1);
+          else
+            FarEd::SetViewPos(fei.CurLine-fei.WindowSizeY+2, -1);
+          FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
+          FarEditorSuggestList sl(fei, this, token->begin, token->len);
+          SuggestionDialog sd(sl, true);
+          if (sd.result==SuggestionDialog::stop) 
+            loop = false; // сказали прекратить проверку.
+          else if (sd.result>=0)  {
+            if (int const fixup = sd.result - token->len) 
+            { // размер слова изменился:
+              token->len = sd.result;
+              // пересчитаем положение всех следующих слов:
+              for (Token *t = token+1; t<token_end; t++) 
+                t->pos += fixup;
+              // а указатели пересчитаем позже.
+            } // if (fixup)...
+            // содержимое строки изменили средствами FarEd, перечитаем:
+            document = FarEd::GetCurStringText();
+            document.Delete(ParserInstance::MaxLineLength, document.Length());
+            // указатель document.c_str() мог изменится,
+            // а указатели следующих слов сдвинулись на fixup символов, 
+            // пересчитаем:
+            const char* doc = document.c_str();
+            for (Token *t = token_begin; t<token_end; t++) {
+              t->begin = t->end = doc + t->pos;
+              t->end += t->len;
+            }
+          } // if sd.result>=0...
+        } else 
+          loop = false; // диалог с советом не показывали, значит прекращаем.
+      } // if ...
+      skip_begin = token->begin; 
+    } // for (Token *token =...
+    if (!loop) break;
+    // достигли края документа?
+    if (dir_step>0) {
+       if (fei.CurLine>=fei.TotalLines-1)
+        text_terminated = true;
+    } else { 
+      if (fei.CurLine<=0)
+        text_terminated = true;
+    }  
+    if (text_terminated) break;
+    // переход на следующую строку:
+    FarEd::SetPos(fei.CurLine += dir_step, fei.CurPos = 0);
+    document = FarEd::GetCurStringText();
+    document.Delete(ParserInstance::MaxLineLength, document.Length());
+    skip_begin = NULL; // ничего не будем игнорировать.
+  } // for (;;)
+  if (text_terminated)
+  { // достигли края документа.
+    FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
+    FarMessage msg;
+    msg.AddLine(MFarSpell);
+    msg.AddLine(MSpellcheckDone);
+    msg.AddButton(MOk);
+    msg.Show();
+  }
+}
+
 void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 {
   FarEditorSuggestList *sl 
@@ -989,6 +1173,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     static_part = sl->Count()+1;
   }
   menu.AddItem(MSuggestion);
+  menu.AddItem(MSpellcheck);
   i = menu.AddItem(MPreferences);
   if (!editors->plugin_enabled)
     menu.DisableItem(i);
@@ -1010,8 +1195,9 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     switch (res-static_part)
     {
       case 0: ShowSuggestion(fei); break;
-      case 1: ShowPreferences(fei); break;
-      case 2: editors->GeneralConfig(true); break;
+      case 1: Spellcheck(fei); break;
+      case 2: ShowPreferences(fei); break;
+      case 3: editors->GeneralConfig(true); break;
     }
   }
   if (sl)

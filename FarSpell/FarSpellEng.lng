@@ -21,9 +21,13 @@
 "Highlighting of misspellings will be disabled"
 
 "Suggestion"
+"Spell check"
+"Forward spell check"
+"Backward spell check"
 "Replace"
 "Skip"
 "Stop spell-checking"
+"Spell check done"
 "Preferences"
 "General config"
 "Unload dictionaries"

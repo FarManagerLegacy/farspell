@@ -4,7 +4,8 @@ enum {
   MExitFAR, MDbgSeeMore, MExceptionIn, MError, MOk, MCancel,
   MFarSpell, MLoadingDictionary, MEngineNotInstalled, MNoDictionaries, 
   MPluginWillBeDisabled, MNoDictionary, MHighlightingWillBeDisabled, 
-  MSuggestion,  MOnlySetCursor, MSpellcheck, MForwardSpellcheck, MBackwardSpellcheck,
+  MSuggestion,  MSpellcheckDirection, MSpellcheckAction,
+  MOnlySetCursor, MSpellcheck, MForwardSpellcheck, MBackwardSpellcheck,
   MReplace, MSkip, MStop, 
   MEditorGeneralConfig, MPreferences, 
   MUnloadDictionaries, MHighlight, MDictianary, MParser,
@@ -115,14 +116,16 @@ BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
 
 name "SpellcheckDlg"
 ;                 x1 y1 x2 y2
-DOUBLEBOX   -10    3  1 40  7 F F 0 0 %LNG% MSpellcheck
-TEXT        Hot_F  6  2  0  0 F F 0 0 %TXT% "&F - "
-TEXT        Hot_B  6  3  0  0 F F 0 0 %TXT% "&B - "
-RADIOBUTTON %LNG% 10  2  0  0 F F 0 0 %LNG% MForwardSpellcheck
-RADIOBUTTON %LNG% 10  3  0  0 F F 0 0 %LNG% MBackwardSpellcheck
-TEXT        Hot_S  6  4  0  0 F F 0 0 %TXT% "&S - "
-TEXT        Hot_C  6  5  0  0 F F 0 0 %TXT% "&C - "
-RADIOBUTTON %LNG% 10  4  0  0 F F DIF_GROUP 0 %LNG% MSuggestion
-RADIOBUTTON %LNG% 10  5  0  0 F F 0         0 %LNG% MOnlySetCursor
-BUTTON      %LNG%  6  6  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
-BUTTON      -11    6  6  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
+DOUBLEBOX   -10    3  1 50 11 F F 0 0 %LNG% MSpellcheck
+SINGLEBOX   -12    5  2 48  5 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckDirection
+TEXT        Hot_F  7  3  0  0 F F 0 0 %TXT% "&F - "
+TEXT        Hot_B  7  4  0  0 F F 0 0 %TXT% "&B - "
+RADIOBUTTON %LNG% 11  3  0  0 F F 0 0 %LNG% MForwardSpellcheck
+RADIOBUTTON %LNG% 11  4  0  0 F F 0 0 %LNG% MBackwardSpellcheck
+SINGLEBOX   -13    5  6 48  9 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckAction
+TEXT        Hot_S  7  7  0  0 F F 0 0 %TXT% "&S - "
+TEXT        Hot_C  7  8  0  0 F F 0 0 %TXT% "&C - "
+RADIOBUTTON %LNG% 11  7  0  0 F F DIF_GROUP 0 %LNG% MSuggestion
+RADIOBUTTON %LNG% 11  8  0  0 F F 0         0 %LNG% MOnlySetCursor
+BUTTON      %LNG%  6 10  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON      -11    6 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel

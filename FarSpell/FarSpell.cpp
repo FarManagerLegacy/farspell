@@ -95,6 +95,8 @@ enum {
   MHighlightingWillBeDisabled,
 
   MSuggestion,
+  MSpellcheckDirection, 
+  MSpellcheckAction,
   MOnlySetCursor,
   MSpellcheck,
   MForwardSpellcheck,

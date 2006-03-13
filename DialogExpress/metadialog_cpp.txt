@@ -94,8 +94,10 @@ class %[prefix]%[dialog.id]
     }
     int ShowEx(int X1, int Y1, DWORD Flags, FARWINDOWPROC DlgProc, long Param)
     {
-      return Far::DialogEx(X1, Y1, X1+Width-1, Y1+Height-1, HelpTopic, 
-           sItems, NItems, Flags, 0, DlgProc, Param);
+      return Far::DialogEx(X1, Y1, 
+           (X1!=-1) ? X1+Width-1 : Width, 
+           (Y1!=-1) ? Y1+Height-1 : Height, 
+           HelpTopic, sItems, NItems, Flags, 0, DlgProc, Param);
     }
     int Show(DWORD Flags)
     {

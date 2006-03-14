@@ -175,23 +175,23 @@ STATIC char* Collect(dialogres* pDr, char *pPool);
 STATIC void Collect_Chunk(void** ppChunk, unsigned nBytes, char **ppPool, int release);
 STATIC void Collect_Token(Token *s, char **ppPool);
 
-
-enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** ppDr)
+enum dialogres_error dialogresParseInclude(Parse *pParse, const char* zFilename)
 {
-  struct dialogres* pDr;
+  enum dialogres_error nErr;
   char *pBuf;
-  HANDLE hFile = CreateFile(zFilename, FILE_READ_DATA, FILE_SHARE_READ, 
-                      NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+  HANDLE hFile;
   DWORD nSize, nRead;
   BOOL bRead;
-  Parse *pParse;
-  enum dialogres_error nErr;
-  char *pPoolEnd;
-  assert(ppDr);
+  struct InputPoolList *pPool;
+  //
+  assert(pParse);
   assert(zFilename);
-  *ppDr = NULL;
+  //
+  hFile = CreateFile(zFilename, FILE_READ_DATA, FILE_SHARE_READ, 
+                     NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
   if (hFile == INVALID_HANDLE_VALUE)
     return dialogres_OSError;
+  //
   nSize = GetFileSize(hFile, NULL);
   if (nSize == INVALID_FILE_SIZE)
   {
@@ -204,17 +204,11 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
     return dialogres_TooLarge;
   }
   //
-  pDr = *ppDr = (dialogres *)dialogres_malloc(sizeof(dialogres));
-  if (!pDr) 
-  {
-    nErr = dialogres_NoMemory;
-    goto error;
-  }
-  memset(pDr, 0, sizeof(dialogres));
-  pParse = dialogresParseAlloc(pDr);
-  assert(pParse);
-  //
-  pBuf = alloca(nSize+1);
+  pPool = (struct InputPoolList *)dialogres_malloc(nSize+1 + sizeof(struct InputPoolList));
+  assert(pPool);
+  pPool->prev = pParse->pInputPoolList;
+  pParse->pInputPoolList =  pPool;
+  pBuf = (char*)++pPool;
   while ( bRead = ReadFile(hFile, pBuf, nSize, &nRead, NULL) && nRead)
   {
     assert(nRead <= nSize);
@@ -224,8 +218,36 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
   }
   CloseHandle(hFile);
   hFile = INVALID_HANDLE_VALUE;
-  pDr->rc = pParse->rc;
-  if (pParse->rc != dialogres_Ok)
+  return pParse->rc;
+error:
+  if (hFile != INVALID_HANDLE_VALUE)
+    CloseHandle(hFile);
+  return pParse->rc;
+}
+
+enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** ppDr)
+{
+  struct dialogres* pDr;
+  Parse *pParse;
+  enum dialogres_error nErr;
+  char *pPoolEnd;
+  size_t nSize;
+  //
+  assert(ppDr);
+  assert(zFilename);
+  *ppDr = NULL;
+  //
+  pDr = *ppDr = (dialogres *)dialogres_malloc(sizeof(dialogres));
+  if (!pDr) 
+  {
+    nErr = dialogres_NoMemory;
+    goto error;
+  }
+  memset(pDr, 0, sizeof(dialogres));
+  pParse = dialogresParseAlloc(pDr);
+  assert(pParse);
+  pDr->rc = dialogresParseInclude(pParse, zFilename);
+  if (pDr->rc != dialogres_Ok)
   {
     pDr->sErrToken = pParse->sErrToken;
     nSize = strlen(zFilename)+1;
@@ -261,8 +283,6 @@ fatal_error:
     dialogres_close(pDr);
   *ppDr = NULL;
 error:
-  if (hFile != INVALID_HANDLE_VALUE)
-    CloseHandle(hFile);
   if (pDr) pDr->rc = nErr;
   return nErr;
 }
@@ -604,6 +624,7 @@ Parse* dialogresParseAlloc(dialogres* pDr)
 void dialogresParseFree(Parse* pParse)
 {
   TokenIntBind *bind, *tmp;   
+  struct InputPoolList *pList, *pTmp;
   if (!pParse) return;
   for (bind = pParse->binds; bind; )
   {
@@ -611,7 +632,11 @@ void dialogresParseFree(Parse* pParse)
     bind = bind->prev;
     dialogres_free(tmp);
   }
-
+  for (pList = pParse->pInputPoolList; pList;) {
+    pTmp = pList;
+    pList = pList->prev;
+    dialogres_free(pTmp);
+  }
   dialogres_free(pParse);
 }
 

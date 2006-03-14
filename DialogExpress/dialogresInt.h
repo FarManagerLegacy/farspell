@@ -63,6 +63,9 @@ typedef struct
 {
   dialogres *pDr;
   //char *ErrMsg;
+  struct InputPoolList { 
+    struct InputPoolList* prev; 
+  } *pInputPoolList;
   const char *Stmt;
   //const char *Tail;
   enum dialogres_error rc;
@@ -77,6 +80,7 @@ typedef struct
 } Parse;
 
 
+enum dialogres_error dialogresParseInclude(Parse *pParse, const char* zFilename);
 Parse* dialogresParseAlloc(dialogres* pDr);
 void dialogresParseFree(Parse* pParse);
 

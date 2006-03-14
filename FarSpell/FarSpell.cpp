@@ -1330,21 +1330,21 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
      ? new FarEditorSuggestList(fei, this) : NULL;
   FarMenuT<FarMenuItemEx> menu(MFarSpell, FMENU_WRAPMODE, "Contents");
   int i, static_part = 0;
-
+  static const char Numbers[] = "`1234567890-=~!@#$%^&*()_+";
   if (sl && sl->Count())
   {
     for (int j = 0; j < sl->Count(); j++) 
-      menu.AddItem((*sl)[j]);
+      menu.AddItem((j<sizeof(Numbers)-1)? Numbers[j] : 'x', (*sl)[j]);
     menu.AddSeparator();
     static_part = sl->Count()+1;
   }
-  menu.AddItem(MSuggestion);
-  menu.AddItem(MSpellcheck);
-  i = menu.AddItem(MPreferences);
+  menu.AddItem('S', MSuggestion);
+  menu.AddItem('C', MSpellcheck);
+  i = menu.AddItem('P', MPreferences);
   if (!editors->plugin_enabled)
     menu.DisableItem(i);
 
-  menu.AddItem(MEditorGeneralConfig);
+  menu.AddItem('G', MEditorGeneralConfig);
 
   int res = menu.Show();
 

@@ -116,7 +116,7 @@ enum {
   MUnloadDictionaries,
 
   MHighlight,
-  MDictianary,
+  MDictionary,
   MParser,
 
   MGeneralConfig,
@@ -799,7 +799,7 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 {
   FarDialog dialog(MPreferences, "Contents");
   FarCheckCtrl dlg_highlight(&dialog, MHighlight, highlight);
-  FarTextCtrl dlg_languages_label(&dialog, MDictianary, -1);
+  FarTextCtrl dlg_languages_label(&dialog, MDictionary, -1);
   FarComboBox dlg_languages(&dialog, &dict, -1, 32);
   FarString s(ParserFactory::GetParserName(parser_id));
   FarTextCtrl dlg_parser_label(&dialog, MParser, -1);
@@ -994,7 +994,7 @@ class SuggestionDialog: public Suggestion
     : sl(_sl), lbi(&sItems[Index_ID_S_WordList])
     {
       strncpy(sItems[Index_ID_S_Word].Data, sl.GetWord().c_str(), sizeof(sItems[0].Data));
-      strncpy(sItems[Index_MDictianary].Data, fse->dict.c_str(), sizeof(sItems[0].Data));
+      strncpy(sItems[Index_MDictionary].Data, fse->dict.c_str(), sizeof(sItems[0].Data));
       for (int i = 0; i < sl.Count(); i++)
         lbi.AddItem(sl[i].c_str());
       if (!stop_button)

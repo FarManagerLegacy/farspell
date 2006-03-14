@@ -9,7 +9,7 @@ enum {
   MSpellcheckArea, MSpellcheckEntireText, MSpellcheckFromCursor, MSpellcheckSelection,
   MReplace, MSkip, MStop, 
   MEditorGeneralConfig, MPreferences, 
-  MUnloadDictionaries, MHighlight, MDictianary, MParser,
+  MUnloadDictionaries, MHighlight, MDictionary, MParser,
   MGeneralConfig, MPluginEnabled, MDefaultDict, MSpellExts, MSuggMenu, 
   MFileSettings, MAnotherColoring, MColorSelectBtn, 
   MSelectColor, MForeground, MBackground, MTest,
@@ -109,7 +109,7 @@ BUTTON %LNG%      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
 BUTTON %LNG%      20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
 BUTTON %LNG%      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
 TEXT  -100        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
-TEXT MDictianary  10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% "en_US"
+TEXT MDictionary  10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% "en_US"
 TEXT  -101        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 
 name "SpellcheckDlg"

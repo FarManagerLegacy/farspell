@@ -43,6 +43,7 @@
 ** _Id: tokenize.c,v 1.116 2006/01/20 17:56:33 drh Exp _
 */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "dialogresInt.h"
@@ -421,11 +422,13 @@ int dialogresRunParser(Parse *pParse, const char *Stmt, char **pzErrMsg){
   void *pEngine;
   int tokenType;
   int lastTokenParsed = -1;
+
+  assert(pParse);
   pParse->rc = dialogres_Ok;
   i = 0;
   pEngine = dialogresParserAlloc(__dialogres_malloc);
   if( pEngine==0 ){
-    return dialogres_NoMemory;
+    return pParse->rc = dialogres_NoMemory;
   }
   //pParse->Tail = pParse->Stmt = Stmt;
   pParse->zLastLine = Stmt;

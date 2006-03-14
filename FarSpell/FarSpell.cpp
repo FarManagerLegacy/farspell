@@ -1265,7 +1265,14 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
               // а указатели пересчитаем позже.
             } // if (fixup)...
             // содержимое строки изменили средствами FarEd, перечитаем:
-            document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
+            {
+              fes.Update();
+              int const left = skip_left - document.c_str();
+              document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
+              skip_left = document.c_str() + left;
+              skip_right = document.c_str() +
+              ((selection && fes.SelEnd>=0) ? fes.SelEnd : document.Length()-1);
+            }
             // указатель document.c_str() мог изменится,
             // а указатели следующих слов сдвинулись на fixup символов, 
             // пересчитаем:

@@ -84,7 +84,9 @@ class FarEdString
 {
 public:
 	FarEdString();
+	FarEdString(int StringNumber);
 	bool Update();
+	bool Update(int StringNumber);
 	int StringNumber;
 	const char *StringText;
 	const char *StringEOL;

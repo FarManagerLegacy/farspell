@@ -194,9 +194,20 @@ FarEdString::FarEdString()
 	Update();
 }
 
+FarEdString::FarEdString(int _StringNumber)
+{
+	Update(_StringNumber);
+}
+
 bool FarEdString::Update()
 {
+	return Update(-1);
+}
+
+bool FarEdString::Update(int _StringNumber)
+{
 	EditorGetString egs;
+	egs.StringNumber = _StringNumber;
 	if (FarEd::ECTL (ECTL_GETSTRING, &egs)) 
 	{
 		StringNumber	= egs.StringNumber;

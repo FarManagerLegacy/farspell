@@ -1384,17 +1384,15 @@ class GeneralConfigDialog: GeneralConfig
     for (int cont=1; cont;) 
     {
       default_dict_items.BeforeShow();
-      res = Show(0);
-      switch (ItemId(res))
+      res = ItemId(Show(0));
+      if (res<0) cont = 0; // cancel
+      else switch (res)
       {
         case MColorSelectBtn:
           m->ColorSelectDialog();
           break;
         case MUnloadDictionaries:
           m->spell_factory.UnloadDictionaries();
-          break;
-        case -1: // cancel
-          cont = 0;
           break;
         case MOk:
         default:

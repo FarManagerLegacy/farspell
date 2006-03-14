@@ -204,6 +204,7 @@ class FarEditorSuggestList;
 class FarSpellEditor
 {
   friend class FarEditorSuggestList;
+  friend class SuggestionDialog;
   public:
     int EditorId;
     FarSpellEditor *next, *prev;
@@ -988,10 +989,12 @@ class SuggestionDialog: public Suggestion
       }
       return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
     }
-    public: SuggestionDialog(FarEditorSuggestList &_sl, bool stop_button)
+    public: SuggestionDialog(FarSpellEditor *fse, FarEditorSuggestList &_sl, 
+                             bool stop_button)
     : sl(_sl), lbi(&sItems[Index_ID_S_WordList])
     {
       strncpy(sItems[Index_ID_S_Word].Data, sl.GetWord().c_str(), sizeof(sItems[0].Data));
+      strncpy(sItems[Index_MDictianary].Data, fse->dict.c_str(), sizeof(sItems[0].Data));
       for (int i = 0; i < sl.Count(); i++)
         lbi.AddItem(sl[i].c_str());
       if (!stop_button)
@@ -1038,7 +1041,7 @@ class SuggestionDialog: public Suggestion
 void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
 {
   FarEditorSuggestList sl(fei, this);
-  SuggestionDialog sd(sl, false);
+  SuggestionDialog sd(this, sl, false);
   sd.Execute();
 }
 
@@ -1251,7 +1254,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
           }
           FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
           FarEditorSuggestList sl(fei, this, token->begin, token->len);
-          SuggestionDialog sd(sl, true);
+          SuggestionDialog sd(this, sl, true);
           int result = sd.Execute(-1, 
             show_upper ? 1 : fei.WindowSizeY-SuggestionDialog::Height);
           if (result==SuggestionDialog::stop) 

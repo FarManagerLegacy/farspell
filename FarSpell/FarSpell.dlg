@@ -114,6 +114,9 @@ LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
 BUTTON MSkip      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
 BUTTON MReplace   20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
 BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
+TEXT  -100        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
+TEXT MDictianary  10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% "en_US"
+TEXT  -101        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 
 name "SpellcheckDlg"
 ;                 x1 y1 x2 y2

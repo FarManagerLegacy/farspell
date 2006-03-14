@@ -983,6 +983,26 @@ class SpellcheckDialog: SpellcheckDlg
       };
       switch (Msg) 
       {
+        case DN_BTNCLICK: {
+            BOOL value;
+            bool enable_changed = false;
+            if (Param1==Index_MSpellcheckSelection) {
+              enable_changed = true;
+              value = FALSE;
+            } else if (Param1==Index_MSpellcheckEntireText 
+                     || Param1==Index_MSpellcheckFromCursor) {
+              enable_changed = true;
+              value = TRUE;
+            }
+            if (enable_changed) {
+              Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MSpellcheckDirection, value);
+              Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MForwardSpellcheck, value);
+              Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MBackwardSpellcheck, value);
+              Far::SendDlgMessage(hDlg, DM_ENABLE, Index_Hot_F, value);
+              Far::SendDlgMessage(hDlg, DM_ENABLE, Index_Hot_B, value);
+            }
+          }
+          break;
         case DN_HOTKEY:
           char const c = Param2&0xFF;
           for (int i = 0; i<sizeof(HotKeyMap)/sizeof(HotKeyMap[0]); i++)
@@ -1013,6 +1033,11 @@ class SpellcheckDialog: SpellcheckDlg
         case sa_selection:
           if (fei.BlockType!=BTYPE_NONE) {
             sItems[Index_MSpellcheckSelection].Selected = 1;
+            sItems[Index_MSpellcheckDirection].Flags |= DIF_DISABLE;
+            sItems[Index_MForwardSpellcheck].Flags |= DIF_DISABLE;
+            sItems[Index_MBackwardSpellcheck].Flags |= DIF_DISABLE;
+            sItems[Index_Hot_F].Flags |= DIF_DISABLE;
+            sItems[Index_Hot_B].Flags |= DIF_DISABLE;
             break;
           }  // fall throught
         case sa_entire_text:

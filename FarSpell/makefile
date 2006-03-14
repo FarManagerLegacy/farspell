@@ -135,7 +135,8 @@ $(MJU_SED):
 	$(MAKE) /nologo -f makefile.vc mju-sed.exe
 	cd "$(MAKEDIR)"
 
-farspell.cpp: ParserFactory.hpp SpellFactory.hpp codepages.cpp dialogs.cpp ftl.hpp
+farspell.cpp: FarSpell.h ParserFactory.hpp SpellFactory.hpp codepages.cpp \
+ dialogs.cpp ftl.hpp
 
 $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
  	$(MYLIBS)
@@ -151,6 +152,8 @@ $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
 
 dialogs.cpp: FarSpell.dlg $(DEX)\metadialog.exe $(DEX)\metadialog_cpp.txt
 	$(DEX)\metadialog.exe $(DEX)\metadialog_cpp.txt FarSpell.dlg > $@
+
+FarSpell.dlg: FarSpell.h
 
 $(DEX)\metadialog.exe:
 	cd "$(DEX)"

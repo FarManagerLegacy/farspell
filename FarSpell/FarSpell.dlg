@@ -1,26 +1,4 @@
-
-enum {
-  MDbgPleaseWait, MDbgContinue, MNoDbgMessages, MUnloadPlugin,
-  MExitFAR, MDbgSeeMore, MExceptionIn, MError, MOk, MCancel,
-  MFarSpell, MLoadingDictionary, MEngineNotInstalled, MNoDictionaries, 
-  MPluginWillBeDisabled, MNoDictionary, MHighlightingWillBeDisabled, 
-  MSuggestion,  MSpellcheckDirection, MSpellcheckAction,
-  MOnlySetCursor, MSpellcheck, MForwardSpellcheck, MBackwardSpellcheck,
-  MSpellcheckArea, MSpellcheckEntireText, MSpellcheckFromCursor, MSpellcheckSelection,
-  MReplace, MSkip, MStop, 
-  MEditorGeneralConfig, MPreferences, 
-  MUnloadDictionaries, MHighlight, MDictionary, MParser,
-  MGeneralConfig, MPluginEnabled, MDefaultDict, MSpellExts, MSuggMenu, 
-  MFileSettings, MAnotherColoring, MColorSelectBtn, 
-  MSelectColor, MForeground, MBackground, MTest,
-  MFileSettingWasDisabled, MWillDeleteFileSetting, MFileSettingsRemoved,
-  M_FMT_AUTO_TEXT, M_FMT_TEXT, M_FMT_LATEX, M_FMT_HTML, M_FMT_MAN, M_FMT_FIRST };
-enum { 
-  ID_GC_SpellExts=300, 
-  ID_GC_DefaultDict,
-  ID_S_Word,
-  ID_S_WordList,
-}
+include "FarSpell.h"
 enum { 
   Hot_A=500, Hot_B, Hot_C, Hot_D, Hot_E, Hot_F, Hot_G, Hot_H, Hot_I, 
   Hot_K, Hot_L, Hot_M, Hot_N, Hot_O, Hot_P, Hot_Q, Hot_R, Hot_S, Hot_T,

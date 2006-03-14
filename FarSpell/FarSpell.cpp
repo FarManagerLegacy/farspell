@@ -738,12 +738,13 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   colored_end = max(colored_end, bottom_line);
   //GetLog().Message("top=%d bot=%d", top_line, bottom_line);
   FarEd::SetPos(top_line, -1);
-  for (int line_no=top_line; line_no<bottom_line; FarEd::SetPos(++line_no, -1))
+  FarEdString fes;
+  for (int line_no=top_line; line_no<bottom_line; 
+       FarEd::SetPos(++line_no, -1), fes.Update())
   {
     if (editors->highlight_deletecolor)
       FarEd::DeleteColor(line_no);
-    document = FarEd::GetCurStringText();
-    document.Delete(ParserInstance::MaxLineLength, document.Length());
+    document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
     parser_inst->put_line((char*)document.c_str());
     while ((token = parser_inst->next_token()))
     {

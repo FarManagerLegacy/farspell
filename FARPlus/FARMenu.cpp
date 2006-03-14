@@ -82,6 +82,22 @@ int FarMenuT<TItems>::AddItem (int LngIndex, bool Selected, int Checked)
 }
 
 template <typename TItems>
+int FarMenuT<TItems>::AddItem (char Letter, const char *Text, bool Selected=false, int Checked=0)
+{
+  char buffer[128] = {'&', Letter, '.', ' '};
+  lstrcpyn(&buffer[4], Text, sizeof(buffer)-4);
+  return InternalAddItem (buffer, Selected, Checked, 0);
+}
+
+template <typename TItems>
+int FarMenuT<TItems>::AddItem (char Letter, int LngIndex, bool Selected=false, int Checked=0)
+{
+  char buffer[128] = {'&', Letter, '.', ' '};
+  lstrcpyn(&buffer[4], Far::GetMsg (LngIndex), sizeof(buffer)-4);
+  return InternalAddItem (buffer, Selected, Checked, 0);
+}
+
+template <typename TItems>
 int FarMenuT<TItems>::AddSeparator()
 {
     return InternalAddItem ("", 0, 0, 1);

@@ -60,6 +60,8 @@ public:
     // returns index of new item
     int AddItem (const char *Text, bool Selected=false, int Checked=0);
     int AddItem (int LngIndex, bool Selected=false, int Checked=0);
+    int AddItem (char Letter, const char *Text, bool Selected=false, int Checked=0);
+    int AddItem (char Letter, int LngIndex, bool Selected=false, int Checked=0);
     int AddSeparator();
     void DisableItem (int index);
 

@@ -404,9 +404,9 @@ FarStringT<TChar> FarStringTokenizerT<TChar>::GetToken (int index) const
 
 void ToUnicode(int codepage, const FarStringA &src, FarStringW &dest)
 {
-  int l = src.Length();
-  l = MultiByteToWideChar(codepage, 0, src.c_str(), l, NULL, 0);
-  l = MultiByteToWideChar(codepage, 0, src.c_str(), l, 
+  int 
+  l = MultiByteToWideChar(codepage, 0, src.c_str(), src.Length(), NULL, 0);
+  l = MultiByteToWideChar(codepage, 0, src.c_str(), src.Length(), 
     dest.GetBuffer(l), l);
   dest.ReleaseBuffer(l);
 }
@@ -414,7 +414,7 @@ void ToUnicode(int codepage, const char* src, FarStringW& dest)
 {
   int 
   l = MultiByteToWideChar(codepage, 0, src, -1, NULL, 0);
-  l = MultiByteToWideChar(codepage, 0, src, l, dest.GetBuffer(l), l);
+  l = MultiByteToWideChar(codepage, 0, src, -1, dest.GetBuffer(l), l);
   dest.ReleaseBuffer(l);
 }
 void ToUnicode(int codepage, const char* src, size_t len, FarStringW& dest)
@@ -427,9 +427,9 @@ void ToUnicode(int codepage, const char* src, size_t len, FarStringW& dest)
 
 void ToAscii(int codepage, const FarStringW &src, FarStringA &dest)
 {
-  int l = src.Length();
-  l = WideCharToMultiByte(codepage, 0, src.c_str(), l, NULL, 0, NULL, NULL);
-  l = WideCharToMultiByte(codepage, 0, src.c_str(), l, dest.GetBuffer(l), l,
+  int 
+  l = WideCharToMultiByte(codepage, 0, src.c_str(), src.Length(), NULL, 0, NULL, NULL);
+  l = WideCharToMultiByte(codepage, 0, src.c_str(), src.Length(), dest.GetBuffer(l), l,
     NULL, NULL);
   dest.ReleaseBuffer(l);
 }
@@ -437,7 +437,7 @@ void ToAscii(int codepage, const wchar_t* src, FarStringA &dest)
 {
   int
   l = WideCharToMultiByte(codepage, 0, src, -1, NULL, 0, NULL, NULL);
-  l = WideCharToMultiByte(codepage, 0, src, l, dest.GetBuffer(l), l,
+  l = WideCharToMultiByte(codepage, 0, src, -1, dest.GetBuffer(l), l,
     NULL, NULL);
   dest.ReleaseBuffer(l);
 }

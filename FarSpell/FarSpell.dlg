@@ -33,24 +33,18 @@ enum {
 ;           |   |  |  |  | | | Flags DefButton Data
 name "GeneralConfig"
 DOUBLEBOX   0   3  1 55 13 F F 0 0 %LNG% MGeneralConfig
-CHECKBOX MPluginEnabled 
-                5  2  0  0 F F 0 0 %LNG% MPluginEnabled
+CHECKBOX  %LNG% 5  2  0  0 F F 0 0 %LNG% MPluginEnabled
 TEXT        0   5  3  0  0 F F 0 0 %LNG% MDefaultDict
 COMBOBOX ID_GC_DefaultDict 
                 5  4 52  0 F F DIF_DROPDOWNLIST 0 NULL
 TEXT        0   5  5  0  0 F F 0 0 %LNG% MSpellExts
 EDIT ID_GC_SpellExts 
                 5  6 52  0 F F 0 0 NULL HISTORY="FarSpell.SpellExts"
-CHECKBOX MSuggMenu 
-                7  7  0  0 F F 0 0 %LNG% MSuggMenu
-CHECKBOX MFileSettings 
-                7  8  0  0 F F 0 0 %LNG% MFileSettings
-CHECKBOX MAnotherColoring 
-                7  9  0  0 F F 0 0 %LNG% MAnotherColoring
-BUTTON MColorSelectBtn 
-                5 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
-BUTTON MUnloadDictionaries 
-               11 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
+CHECKBOX %LNG%  7  7  0  0 F F 0 0 %LNG% MSuggMenu
+CHECKBOX %LNG%  7  8  0  0 F F 0 0 %LNG% MFileSettings
+CHECKBOX %LNG%  7  9  0  0 F F 0 0 %LNG% MAnotherColoring
+BUTTON   %LNG%  5 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
+BUTTON   %LNG% 11 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
 TEXT        0   0 11  0  0 F F DIF_SEPARATOR   0 NULL
 BUTTON MOk     05 12  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON     -1  15 12  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
@@ -111,9 +105,9 @@ name "Suggestion"
 DOUBLEBOX   0     3  1 40 12 F F 0 0 %LNG% MSuggestion
 EDIT   ID_S_Word  5  2 38  0 F F 0 0 NULL
 LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
-BUTTON MSkip      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
-BUTTON MReplace   20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
-BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
+BUTTON %LNG%      5  10 0  0 F F DIF_CENTERGROUP 1 %LNG% MSkip
+BUTTON %LNG%      20 10 0  0 F F DIF_CENTERGROUP 0 %LNG% MReplace
+BUTTON %LNG%      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
 TEXT  -100        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 TEXT MDictianary  10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% "en_US"
 TEXT  -101        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "

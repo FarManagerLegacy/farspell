@@ -437,14 +437,13 @@ int process(const char *zFilename, TemplateToken *pTemplate)
 {
   dialogres* dr;
   int rc = dialogres_open(zFilename, &dr);
-  printf("// rc=%d\n", rc);
-  switch(rc){
-    case dialogres_SyntaxError:
-    case dialogres_UnknownIdentifier:
-    case dialogres_IllegalToken:
-    case dialogres_DivideByZero:
-      printf("SyntaxError at %d:%d\n", dialogres_error_line(dr), dialogres_error_pos(dr));
+  if (rc&dialogres_ErrToken) {
+      printf("// SyntaxError at %d:%d\n", dialogres_error_line(dr), dialogres_error_pos(dr));
+      rc^=dialogres_ErrToken;
   }
+  printf("// rc=%d\n", rc);
+  if (rc==dialogres_OSError)
+    printf("// GetLastError(): %d\n", GetLastError());
 #ifdef _DEBUG
   printf("// Memory use: %d\n", dialogresMemory);
 #endif

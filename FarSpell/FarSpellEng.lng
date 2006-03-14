@@ -21,6 +21,8 @@
 "Highlighting of misspellings will be disabled"
 
 "Suggestion"
+"Spell check direction:"
+"Spell check action:"
 "Only set cursor"
 "Spell check"
 "Forward spell check"

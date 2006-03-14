@@ -72,7 +72,10 @@ void _dialogres_free(void **ppChunk, const char* zFile, unsigned nLine)
 {
   void *pTag;
   struct MemDbgChunkList *chunk = (struct MemDbgChunkList *)(*ppChunk);
-  assert(chunk);
+  if (!chunk)  {
+    fprintf(stderr, "Freeing of NULL pointer in %s:%d\n", zFile, nLine); 
+    exit(STATUS_ACCESS_VIOLATION);                       
+  }
   chunk--;
   assert(!IsBadWritePtr(chunk, sizeof(struct MemDbgChunkList)));
   if (!CHECK_PTAG(&chunk->xTag))

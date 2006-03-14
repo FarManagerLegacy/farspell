@@ -93,22 +93,22 @@ TEXT  -101        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 name "SpellcheckDlg"
 ;                 x1 y1 x2 y2
 DOUBLEBOX   -10    3  1 50 16 F F 0 0 %LNG% MSpellcheck
-SINGLEBOX   -12    5  2 48  5 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckDirection
-TEXT        Hot_F  7  3  0  0 F F 0 0 %TXT% "&F - "
-TEXT        Hot_B  7  4  0  0 F F 0 0 %TXT% "&B - "
-RADIOBUTTON %LNG% 11  3  0  0 F F 0 0 %LNG% MForwardSpellcheck
-RADIOBUTTON %LNG% 11  4  0  0 F F 0 0 %LNG% MBackwardSpellcheck
-SINGLEBOX   -13    5  6 48  9 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckAction
-TEXT        Hot_S  7  7  0  0 F F 0 0 %TXT% "&S - "
-TEXT        Hot_C  7  8  0  0 F F 0 0 %TXT% "&C - "
-RADIOBUTTON %LNG% 11  7  0  0 F F DIF_GROUP 0 %LNG% MSuggestion
-RADIOBUTTON %LNG% 11  8  0  0 F F 0         0 %LNG% MOnlySetCursor
-SINGLEBOX   -14    5 10 48 14 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckArea
-TEXT        Hot_T  7 11  0  0 F F 0 0 %TXT% "&T - "
-TEXT        Hot_R  7 12  0  0 F F 0 0 %TXT% "&R - "
-TEXT        Hot_L  7 13  0  0 F F 0 0 %TXT% "&L - "
-RADIOBUTTON %LNG% 11 11  0  0 F F DIF_GROUP 0 %LNG% MSpellcheckEntireText
-RADIOBUTTON %LNG% 11 12  0  0 F F 0         0 %LNG% MSpellcheckFromCursor
-RADIOBUTTON %LNG% 11 13  0  0 F F 0         0 %LNG% MSpellcheckSelection
+SINGLEBOX   -14    5  2 48  6 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckArea
+TEXT        Hot_T  7  3  0  0 F F 0 0 %TXT% "&T - "
+TEXT        Hot_R  7  4  0  0 F F 0 0 %TXT% "&R - "
+TEXT        Hot_L  7  5  0  0 F F 0 0 %TXT% "&L - "
+RADIOBUTTON %LNG% 11  3  0  0 F F DIF_GROUP 0 %LNG% MSpellcheckEntireText
+RADIOBUTTON %LNG% 11  4  0  0 F F 0         0 %LNG% MSpellcheckFromCursor
+RADIOBUTTON %LNG% 11  5  0  0 F F 0         0 %LNG% MSpellcheckSelection
+SINGLEBOX   -12    5  7 48 10 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckDirection
+TEXT        Hot_F  7  8  0  0 F F 0 0 %TXT% "&F - "
+TEXT        Hot_B  7  9  0  0 F F 0 0 %TXT% "&B - "
+RADIOBUTTON %LNG% 11  8  0  0 F F 0 0 %LNG% MForwardSpellcheck
+RADIOBUTTON %LNG% 11  9  0  0 F F 0 0 %LNG% MBackwardSpellcheck
+SINGLEBOX   -13    5 11 48 14 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckAction
+TEXT        Hot_S  7 12  0  0 F F 0 0 %TXT% "&S - "
+TEXT        Hot_C  7 13  0  0 F F 0 0 %TXT% "&C - "
+RADIOBUTTON %LNG% 11 12  0  0 F F DIF_GROUP 0 %LNG% MSuggestion
+RADIOBUTTON %LNG% 11 13  0  0 F F 0         0 %LNG% MOnlySetCursor
 BUTTON      %LNG%  6 15  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON      -11    6 15  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel

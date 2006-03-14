@@ -16,6 +16,7 @@ class FarEd
 {
 private:
 	friend class FarEdInfo;
+	friend class FarEdString;
 
 	FarEd();
 	FarEd (const FarEd &rhs);
@@ -75,6 +76,21 @@ public:
 	static int SaveFile (const char *FileName = NULL, const char *StringEOL = NULL);
 
 	static void Quit();									 // ECTL_QUIT
+};
+
+// -- FarEdString --------------------------------------------------------------
+
+class FarEdString
+{
+public:
+	FarEdString();
+	bool Update();
+	int StringNumber;
+	const char *StringText;
+	const char *StringEOL;
+	int StringLength;
+	int SelStart;
+	int SelEnd;
 };
 
 // -- FarEdInfo --------------------------------------------------------------

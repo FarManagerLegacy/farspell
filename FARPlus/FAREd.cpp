@@ -187,6 +187,29 @@ int FarEd::SaveFile (const char *FileName, const char *StringEOL)
 	return ECTL (ECTL_SAVEFILE, &esf);
 }
 
+// -- FarEdString --------------------------------------------------------------
+
+FarEdString::FarEdString()
+{
+	Update();
+}
+
+bool FarEdString::Update()
+{
+	EditorGetString egs;
+	if (FarEd::ECTL (ECTL_GETSTRING, &egs)) 
+	{
+		StringNumber	= egs.StringNumber;
+		StringText	= egs.StringText;
+		StringEOL	= egs.StringEOL;
+		StringLength	= egs.StringLength;
+		SelStart	= egs.SelStart;
+		SelEnd		= egs.SelEnd;
+		return true;
+	}
+	return false;
+}
+
 // -- FarEdInfo --------------------------------------------------------------
 
 FarEdInfo::FarEdInfo()

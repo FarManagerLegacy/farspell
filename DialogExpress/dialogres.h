@@ -44,7 +44,7 @@ typedef struct dialogtemplate dialogtemplate;
 typedef struct dialogitem dialogitem;
 
 #ifdef _DEBUG
-#define dialogres_free(s) assert(s); _dialogres_free((void**)&s, __FILE__, __LINE__)
+#define dialogres_free(s) { assert(s); _dialogres_free((void**)&s, __FILE__, __LINE__); }
 void _dialogres_free(void **ppChunk, const char* zFile, unsigned nLine);
 #else
 void dialogres_free(void*);

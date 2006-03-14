@@ -24,7 +24,7 @@ enum dialogres_error
 {
   dialogres_Ok                   = 0,
   dialogres_Error                = 1, 
-  dialogres_OSError              = 2,
+  dialogres_OSError              = 2,  // sErrToken when dialogres_ErrToken
   dialogres_NoMemory             = 3,
   dialogres_ErrToken             = 0x1000, // see sErrToken
   dialogres_IncompleteStatement  = 4, // syntax

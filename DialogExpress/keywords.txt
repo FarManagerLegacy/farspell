@@ -1,6 +1,7 @@
 enum			TK_ENUM
 name			TK_NAME
 help                    TK_HELP
+include                 TK_INCLUDE
 T
 F
 NULL

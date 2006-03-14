@@ -55,6 +55,7 @@
 //
 %include {
 #include <assert.h>
+#include <malloc.h>
 #include <string.h>
 #include <plugin.hpp>
 #include "../dialogresInt.h"
@@ -102,6 +103,19 @@ input ::= cmdlist.
 cmdlist ::= .
 cmdlist ::= cmdlist cmd.
 
+cmd ::= INCLUDE STRING(FN). {
+  if (pParse->rc == dialogres_Ok) {
+    Token sFN = unquote(FN);
+    char *zFilename = alloca(sFN.n+1);
+    strncpy(zFilename, sFN.z, sFN.n);
+    zFilename[sFN.n] = '\0';
+    pParse->rc = dialogresParseInclude(pParse, zFilename);
+    if (pParse->rc!=dialogres_Ok && (pParse->rc&dialogres_ErrToken)==0) {
+      pParse->sErrToken = FN;
+      pParse->rc |= dialogres_ErrToken;
+    }
+  }
+}
 
 cmd ::= ENUM LB idents RB.
 idents ::= . { pParse->nEnumIndex = 0; } 
@@ -114,7 +128,7 @@ ident ::= id(I) EQ cexpr(V). { AddIntBind(pParse, I, pParse->nEnumIndex=V); pPar
 %type id {Token}
 id(A) ::= ID(X).         {A = X;}
 
-%fallback ID NAME ENUM T F 
+%fallback ID INCLUDE NAME ENUM T F 
 HELP 
 NULL TXT LNG REG HISTORY
 HKCU HKLM HKCR HKCC VER DEF.
@@ -216,7 +230,6 @@ cexpr(R) ::= BK_BLACK.                 { R = DIF_SETCOLOR|0x00; }
 cexpr(R) ::= id(I).                    { R = LookupIntBind(pParse, I); }
 //cexpr(R) ::= VARIABLE(V).              { R = LookupIntBind(pParse, V); }
                                       
-
 cmd ::= NAME STRING(N) help(H) items(I). { 
   struct dialogitem *item;
   struct dialogtemplate *pDt = ALLOC_STRUCT(dialogtemplate);

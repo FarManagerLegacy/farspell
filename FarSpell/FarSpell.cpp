@@ -1193,8 +1193,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
       break;
   }
 
-  document = FarEd::GetCurStringText();
-  document.Delete(ParserInstance::MaxLineLength, document.Length());
+  document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
   // skip_left - символ до которого проверка не происходит. 
   // skip_right символ после которого проверка не происходит.
   const char *skip_left = document.c_str()+
@@ -1265,8 +1264,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
               // а указатели пересчитаем позже.
             } // if (fixup)...
             // содержимое строки изменили средствами FarEd, перечитаем:
-            document = FarEd::GetCurStringText();
-            document.Delete(ParserInstance::MaxLineLength, document.Length());
+            document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
             // указатель document.c_str() мог изменится,
             // а указатели следующих слов сдвинулись на fixup символов, 
             // пересчитаем:
@@ -1298,8 +1296,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
       text_terminated = true;
       break;
     }
-    document = FarEd::GetCurStringText();
-    document.Delete(ParserInstance::MaxLineLength, document.Length());
+    document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
     skip_left = document.c_str()+
       ((selection && fes.SelStart>=0) ? fes.SelStart : 0);
     skip_right = document.c_str()+

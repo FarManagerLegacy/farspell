@@ -1002,7 +1002,6 @@ class SuggestionDialog: public Suggestion
     }
     private: int AfterShow(int item_index)
     {
-      FarSpellEditor::editors->GetLog().Message("edit_unchanged_flag=%d", edit_unchanged_flag);
       switch (ItemId(item_index)) 
       {
         case MSkip: 

@@ -1345,6 +1345,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     menu.DisableItem(i);
 
   menu.AddItem('G', MEditorGeneralConfig);
+  menu.SetBottomLine(dict);
 
   int res = menu.Show();
 

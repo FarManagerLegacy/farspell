@@ -71,6 +71,7 @@ char *const default_dict_key = "DefaultDict";
 char *const oem_cp_source_key = "OEMCodepageSource";
 char *const spellcheck_forward_key = "Spellcheck_Forward";
 char *const spellcheck_suggestion_key = "Spellcheck_Suggestion";
+char *const spellcheck_area_key = "Spellcheck_Area";
 
 // -- Language strings -------------------------------------------------------
 enum {
@@ -101,6 +102,10 @@ enum {
   MSpellcheck,
   MForwardSpellcheck,
   MBackwardSpellcheck,
+  MSpellcheckArea, 
+  MSpellcheckEntireText,
+  MSpellcheckFromCursor, 
+  MSpellcheckSelection,
   MReplace,
   MSkip,
   MStop,
@@ -189,6 +194,11 @@ void ConvertEncoding(FarString &src, int src_enc, FarString &dst, int dst_enc)
   dst.ReleaseBuffer(ac);
 }
 
+enum { // for spellcheck_area
+  sa_entire_text, sa_from_cursor, sa_selection, 
+  sa_last = sa_selection 
+}; 
+
 class FarEditorSuggestList;
 class FarSpellEditor
 {
@@ -211,7 +221,7 @@ class FarSpellEditor
         int oem_cp_source; enum { OEM_from_GetOEMCP,  OEM_from_GetConsoleOutputCP };
         bool spellcheck_forward;
         bool spellcheck_suggestion;
-
+        int spellcheck_area; 
         FarString default_dict;
         class FarRegistry1: public FarRegistry
         {  public:
@@ -248,7 +258,7 @@ class FarSpellEditor
           else oem_cp_source = atoi(s.c_str());
           spellcheck_forward  = reg.GetRegKey("", spellcheck_forward_key, true);
           spellcheck_suggestion = reg.GetRegKey("", spellcheck_suggestion_key, true);
-
+          spellcheck_area = reg.GetRegKey("", spellcheck_area_key, sa_entire_text);
           CheckDictionaries();
 #         ifndef HARDCODED_MLDATA
           HRESULT hr;
@@ -290,6 +300,7 @@ class FarSpellEditor
           }
           reg.SetRegKey("", spellcheck_forward_key, spellcheck_forward );
           reg.SetRegKey("", spellcheck_suggestion_key, spellcheck_suggestion);
+          reg.SetRegKey("", spellcheck_area_key, spellcheck_area);
 
           while (last) delete last;
 #         ifndef HARDCODED_MLDATA
@@ -1038,7 +1049,10 @@ class SpellcheckDialog: SpellcheckDlg
         { 'F', Index_MForwardSpellcheck },
         { 'B', Index_MBackwardSpellcheck },
         { 'S', Index_MSuggestion },
-        { 'C', Index_MOnlySetCursor }
+        { 'C', Index_MOnlySetCursor },
+        { 'T', Index_MSpellcheckEntireText },
+        { 'R', Index_MSpellcheckFromCursor },
+        { 'L', Index_MSpellcheckSelection },
       };
       switch (Msg) 
       {
@@ -1064,9 +1078,37 @@ class SpellcheckDialog: SpellcheckDlg
         sItems[Index_MSuggestion].Selected = 1;
       else
         sItems[Index_MOnlySetCursor].Selected = 1;
+      if (fei.BlockType==BTYPE_NONE) {
+        sItems[Index_MSpellcheckSelection].Flags |= DIF_DISABLE;
+        //sItems[Index_Hot_L].Flags |= DIF_DISABLE; // не срабатывает Alt+R
+      }
+      switch (e->editors->spellcheck_area) {      
+        case sa_selection:
+          if (fei.BlockType!=BTYPE_NONE) {
+            sItems[Index_MSpellcheckSelection].Selected = 1;
+            break;
+          }  // fall throught
+        case sa_entire_text:
+          sItems[Index_MSpellcheckEntireText].Selected = 1;
+          break;
+        case sa_from_cursor:
+          sItems[Index_MSpellcheckFromCursor].Selected = 1;
+          break;
+      }
       if (ShowEx(0, DlgProc, 0)>=0) {
         e->editors->spellcheck_forward = sItems[Index_MForwardSpellcheck].Selected;
         e->editors->spellcheck_suggestion = sItems[Index_MSuggestion].Selected;
+        e->editors->spellcheck_area = ftl::GetRadioStatus(sItems, NItems, Index_MSpellcheckEntireText);
+        far_assert(e->editors->spellcheck_area>=0);
+        far_assert(e->editors->spellcheck_area<=sa_last);
+        if (fei.BlockType==BTYPE_NONE && e->editors->spellcheck_area == sa_selection) {
+          FarMessage msg;
+          msg.AddLine(MFarSpell);
+          msg.AddLine(MSpellcheckDone);
+          msg.AddButton(MOk);
+          msg.Show();
+          return false;
+        }
         return true;
       }
       return false;
@@ -1101,17 +1143,66 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
   ParserInstance *const parser_inst = GetParser(fei);
   if (!dict_inst || !parser_inst) return;
   // Направление поиска ошибки:
-  int const dir_step = editors->spellcheck_forward? +1 : -1; 
+  int dir_step = editors->spellcheck_forward? +1 : -1; 
+  int top_line, bottom_line;
   FarDataArray<Token> tokens; // массив проверяемых слов в строке.
   FarString document;
   FarStringW token_wide;
   bool loop = true;  // проверять ещё?
   bool text_terminated = false; // достигли границы текста
+  bool line_block = false; // ищем во многострочном блоке?
+  bool rect_block = false; // ищем в прямоугольном блоке?
+  bool selection = false; // ищем только в блоке?
+  FarEdString fes;
+  
+  far_assert(dir_step);
+
+  switch (editors->spellcheck_area) {
+    case sa_entire_text:
+      top_line = 0;
+      bottom_line = fei.TotalLines-1;
+      if (dir_step>0) {
+        FarEd::SetPos(fei.CurLine = top_line, fei.CurPos = 0);
+        fes.Update();
+      } else {
+        FarEd::SetPos(fei.CurLine = bottom_line, -1);
+        fes.Update();
+        FarEd::SetPos(-1, fei.CurPos = fes.StringLength);
+      }
+      break;
+    case sa_from_cursor:
+      if (dir_step>0) {
+        top_line = fei.CurLine;
+        bottom_line = fei.TotalLines-1;
+      } else {
+        top_line = 0;
+        bottom_line = fei.CurLine;
+      }
+      break;
+    case sa_selection:
+      far_assert(fei.BlockType!=BTYPE_NONE);
+      selection = true;
+      dir_step = +1;
+      if (fei.BlockType==BTYPE_STREAM) line_block = true;
+      else rect_block = true;
+      top_line = fei.BlockStartLine;
+      bottom_line = fei.TotalLines-1;
+      FarEd::SetPos(fei.CurLine = top_line, -1);
+      fes.Update();
+      FarEd::SetPos(-1, fei.CurPos = fes.SelStart);
+      break;
+  }
 
   document = FarEd::GetCurStringText();
   document.Delete(ParserInstance::MaxLineLength, document.Length());
-
-  const char *skip_begin = document.c_str()+fei.CurPos; 
+  // skip_left - символ до которого проверка не происходит. 
+  // skip_right символ после которого проверка не происходит.
+  const char *skip_left = document.c_str()+
+    ((selection && fes.SelStart>=0) ? fes.SelStart : 0);
+  const char *skip_right = document.c_str()+
+    ((selection && fes.SelEnd>=0) ? fes.SelEnd : document.Length()-1);
+  const char *skip_begin = editors->spellcheck_area==sa_from_cursor?
+    document.c_str()+fei.CurPos : NULL; 
   // skip_begin задаёт начало слова, которое уже не нужно проверять.
 
   for(;;) /* будем выходить по средине цикла. */ { 
@@ -1138,6 +1229,9 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
      if ( ( !skip_begin )
        || ( dir_step>0 && token->begin > skip_begin ) 
        || ( dir_step<0 && token->end < skip_begin ) 
+        )
+     if ( ( token->begin >= skip_left ) 
+       && ( token->begin <= skip_right ) 
         )
     {
       ToUnicode(doc_enc, token->begin, token->len, token_wide);
@@ -1190,17 +1284,26 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
     if (!loop) break;
     // достигли края документа?
     if (dir_step>0) {
-       if (fei.CurLine>=fei.TotalLines-1)
+       if (fei.CurLine>=bottom_line)
         text_terminated = true;
     } else { 
-      if (fei.CurLine<=0)
+      if (fei.CurLine<=top_line)
         text_terminated = true;
     }  
     if (text_terminated) break;
     // переход на следующую строку:
     FarEd::SetPos(fei.CurLine += dir_step, fei.CurPos = 0);
+    fes.Update();
+    if (selection && fes.SelStart==-1) {
+      text_terminated = true;
+      break;
+    }
     document = FarEd::GetCurStringText();
     document.Delete(ParserInstance::MaxLineLength, document.Length());
+    skip_left = document.c_str()+
+      ((selection && fes.SelStart>=0) ? fes.SelStart : 0);
+    skip_right = document.c_str()+
+      ((selection && fes.SelEnd>=0) ? fes.SelEnd : document.Length()-1);
     skip_begin = NULL; // ничего не будем игнорировать.
   } // for (;;)
   if (text_terminated)

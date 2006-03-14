@@ -6,6 +6,7 @@ enum {
   MPluginWillBeDisabled, MNoDictionary, MHighlightingWillBeDisabled, 
   MSuggestion,  MSpellcheckDirection, MSpellcheckAction,
   MOnlySetCursor, MSpellcheck, MForwardSpellcheck, MBackwardSpellcheck,
+  MSpellcheckArea, MSpellcheckEntireText, MSpellcheckFromCursor, MSpellcheckSelection,
   MReplace, MSkip, MStop, 
   MEditorGeneralConfig, MPreferences, 
   MUnloadDictionaries, MHighlight, MDictianary, MParser,
@@ -116,7 +117,7 @@ BUTTON MStop      5  11 0  0 F F DIF_CENTERGROUP 0 %LNG% MStop
 
 name "SpellcheckDlg"
 ;                 x1 y1 x2 y2
-DOUBLEBOX   -10    3  1 50 11 F F 0 0 %LNG% MSpellcheck
+DOUBLEBOX   -10    3  1 50 16 F F 0 0 %LNG% MSpellcheck
 SINGLEBOX   -12    5  2 48  5 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckDirection
 TEXT        Hot_F  7  3  0  0 F F 0 0 %TXT% "&F - "
 TEXT        Hot_B  7  4  0  0 F F 0 0 %TXT% "&B - "
@@ -127,5 +128,12 @@ TEXT        Hot_S  7  7  0  0 F F 0 0 %TXT% "&S - "
 TEXT        Hot_C  7  8  0  0 F F 0 0 %TXT% "&C - "
 RADIOBUTTON %LNG% 11  7  0  0 F F DIF_GROUP 0 %LNG% MSuggestion
 RADIOBUTTON %LNG% 11  8  0  0 F F 0         0 %LNG% MOnlySetCursor
-BUTTON      %LNG%  6 10  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
-BUTTON      -11    6 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
+SINGLEBOX   -14    5 10 48 14 F F DIF_LEFTTEXT 0 %LNG% MSpellcheckArea
+TEXT        Hot_T  7 11  0  0 F F 0 0 %TXT% "&T - "
+TEXT        Hot_R  7 12  0  0 F F 0 0 %TXT% "&R - "
+TEXT        Hot_L  7 13  0  0 F F 0 0 %TXT% "&L - "
+RADIOBUTTON %LNG% 11 11  0  0 F F DIF_GROUP 0 %LNG% MSpellcheckEntireText
+RADIOBUTTON %LNG% 11 12  0  0 F F 0         0 %LNG% MSpellcheckFromCursor
+RADIOBUTTON %LNG% 11 13  0  0 F F 0         0 %LNG% MSpellcheckSelection
+BUTTON      %LNG%  6 15  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON      -11    6 15  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel

@@ -33,6 +33,7 @@
 #include <MLang.h>
 #endif HARDCODED_MLDATA
 
+#include "FARPlus/FARMenu.h"
 #include "FARPlus/FARMemory.h"
 #include "FARPlus/FARLog.h"
 #include "FARPlus/FARPlus.h"
@@ -1327,7 +1328,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   FarEditorSuggestList *sl 
    = insert_suggestions && editors->plugin_enabled 
      ? new FarEditorSuggestList(fei, this) : NULL;
-  FarMenuEx menu(MFarSpell, FMENU_WRAPMODE, "Contents");
+  FarMenuT<FarMenuItemEx> menu(MFarSpell, FMENU_WRAPMODE, "Contents");
   int i, static_part = 0;
 
   if (sl && sl->Count())

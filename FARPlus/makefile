@@ -10,6 +10,7 @@ FARPlusCPP = FAR_SF.cpp \
   FAREd.cpp \
   FARFile.cpp \
   FARLog.cpp \
+  FARMenu.cpp \
   FARPlus.cpp \
   FARRegistry.cpp \
   FARString.cpp \

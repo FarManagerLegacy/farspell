@@ -14,7 +14,6 @@
 #include "plugin.hpp"
 #include "FARString.h"
 #include "FARArray.h"
-#include "FARMenu.h"
 
 // If this is defined, new features of FAR 1.70 are used.
 // If this is not defined, the plugin will be compatible with FAR 1.65,
@@ -164,8 +163,9 @@ protected:
     friend class FarEd;
     friend class FarDialog;
     friend class FarMessage;
-    friend class FarMenuT<FarMenuItem>;
-    friend class FarMenuT<FarMenuItemEx>;
+    friend class FarMenuT;
+    friend class FarMenu;
+    friend class FarMenuEx;
     friend class FarDirList;
 
     static PluginStartupInfo m_Info;

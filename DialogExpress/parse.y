@@ -163,73 +163,9 @@ cexpr(R) ::= cexpr(A) BITOR cexpr(B).  { R = A|B; }
 cexpr(R) ::= cexpr(A) BITAND cexpr(B). { R = A&B; }
 cexpr(R) ::= cexpr(A) LSHIFT cexpr(B). { R = A<<B; }
 cexpr(R) ::= cexpr(A) RSHIFT cexpr(B). { R = A>>B; }
-cexpr(R) ::= DIF_COLORMASK.            { R = DIF_COLORMASK; }
-cexpr(R) ::= DIF_SETCOLOR.             { R = DIF_SETCOLOR; }
-cexpr(R) ::= DIF_BOXCOLOR.             { R = DIF_BOXCOLOR; }
-cexpr(R) ::= DIF_GROUP.                { R = DIF_GROUP; }
-cexpr(R) ::= DIF_LEFTTEXT.             { R = DIF_LEFTTEXT; }
-cexpr(R) ::= DIF_MOVESELECT.           { R = DIF_MOVESELECT; }
-cexpr(R) ::= DIF_SHOWAMPERSAND.        { R = DIF_SHOWAMPERSAND; }
-cexpr(R) ::= DIF_CENTERGROUP.          { R = DIF_CENTERGROUP; }
-cexpr(R) ::= DIF_NOBRACKETS.           { R = DIF_NOBRACKETS; }
-cexpr(R) ::= DIF_MANUALADDHISTORY.     { R = DIF_MANUALADDHISTORY; }
-cexpr(R) ::= DIF_SEPARATOR.            { R = DIF_SEPARATOR; }
-cexpr(R) ::= DIF_VAREDIT.              { R = DIF_VAREDIT; }
-cexpr(R) ::= DIF_SEPARATOR2.           { R = DIF_SEPARATOR2; }
-cexpr(R) ::= DIF_EDITOR .              { R = DIF_EDITOR; }
-cexpr(R) ::= DIF_LISTNOAMPERSAND.      { R = DIF_LISTNOAMPERSAND; }
-cexpr(R) ::= DIF_LISTNOBOX.            { R = DIF_LISTNOBOX; }
-cexpr(R) ::= DIF_HISTORY.              { R = DIF_HISTORY; }
-cexpr(R) ::= DIF_BTNNOCLOSE.           { R = DIF_BTNNOCLOSE; }
-cexpr(R) ::= DIF_CENTERTEXT.           { R = DIF_CENTERTEXT; }
-cexpr(R) ::= DIF_EDITEXPAND.           { R = DIF_EDITEXPAND; }
-cexpr(R) ::= DIF_DROPDOWNLIST.         { R = DIF_DROPDOWNLIST; }
-cexpr(R) ::= DIF_USELASTHISTORY.       { R = DIF_USELASTHISTORY; }
-cexpr(R) ::= DIF_MASKEDIT.             { R = DIF_MASKEDIT; }
-cexpr(R) ::= DIF_SELECTONENTRY.        { R = DIF_SELECTONENTRY; }
-cexpr(R) ::= DIF_3STATE.               { R = DIF_3STATE; }
-cexpr(R) ::= DIF_LISTWRAPMODE.         { R = DIF_LISTWRAPMODE; }
-cexpr(R) ::= DIF_LISTAUTOHIGHLIGHT.    { R = DIF_LISTAUTOHIGHLIGHT; }
-cexpr(R) ::= DIF_LISTNOCLOSE.          { R = DIF_LISTNOCLOSE; }
-cexpr(R) ::= DIF_HIDDEN.               { R = DIF_HIDDEN; }
-cexpr(R) ::= DIF_READONLY.             { R = DIF_READONLY; }
-cexpr(R) ::= DIF_NOFOCUS.              { R = DIF_NOFOCUS; }
-cexpr(R) ::= DIF_DISABLE.              { R = DIF_DISABLE; }
-cexpr(R) ::= WHITE.                    { R = DIF_SETCOLOR|0x0F; }
-cexpr(R) ::= YELLOW.                   { R = DIF_SETCOLOR|0x0E; }
-cexpr(R) ::= LIGHTMAGENTA.             { R = DIF_SETCOLOR|0x0D; }
-cexpr(R) ::= LIGHTRED.                 { R = DIF_SETCOLOR|0x0C; }
-cexpr(R) ::= LIGHTCYAN.                { R = DIF_SETCOLOR|0x0B; }
-cexpr(R) ::= LIGHTGREEN.               { R = DIF_SETCOLOR|0x0A; }
-cexpr(R) ::= LIGHTBLUE.                { R = DIF_SETCOLOR|0x09; }
-cexpr(R) ::= DARKGRAY.                 { R = DIF_SETCOLOR|0x08; }
-cexpr(R) ::= LIGHTGRAY.                { R = DIF_SETCOLOR|0x07; }
-cexpr(R) ::= BROWN.                    { R = DIF_SETCOLOR|0x06; }
-cexpr(R) ::= MAGENTA.                  { R = DIF_SETCOLOR|0x05; }
-cexpr(R) ::= RED.                      { R = DIF_SETCOLOR|0x04; }
-cexpr(R) ::= CYAN.                     { R = DIF_SETCOLOR|0x03; }
-cexpr(R) ::= GREEN.                    { R = DIF_SETCOLOR|0x02; }
-cexpr(R) ::= BLUE.                     { R = DIF_SETCOLOR|0x01; }
-cexpr(R) ::= BLACK.                    { R = DIF_SETCOLOR|0x00; }
-cexpr(R) ::= BK_WHITE.                 { R = DIF_SETCOLOR|0xF0; }
-cexpr(R) ::= BK_YELLOW.                { R = DIF_SETCOLOR|0xE0; }
-cexpr(R) ::= BK_LIGHTMAGENTA.          { R = DIF_SETCOLOR|0xD0; }
-cexpr(R) ::= BK_LIGHTRED.              { R = DIF_SETCOLOR|0xC0; }
-cexpr(R) ::= BK_LIGHTCYAN.             { R = DIF_SETCOLOR|0xB0; }
-cexpr(R) ::= BK_LIGHTGREEN.            { R = DIF_SETCOLOR|0xA0; }
-cexpr(R) ::= BK_LIGHTBLUE.             { R = DIF_SETCOLOR|0x90; }
-cexpr(R) ::= BK_DARKGRAY.              { R = DIF_SETCOLOR|0x80; }
-cexpr(R) ::= BK_LIGHTGRAY.             { R = DIF_SETCOLOR|0x70; }
-cexpr(R) ::= BK_BROWN.                 { R = DIF_SETCOLOR|0x60; }
-cexpr(R) ::= BK_MAGENTA.               { R = DIF_SETCOLOR|0x50; }
-cexpr(R) ::= BK_RED.                   { R = DIF_SETCOLOR|0x40; }
-cexpr(R) ::= BK_CYAN.                  { R = DIF_SETCOLOR|0x30; }
-cexpr(R) ::= BK_GREEN.                 { R = DIF_SETCOLOR|0x20; }
-cexpr(R) ::= BK_BLUE.                  { R = DIF_SETCOLOR|0x10; }
-cexpr(R) ::= BK_BLACK.                 { R = DIF_SETCOLOR|0x00; }
 cexpr(R) ::= id(I).                    { R = LookupIntBind(pParse, I); }
 //cexpr(R) ::= VARIABLE(V).              { R = LookupIntBind(pParse, V); }
-                                      
+
 cmd ::= NAME STRING(N) help(H) items(I). { 
   struct dialogitem *item;
   struct dialogtemplate *pDt = ALLOC_STRUCT(dialogtemplate);

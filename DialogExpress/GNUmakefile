@@ -95,7 +95,8 @@ ifneq ("$(TARGET)","Debug")
 	strip $@
 endif
 
-$(OUTDIR)/dialogres-static.a: $(OUTDIR)/parse.o $(OUTDIR)/tokenize.o $(OUTDIR)/dialogres.o
+$(OUTDIR)/dialogres-static.a: $(OUTDIR)/parse.o $(OUTDIR)/tokenize.o \
+ $(OUTDIR)/env.o $(OUTDIR)/dialogres.o
 	$(AR) qs $@ $^
 
 dialogresInt.h: dialogres.h
@@ -106,6 +107,8 @@ $(OUTDIR)/dialogres.o: dialogres.c dialogresInt.h
 $(OUTDIR)/tokenize.o: tokenize.c $(OUTDIR)/parse.h keywordhash.h
 	$(CC) -c $< -o $@  -I$(OUTDIR)
 $(OUTDIR)/parse.o: $(OUTDIR)/parse.c $(OUTDIR)/parse.h dialogresInt.h
+	$(CC) -c $< -o $@ -I$(OUTDIR)
+$(OUTDIR)/env.o: env.c $(OUTDIR)/env.h dialogresInt.h
 	$(CC) -c $< -o $@ -I$(OUTDIR)
 
 keywordhash.h: $(OUTDIR)/mkkeywordhash.exe keywords.txt
@@ -120,6 +123,13 @@ $(OUTDIR)/parse.c $(OUTDIR)/parse.h: parse.y
 $(OUTDIR)/mkkeywordhash.exe: mkkeywordhash.c 
 	$(MAKE) --no-print-directory $(OUTDIR)
 	$(CC) -o $@ mkkeywordhash.c 
+
+$(OUTDIR)/env.h: $(OUTDIR)/mkconstants.exe constants.txt
+	$(CMD) "$(OUTDIR)\\mkconstants.exe" < constants.txt > $@
+
+$(OUTDIR)/mkconstants.exe: mkconstants.c 
+	$(MAKE) --no-print-directory $(OUTDIR)
+	$(CC) -o $@ mkconstants.c 
 
 $(OUTDIR):
 	mkdir $(OUTDIR)

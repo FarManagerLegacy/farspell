@@ -617,6 +617,7 @@ Parse* dialogresParseAlloc(dialogres* pDr)
   {
     memset(pParse, 0, sizeof(Parse));
     pParse->pDr = pDr;
+    dialogresInitEnvironment(pParse);
   }
   return pParse;
 }

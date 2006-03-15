@@ -83,9 +83,10 @@ typedef struct
 enum dialogres_error dialogresParseInclude(Parse *pParse, const char* zFilename);
 Parse* dialogresParseAlloc(dialogres* pDr);
 void dialogresParseFree(Parse* pParse);
-
 void AddIntBind(Parse *pParse, Token sName, unsigned nValue);
 unsigned LookupIntBind(Parse *pParse, Token sName);
+
+void dialogresInitEnvironment(Parse *pParse);
 
 void *dialogresParserAlloc(void *(*mallocProc)(size_t));
 void dialogresParserFree(

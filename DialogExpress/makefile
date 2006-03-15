@@ -91,7 +91,8 @@ $(OUTDIR)\dialogres.pdll: $(OUTDIR)\dialogres_static.lib $(OUTDIR)\dialogres_dll
 		-map:$(OUTDIR)\dialogres.map \
 		-pdb:$(OUTDIR)\dialogres.pdb $(LINKFLAGS)
 
-$(OUTDIR)\dialogres_static.lib: $(OUTDIR)\parse.obj $(OUTDIR)\tokenize.obj $(OUTDIR)\dialogres.obj
+$(OUTDIR)\dialogres_static.lib: $(OUTDIR)\parse.obj $(OUTDIR)\tokenize.obj \
+  $(OUTDIR)\env.obj $(OUTDIR)\dialogres.obj
 	$(CLIB) -out:"$@" $**
 
 $(OUTDIR)\dialogres_dll.obj: dialogres_dll.c 
@@ -104,6 +105,8 @@ $(OUTDIR)\tokenize.obj: tokenize.c $(OUTDIR)\parse.h keywordhash.h
 	$(CC) -c tokenize.c  -I$(OUTDIR)
 $(OUTDIR)\parse.obj: $(OUTDIR)\parse.c $(OUTDIR)\parse.h dialogresInt.h
 	$(CC) -c $(OUTDIR)\parse.c -I$(OUTDIR)
+$(OUTDIR)\env.obj: env.c $(OUTDIR)\env.h
+	$(CC) -c env.c -I$(OUTDIR)
 
 keywordhash.h: $(OUTDIR)\mkkeywordhash.exe keywords.txt
 	$(OUTDIR)\mkkeywordhash.exe < keywords.txt > keywordhash.h 2>nul
@@ -118,6 +121,13 @@ $(OUTDIR)\parse.c $(OUTDIR)\parse.h: parse.y
 $(OUTDIR)\mkkeywordhash.exe: mkkeywordhash.c 
 	$(MAKE) -nologo $(OUTDIR)
 	$(CC) -o $@ mkkeywordhash.c 
+
+$(OUTDIR)\env.h: $(OUTDIR)\mkconstants.exe constants.txt
+	$(OUTDIR)\mkconstants.exe < constants.txt > $@
+
+$(OUTDIR)\mkconstants.exe: mkconstants.c 
+	$(MAKE) -nologo  $(OUTDIR)
+	$(CC) -o $@ mkconstants.c 
 
 $(LEMON):
 	cd ..\make-tools

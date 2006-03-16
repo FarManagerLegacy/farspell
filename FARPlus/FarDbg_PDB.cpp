@@ -1,5 +1,5 @@
 // Author: Sergey Shishmintzev, Kiev 2005-2006
-// based on MSDN articles
+// based on MSDN article http://msdn.microsoft.com/msdnmag/issues/02/03/hood/
 // Licence: LGPL'ed for FARPlus,
 
 #include <malloc.h>
@@ -141,7 +141,8 @@ static void ResolveSymbol( HANDLE hProcess, DWORD dwAddress, FARPLUS_SYMBOL_INFO
 class DebugEnumSymbolDump
 { // This class can be used in
   // terms of MPL1.1 (http://www.mozilla.org/MPL/MPL-1.1.html) too.
-
+  // based on http://msdn.microsoft.com/msdnmag/issues/02/03/hood/
+  // Noto: GetModuleBase and ResolveSymbol under LGPL.
   // from MSDN:
   enum BasicType
   {

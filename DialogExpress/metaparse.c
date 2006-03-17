@@ -237,11 +237,18 @@ static void AddCommandArg(char *zCmd, char *zArg, struct Parse *pParse)
         pParse->nErrors++;
       }
       break;
-    case ForeachDialog:
     case ForeachItem:
-      ppLoopToken = ( pToken->nType == ForeachDialog )
-                    ? &pParse->pDialogLoopToken
-                    : &pParse->pItemLoopToken;
+      if (!pParse->pDialogLoopToken) {
+        PrintLastCaret(stderr, pParse);
+        fprintf(stderr, "Only in dialog loop\n");
+        pParse->nErrors++;
+      }
+    case ForeachDialog:
+      if (pToken->nType == ForeachDialog) {
+        pParse->pItemLoopToken = NULL;
+        ppLoopToken = &pParse->pDialogLoopToken;
+      } else
+        ppLoopToken = &pParse->pItemLoopToken;
       if (*ppLoopToken) {
         PrintLastCaret(stderr, pParse);
         fprintf(stderr, "Nested loops not supported\n");

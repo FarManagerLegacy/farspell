@@ -105,7 +105,7 @@ $(OUTDIR)\tokenize.obj: tokenize.c $(OUTDIR)\parse.h keywordhash.h
 	$(CC) -c tokenize.c  -I$(OUTDIR)
 $(OUTDIR)\parse.obj: $(OUTDIR)\parse.c $(OUTDIR)\parse.h dialogresInt.h
 	$(CC) -c $(OUTDIR)\parse.c -I$(OUTDIR)
-$(OUTDIR)\env.obj: env.c $(OUTDIR)\env.h
+$(OUTDIR)\env.obj: env.c $(OUTDIR)\env.h $(OUTDIR)\envcol.h
 	$(CC) -c env.c -I$(OUTDIR)
 
 keywordhash.h: $(OUTDIR)\mkkeywordhash.exe keywords.txt
@@ -128,6 +128,13 @@ $(OUTDIR)\env.h: $(OUTDIR)\mkconstants.exe constants.txt
 $(OUTDIR)\mkconstants.exe: mkconstants.c 
 	$(MAKE) -nologo  $(OUTDIR)
 	$(CC) -o $@ mkconstants.c 
+
+$(OUTDIR)\envcol.h: $(OUTDIR)\mkcolors.exe farcolor.txt
+	$(OUTDIR)\mkcolors.exe < farcolor.txt > $@
+
+$(OUTDIR)\mkcolors.exe: mkcolors.c
+	$(MAKE) -nologo $(OUTDIR)
+	$(CC) -o $@ mkcolors.c
 
 $(LEMON):
 	cd ..\make-tools

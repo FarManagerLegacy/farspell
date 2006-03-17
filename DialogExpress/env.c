@@ -21,6 +21,7 @@
 */
 
 #include <assert.h>
+#include <farcolor.hpp>
 #include "dialogresInt.h"
 
 struct EnvVar {
@@ -28,6 +29,7 @@ struct EnvVar {
   unsigned nValue;
 };
 #include "env.h"
+#include "envcol.h"
 
 void dialogresInitEnvironment(Parse *pParse)
 {
@@ -37,3 +39,15 @@ void dialogresInitEnvironment(Parse *pParse)
     AddIntBind(pParse, pBind->sName, pBind->nValue);
 }
 
+int dialogresLookupColorId(Parse *pParse, Token sId)
+{
+  const struct EnvVar *pBind;
+  assert(sId.z);
+  assert(sId.n);
+  for (pBind = aEnvColors; pBind->sName.z; pBind++)
+    if (pBind->sName.n == sId.n && strcmp(pBind->sName.z, sId.z)==0 )
+      return pBind->nValue;
+  pParse->rc = dialogres_UnknownIdentifier;
+  pParse->sErrToken = sId;
+  return 0;
+}

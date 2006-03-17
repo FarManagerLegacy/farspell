@@ -108,7 +108,7 @@ $(OUTDIR)/tokenize.o: tokenize.c $(OUTDIR)/parse.h keywordhash.h
 	$(CC) -c $< -o $@  -I$(OUTDIR)
 $(OUTDIR)/parse.o: $(OUTDIR)/parse.c $(OUTDIR)/parse.h dialogresInt.h
 	$(CC) -c $< -o $@ -I$(OUTDIR)
-$(OUTDIR)/env.o: env.c $(OUTDIR)/env.h dialogresInt.h
+$(OUTDIR)/env.o: env.c $(OUTDIR)/env.h $(OUTDIR)/envcol.h dialogresInt.h
 	$(CC) -c $< -o $@ -I$(OUTDIR)
 
 keywordhash.h: $(OUTDIR)/mkkeywordhash.exe keywords.txt
@@ -130,6 +130,13 @@ $(OUTDIR)/env.h: $(OUTDIR)/mkconstants.exe constants.txt
 $(OUTDIR)/mkconstants.exe: mkconstants.c 
 	$(MAKE) --no-print-directory $(OUTDIR)
 	$(CC) -o $@ mkconstants.c 
+
+$(OUTDIR)/envcol.h: $(OUTDIR)/mkcolors.exe farcolor.txt
+	$(CMD) "$(OUTDIR)\\mkcolors.exe" < farcolor.txt > $@
+
+$(OUTDIR)/mkcolors.exe: mkcolors.c
+	$(MAKE) --no-print-directory $(OUTDIR)
+	$(CC) -o $@ mkcolors.c
 
 $(OUTDIR):
 	mkdir $(OUTDIR)

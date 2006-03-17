@@ -87,6 +87,7 @@ void AddIntBind(Parse *pParse, Token sName, unsigned nValue);
 unsigned LookupIntBind(Parse *pParse, Token sName);
 
 void dialogresInitEnvironment(Parse *pParse);
+int dialogresLookupColorId(Parse *pParse, Token sId);
 
 void *dialogresParserAlloc(void *(*mallocProc)(size_t));
 void dialogresParserFree(

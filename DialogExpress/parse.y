@@ -216,39 +216,39 @@ items(L) ::= items(IS) item(I).   {
 %type item {struct dialogitem *}
 %destructor item { dialogitemFree($$, 1); }
 
-item(I) ::= TEXT         item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_TEXT,        ID, D, S); }
+item(I) ::= TEXT         item_id(ID) item_data(D) data_source(S) item_properties(P).
+            { I = dialogitemAlloc(pParse, DI_TEXT,        ID, D, S); /* P */  }
 item(I) ::= VTEXT        item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_VTEXT,       ID, D, S); }
+            { I = dialogitemAlloc(pParse, DI_VTEXT,       ID, D, S); /* P */ }
 item(I) ::= SINGLEBOX    item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_SINGLEBOX,   ID, D, S); }
+            { I = dialogitemAlloc(pParse, DI_SINGLEBOX,   ID, D, S); /* P */ }
 item(I) ::= DOUBLEBOX    item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_DOUBLEBOX,   ID, D, S); }
+            { I = dialogitemAlloc(pParse, DI_DOUBLEBOX,   ID, D, S); /* P */ }
 
-item(I) ::= EDIT         item_id(ID) item_data(D) data_source(S) history(H). 
+item(I) ::= EDIT         item_id(ID) item_data(D) data_source(S) history(H) item_properties(P). 
             { I = dialogitemAlloc(pParse, DI_EDIT,        ID, D, S); 
               I->sHistory = H; 
-              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; }
+              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; /* P */ }
 
-item(I) ::= FIXEDIT      item_id(ID) item_data(D) data_source(S) history(H). 
+item(I) ::= FIXEDIT      item_id(ID) item_data(D) data_source(S) history(H) item_properties(P). 
             { I = dialogitemAlloc(pParse, DI_FIXEDIT,     ID, D, S); 
               I->sHistory = H; 
-              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; }
+              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; /* P */ }
 
-item(I) ::= PSWEDIT      item_id(ID) item_data(D) data_source(S).  
-            { I = dialogitemAlloc(pParse, DI_PSWEDIT,     ID, D, S); }
-item(I) ::= BUTTON       item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_BUTTON,      ID, D, S); }
-item(I) ::= CHECKBOX     item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_CHECKBOX,    ID, D, S); }
-item(I) ::= RADIOBUTTON  item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_RADIOBUTTON, ID, D, S); }
-item(I) ::= COMBOBOX     item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_COMBOBOX,    ID, D, S); }
-item(I) ::= LISTBOX      item_id(ID) item_data(D) data_source(S).  
-            { I = dialogitemAlloc(pParse, DI_LISTBOX,     ID, D, S); }
-item(I) ::= USERCONTROL  item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_USERCONTROL, ID, D, S); }
+item(I) ::= PSWEDIT      item_id(ID) item_data(D) data_source(S) item_properties(P).  
+            { I = dialogitemAlloc(pParse, DI_PSWEDIT,     ID, D, S); /* P */ }
+item(I) ::= BUTTON       item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_BUTTON,      ID, D, S); /* P */ }
+item(I) ::= CHECKBOX     item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_CHECKBOX,    ID, D, S); /* P */ }
+item(I) ::= RADIOBUTTON  item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_RADIOBUTTON, ID, D, S); /* P */ }
+item(I) ::= COMBOBOX     item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_COMBOBOX,    ID, D, S); /* P */ }
+item(I) ::= LISTBOX      item_id(ID) item_data(D) data_source(S) item_properties(P).  
+            { I = dialogitemAlloc(pParse, DI_LISTBOX,     ID, D, S); /* P */ }
+item(I) ::= USERCONTROL  item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_USERCONTROL, ID, D, S); /* P */ }
 
 //%type snum {int}
 //snum(N) ::= INTEGER(I).       { N = toint(I); }
@@ -337,4 +337,13 @@ label_def ::= REM DEF REM.
 label_ver ::= REM VER REM.
 label_history ::= HISTORY EQ. 
 
+item_properties(S) ::= . { assert("NYI"); /* S */ }
+item_properties(S) ::= item_properties(PS) item_property(P). { 
+  /* S P PS */
+  assert("NYI"); 
+}
+item_property(P) ::= VAR ID(I) EQ STRING(S). { assert("NYI"); /* P I S */ }
+item_property(P) ::= COLOR EQ LB color_id(B) COMMA color_id(F) RP. { assert("NYI"); /* P B F */ }
 
+%type color_id {int}
+color_id(C) ::= ID(I). { C = dialogresLookupColorId(pParse, I); }

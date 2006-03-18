@@ -43,6 +43,10 @@ typedef struct dialogres dialogres;
 typedef struct dialogtemplate dialogtemplate;
 typedef struct dialogitem dialogitem;
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 #ifdef _DEBUG
 #define dialogres_free(s) { assert(s); _dialogres_free((void**)&s, __FILE__, __LINE__); }
 void _dialogres_free(void **ppChunk, const char* zFile, unsigned nLine);
@@ -94,3 +98,6 @@ int dialogitem_datasource_msgid(dialogitem *pDi);
 const char* dialogitem_datasource_smsgid(dialogitem *pDi);
 const char *dialogitem_history(dialogitem *pDi);
 
+#ifdef __cplusplus
+}
+#endif //__cplusplus

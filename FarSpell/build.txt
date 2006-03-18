@@ -4,6 +4,8 @@
   - PlatformSDK
     на любом компакте с Visual Studio
   - Windows Driver Development Kit 2000/XP (нужен nmake.exe, lib.exe)
+    http://www.microsoft.com/whdc/devtools/ddk/orderddkcd.mspx - бесплатно по США.
+    (доставка в другие страны $25. Можно заказать сразу 5 копий.)
     eDonkey/BitTorrent (???)
   - ... либо Visual Studio XXXX (не проверял)
   - Архив с исходниками Hunspell (например, версии 1.1.4)
@@ -13,7 +15,16 @@
       cvs -d :pserver:anoncvs@anoncvs.services.openoffice.org:/cvs login
       cvs -z 3 -d :pserver:anoncvs@anoncvs.services.openoffice.org:/cvs checkout whiteboard/lingucomponent/source/spellcheck/hunspell
 
-Для работы с репозитарием:
+Для работы с SVN репозитарием:
+   Subversion http://subversion.tigris.org/
+   TortoiseSVN http://www.tortoisesvn.org/
+   SVK  http://svk.elixus.org/?SVKWin32
+   Доки по SVK:
+     http://svk.elixus.org/
+     http://pickscrape.woobling.org/svk-visual-guide.pdf
+     http://article.gmane.org/gmane.comp.lang.ruby.rails/23701  
+
+Для работы с Darcs репозитарием:
    Нужен darcs-win32. Например отсюда http://glozer.net/darcs/
    Доки:
      http://www.darcs.net/DarcsWiki/
@@ -21,11 +32,16 @@
    
 
 Последовательность сборки:
+  0. Установить переменные окружения, например:
+    Set MSVCDIR=C:\Program Files\Microsoft Visual C++ Toolkit 2003
+    Set PATH=%MSVCDIR%\bin;C:\WINDDK\2600\bin\x86;%PATH%
+    Set INCLUDE=%MSVCDIR%\include;%MSVCDIR%\PlatformSDK\include;%INCLUDE%
+    Set LIB=%MSVCDIR%\lib;%MSVCDIR%\PlatformSDK\Lib;C:\WINDDK\2600\lib\wxp\i386;%LIB%
   1. Зайти в папку FarSpell
   2a. Запустить "nmake debug"
-  [-> В подпапке будет рабочая версия farspell]
-  3a. Запустить "nmake dist"
-  [-> Получится файл farspell-YYYYMMDD-debug.7z - это отладочный
-      дистрибутив плагина.]
-  2b. Или запустить "nmake release dist"
+  [-> В подпапке farspell будет рабочая версия]
+  2b. Запустить "nmake release"
+  [-> В подпапке farspell будет оптимизированная версия]
+  2c. Запустить "nmake full":
   [-> Получится файл farspell-YYYYMMDD.7z - это дистрибутив плагина.]
+  [-> Получится файл farspell-YYYYMMDD-debug.7z - это отладочный дистр.]

@@ -6,6 +6,7 @@
 #include "FARPlus.h"
 #include <stdio.h>
 #include <ctype.h>
+#include <wctype.h>
 
 #ifdef _MSC_VER
 

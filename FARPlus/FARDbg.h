@@ -4,7 +4,7 @@
 
   (c) 2001-02 Dennis Trachuk <dennis.trachuk@nm.ru>||<dennis.trachuk@bk.ru>
 
-  Revision: 1.20
+  (was Revision: 1.20)
 
 *************************************************************************/
 
@@ -26,11 +26,19 @@
 
 int far_assert_message( const char *, const int, const char *, bool );
 
+#ifdef _MSC_VER
+#define BREAKPOINT __asm { int 3 }
+#endif
+#ifdef __GNUC__
+#define BREAKPOINT __asm__ ("int $0x3")
+#endif
+
+
 #define far_assert_ex( Expression, bShowWinError )                                \
 do                                                                                \
 {	if ( !( Expression ) )                                                    \
 		if ( far_assert_message( __FILE__, __LINE__, #Expression, bShowWinError ) == 1 ) \
-			__asm { int 3 }                                           \
+			BREAKPOINT;                                                \
 } while( false )
 
 #else

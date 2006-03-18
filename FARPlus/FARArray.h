@@ -117,7 +117,7 @@ class FarArray: public FarDataArray<T *>
 {
 private:
 	typedef int (__cdecl *CmpFunc) (const T **, const T **);
-
+	typedef FarDataArray<T *> Parent;
 protected:
 	bool fOwnsItems;
 
@@ -132,15 +132,15 @@ public:
 	void Clear()
 	{
 		if (fOwnsItems)
-			for (int i=fCount-1; i >= 0; i--)
-				delete At (i);
-		InternalClear();
+			for (int i = Parent::fCount-1; i >= 0; i--)
+				delete Parent::At(i);
+		Parent::InternalClear();
 	}
 
 	void Add (const T *item)
 	{
 		T *addItem = const_cast<T *> (item);
-		FarDataArray<T *>::Add (addItem);
+		Parent::Add (addItem);
 	}
 
 	bool OwnsItems() const
@@ -155,7 +155,7 @@ public:
 
 	void Sort (CmpFunc cmpFunc)
 	{
-		InternalSort ((BaseCmpFunc) cmpFunc);
+		Parent::InternalSort (reinterpret_cast<BaseFarArray::BaseCmpFunc>(cmpFunc));
 	}
 };
 

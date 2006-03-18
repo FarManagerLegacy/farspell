@@ -31,7 +31,7 @@ namespace FarSF {
         DWORD Flags, void *param);
 #ifndef USE_FAR_170
     int CmpNameList (const char *MaskList, const char *Path, bool skipPath = false);
-#endif USE_FAR_170
+#endif
     char *RTrim (char *Str);
     char *LTrim (char *Str);
     char *Trim (char *Str);
@@ -163,9 +163,6 @@ protected:
     friend class FarEd;
     friend class FarDialog;
     friend class FarMessage;
-    friend class FarMenuT;
-    friend class FarMenu;
-    friend class FarMenuEx;
     friend class FarDirList;
 
     static PluginStartupInfo m_Info;

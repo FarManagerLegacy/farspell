@@ -8,6 +8,7 @@
 #define __FARSTRING_H
 
 #include <string.h>
+#include <wchar.h>
 #include "FARMemory.h"
 #include "FARDbg.h"
 
@@ -429,6 +430,16 @@ public:
 typedef FarStringTokenizerT<char> FarStringTokenizer;
 typedef FarStringTokenizerT<char> FarStringTokenizerA;
 typedef FarStringTokenizerT<wchar_t> FarStringTokenizerW;
+
+#ifdef __GNUC__
+// Compile template instances 
+
+template class FarStringT<char>;
+template class FarStringT<wchar_t>;
+
+template class FarStringTokenizerT<char>;
+template class FarStringTokenizerT<wchar_t>;
+#endif
 
 // -- FarFileName ------------------------------------------------------------
 

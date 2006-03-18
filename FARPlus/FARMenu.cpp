@@ -1,3 +1,9 @@
+/* 
+   FAR+Plus: Menu template
+   (C) 1998-2002 Dmitry Jemerov <yole@yole.ru>
+   (C) 2006 Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
+*/
+
 #include "FARMenu.h"
 #include "FARPlus.h"
 
@@ -82,7 +88,7 @@ int FarMenuT<TItems>::AddItem (int LngIndex, bool Selected, int Checked)
 }
 
 template <typename TItems>
-int FarMenuT<TItems>::AddItem (char Letter, const char *Text, bool Selected=false, int Checked=0)
+int FarMenuT<TItems>::AddItem (char Letter, const char *Text, bool Selected, int Checked)
 {
   char buffer[128] = {'&', Letter, '.', ' '};
   lstrcpyn(&buffer[4], Text, sizeof(buffer)-4);
@@ -90,7 +96,7 @@ int FarMenuT<TItems>::AddItem (char Letter, const char *Text, bool Selected=fals
 }
 
 template <typename TItems>
-int FarMenuT<TItems>::AddItem (char Letter, int LngIndex, bool Selected=false, int Checked=0)
+int FarMenuT<TItems>::AddItem (char Letter, int LngIndex, bool Selected, int Checked)
 {
   char buffer[128] = {'&', Letter, '.', ' '};
   lstrcpyn(&buffer[4], Far::GetMsg (LngIndex), sizeof(buffer)-4);
@@ -145,7 +151,7 @@ void FarMenuT<TItems>::SetBreakKeys (int aFirstKey, ...)
     int curKey = aFirstKey;
     va_list va;
     va_start (va, aFirstKey);
-    while (curKey != NULL)
+    while (curKey != 0)
     {
         keyCount++;
         curKey = va_arg (va, int);
@@ -160,7 +166,7 @@ void FarMenuT<TItems>::SetBreakKeys (int aFirstKey, ...)
     int *pKey = fBreakKeys;        
     curKey = aFirstKey;
     va_start (va, aFirstKey);
-    while (curKey != NULL)
+    while (curKey != 0)
     {
         *pKey++ = curKey;
         curKey = va_arg (va, int);
@@ -188,7 +194,9 @@ int FarMenuT<FarMenuItemEx>::Show()
         (FarMenuItem*)fItems, fItemsNumber);
 }
 
+#ifdef _MSC_VER
 // -- FarMenu[Ex] -------------------------------------------------------------
 
 template class FarMenuT<FarMenuItem>;
 template class FarMenuT<FarMenuItemEx>;
+#endif //_MSC_VER

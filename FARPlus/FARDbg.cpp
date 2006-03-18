@@ -9,10 +9,12 @@
 
 //#define _CRTDBG_MAP_ALLOC
 #include <malloc.h>
+#ifdef HAVE_DEBUGCRT
 #include <CrtDbg.h>
 #ifndef _msize
 #define _msize(p) _msize_dbg(p, _NORMAL_BLOCK)
 #endif
+#endif //HAVE_DEBUGCRT
 
 #include "FarPlus.h"
 #include "FarDbg.h"
@@ -90,7 +92,7 @@ int far_assert_message( const char * FileName, const int Line, const char * Expr
 	return 1; // never
 }
 
-#ifdef _MSC_VER
+#ifdef HAVE_DEBUGCRT
 
 inline bool dbg_isspace( char c )
 {
@@ -171,7 +173,6 @@ int far_dbg_report( int reportType, char * userMessage, int * retVal )
 }
 
 #ifdef _DEBUG
-#ifdef HAVE_DEBUGCRT
 
 
 class CDbgReportInit
@@ -318,4 +319,3 @@ void FarDumpStack( PEXCEPTION_POINTERS pExcPtrs, DWORD dwTarget )
   FarDumpStackCb(pExcPtrs, to_clipboard, &clipboardData);
 }
 
-#endif // defined(_MSC_VER)

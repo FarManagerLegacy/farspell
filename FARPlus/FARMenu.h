@@ -1,7 +1,7 @@
-/* $Header: /cvsroot/farplus/FARPlus/FARPlus.h,v 1.7 2002/08/24 14:55:43 yole Exp $
-   FAR+Plus: A FAR Plugin C++ class library: header file
-   (C) 2006 Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
+/* 
+   FAR+Plus: Menu template
    (C) 1998-2002 Dmitry Jemerov <yole@yole.ru>
+   (C) 2006 Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
    This file is heavily based on sources by Eugene Roshal
 */
 
@@ -14,11 +14,12 @@
 #include "plugin.hpp"
 #include "FARString.h"
 #include "FARArray.h"
+#include "FARPlus.h"
 
 // -- FarMenu[Ex] -------------------------------------------------------------
 
 template <typename TItems>
-class FarMenuT
+class FarMenuT: Far
 {
 private:
 	FarMenuT (const FarMenuT &rhs);
@@ -76,6 +77,12 @@ public:
 typedef FarMenuT<FarMenuItem> FarMenu;
 typedef FarMenuT<FarMenuItemEx> FarMenuEx;
 
+#ifdef __GNUC_
+// -- FarMenu[Ex] -------------------------------------------------------------
+
+template class FarMenuT<FarMenuItem>;
+template class FarMenuT<FarMenuItemEx>;
+#endif
 /*class FarMenuEx
 : public FarMenuT<FarMenuItemEx>
 {

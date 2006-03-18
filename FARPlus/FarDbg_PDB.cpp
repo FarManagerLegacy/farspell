@@ -1,6 +1,11 @@
 // Author: Sergey Shishmintzev, Kiev 2005-2006
 // based on MSDN article http://msdn.microsoft.com/msdnmag/issues/02/03/hood/
 // Licence: LGPL'ed for FARPlus,
+//
+// Contributor(s):
+//   Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
+//   Dennis Trachuk <dennis.trachuk@nm.ru>||<dennis.trachuk@bk.ru>
+//
 
 #include <malloc.h>
 

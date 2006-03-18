@@ -252,5 +252,6 @@ __int64 FarFileInfo::GetFileSize (const char *fileName)
 	WIN32_FIND_DATA findData;
 	if (!GetInfo (fileName, findData))
 		return -1;
-	return findData.nFileSizeLow | (findData.nFileSizeHigh) << 32;
+	__int64 high = findData.nFileSizeHigh;
+	return findData.nFileSizeLow | (high << 32);
 }

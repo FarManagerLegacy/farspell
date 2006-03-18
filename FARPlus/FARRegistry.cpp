@@ -165,13 +165,15 @@ int FarRegistry::DeleteRegKey (const char *RootKey, const char *KeyName, HKEY hR
 FarRegistry::KeyIterator FarRegistry::EnumKeys (const char *Key, 
 												HKEY hRoot /* = HKEY_CURRENT_USER */)
 {
-	return KeyIterator (OpenRegKey (hRoot, Key, true));
+	KeyIterator ki(OpenRegKey (hRoot, Key, true));
+	return ki;
 }
 
 FarRegistry::ValueIterator FarRegistry::EnumValues(const char *Key, 
 												   HKEY hRoot /* = HKEY_CURRENT_USER */)
 {
-	return ValueIterator (OpenRegKey (hRoot, Key, true));
+	ValueIterator vi(OpenRegKey (hRoot, Key, true));
+	return vi;
 }
 
 FarRegistry::BaseIterator::~BaseIterator()

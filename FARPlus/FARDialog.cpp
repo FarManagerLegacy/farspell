@@ -3,6 +3,7 @@
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
 */
 
+#include <stdlib.h>
 #include "FARDialog.h"
 
 // -- FarDialog --------------------------------------------------------------

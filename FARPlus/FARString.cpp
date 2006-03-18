@@ -10,7 +10,10 @@
 
 // -- FarStringData ----------------------------------------------------------
 
+template <>
 FarStringT<char>::FarStringData *FarStringT<char>::fEmptyStringData = NULL;
+
+template <>
 FarStringT<wchar_t>::FarStringData *FarStringT<wchar_t>::fEmptyStringData = NULL;
 
 template <class TChar>
@@ -450,6 +453,7 @@ void ToAscii(int codepage, const wchar_t* src, size_t len, FarStringA &dest)
   dest.ReleaseBuffer(l);
 }
 
+#ifdef _MSC_VER
 // Compile template instances 
 
 template class FarStringT<char>;
@@ -457,6 +461,7 @@ template class FarStringT<wchar_t>;
 
 template class FarStringTokenizerT<char>;
 template class FarStringTokenizerT<wchar_t>;
+#endif //_MSC_VER
 
 // -- FarFileName ------------------------------------------------------------
 

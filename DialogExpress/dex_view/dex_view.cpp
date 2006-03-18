@@ -114,7 +114,7 @@ BOOL TryViewDialogRes(char *zFilename)
   if (!(z=strrchr(zFilename, '.')) || strcmp(z, ".dlg")) return FALSE;
 load_again:
   rc = dialogres_open(zFilename, &dr);
-  zMsgItems[1] = GetMsg(MError-1+(rc&~dialogres_ErrToken));
+  zMsgItems[1] = GetMsg((enum DexLng)(MError-1+(rc&~dialogres_ErrToken)));
   if (rc)
   {
     zMsgItems[0] = GetMsg(MDexViewer);
@@ -259,6 +259,10 @@ HANDLE WINAPI _export OpenFilePlugin(char *zFilename, const unsigned char *Data,
 }
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif //__cplusplus
+
 int __cdecl atexit(void (__cdecl *rest)(void))
 {
 	return 1;
@@ -274,7 +278,12 @@ int __stdcall _cygwin_dll_entry(HANDLE hDllHandle, DWORD dwReason, LPVOID lprese
 	return 1;
 }
 
+#ifdef __cplusplus
+}
+#endif //__cplusplus
+
 int main()
 {
 	return 1;
 }
+

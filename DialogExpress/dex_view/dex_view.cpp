@@ -71,11 +71,40 @@ static const char *GetMsg(enum DexLng MsgId) {
   return Info.GetMsg(Info.ModuleNumber, MsgId);
 }
 
-void ShowDialog(dialogtemplate* pDialog, const char* zLngFile)
+typedef struct DialogInfo {
+  const char *zHelpTopic;
+  const char *zHlfPath;
+  int nShowHelpFlags;
+} DialogInfo;
+
+long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+{
+  struct DialogInfo *pDlgInfo = (struct DialogInfo *)Dlg_GetDlgData(Info, hDlg);
+  switch (Msg) 
+  {
+    case DN_INITDIALOG:
+      Dlg_SetDlgData(Info, hDlg, Param2);
+      break;
+    case DN_HELP:
+      if (pDlgInfo->zHlfPath)
+        Info.ShowHelp(pDlgInfo->zHlfPath, pDlgInfo->zHelpTopic, FHELP_CUSTOMFILE);
+      return NULL;
+  }
+  return Info.DefDlgProc(hDlg, Msg, Param1, Param2);
+}
+
+BOOL FileExists(const char* Name) 
+{ // from FAR/PlugDoc/Examples/HlfViewer/Mix.cpp
+  return GetFileAttributes(Name)!=0xFFFFFFFF;
+}
+
+void ShowDialog(dialogtemplate* pDialog, const char* zPath, const char* zLngFile)
 {
   dialogitem *pDialogItem;
   struct FarDialogItem *pItem, *pItems;
   char buf[32];
+  char zHlfPath[MAX_PATH];
+  struct DialogInfo sDlgInfo = { dialogtemplate_help(pDialog), zPath, FHELP_CUSTOMPATH };
   char **pStrings;
   int nStringsCount;
   unsigned nMsgId;
@@ -83,6 +112,17 @@ void ShowDialog(dialogtemplate* pDialog, const char* zLngFile)
     ? LoadLanguageFile(zLngFile, NULL, pStrings, nStringsCount)
     : false;
 
+  if (zLngFile) {
+    size_t n = strlen(zLngFile)+strlen(zPath);
+    strcpy(zHlfPath, zPath);
+    strcat(zHlfPath, zLngFile);
+    strcpy(&zHlfPath[n-3], "hlf");
+    if (FileExists(zHlfPath)) {
+      sDlgInfo.zHlfPath = zHlfPath;
+      sDlgInfo.nShowHelpFlags = FHELP_CUSTOMFILE;
+    } 
+  }
+  
   dialogtemplate_create_items(pDialog, 0, &pItems);
   pItem = pItems;
 
@@ -108,11 +148,13 @@ void ShowDialog(dialogtemplate* pDialog, const char* zLngFile)
         break;
     }
   }
-  Info.Dialog(Info.ModuleNumber, 
+
+  Info.DialogEx(Info.ModuleNumber, 
     -1, -1, 
     pItems->X1+pItems->X2+1, 
     pItems->Y1+pItems->Y2+1,
-    NULL, pItems, dialogtemplate_items_count(pDialog));
+    NULL, pItems, dialogtemplate_items_count(pDialog), 
+    NULL, 0, DlgProc, (long)&sDlgInfo);
   dialogres_free(pItems);
   if (bLngOk) 
     FinalizeLanguageStrings(pStrings, nStringsCount);
@@ -261,7 +303,7 @@ load_again:
              if (l<0) break;
            }
            rc = dialogres_get_dialog(dr, (pItems+r)->Text.Text, &pDialog); 
-           ShowDialog(pDialog, nLngFilesCount
+           ShowDialog(pDialog, zPath, nLngFilesCount
                 ? (pLngItems+nCurrentLanguage)->Text.Text
                 : NULL);
          } while (bAskLanguage);

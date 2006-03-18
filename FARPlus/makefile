@@ -39,7 +39,10 @@ FARPlusDebugObj = $(FARPlusCPP:.cpp=.obj_d)
 FARPlusOptionalObj = $(FARPlusOptionalCPP:.cpp=.obj_r)
 FARPlusOptionalDebugObj = $(FARPlusOptionalCPP:.cpp=.obj_d)
 
-main: farplus_r.lib farplus_d.lib $(FARPlusOptionalObj) $(FARPlusOptionalDebugObj)
+all: debug release
+
+debug: farplus_d.lib $(FARPlusOptionalDebugObj)
+release: farplus_r.lib $(FARPlusOptionalObj) 
 
 farplus_r.lib: $(FARPlusObj) 
 	$(LIB) /OUT:farplus_r.lib $(FARPlusObj)

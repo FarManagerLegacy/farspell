@@ -3,7 +3,7 @@ CC=g++ -I$(CINCLUDE)
 LIB=ld
 COMMON_FLAGS = -c -mno-cygwin -DUSE_FAR_170  -D_FARPLUS=1
 RELEASE_FLAGS = -O3  -DNDEBUG
-DEBUG_FLAGS =  -g -D_DEBUG
+DEBUG_FLAGS =  -g -D_DEBUG -feliminate-unused-debug-symbols
 FARPlusRTL = >FAR_SF.o \
  >FARArray.o \
  >FARDialog.o \
@@ -40,8 +40,10 @@ FARPlusDebugObj = $(FARPlusRTL:>%=.gcc.debug/%)
 FARPlusOptionalObj = $(FARPlusOptionalRTL:>%=.gcc.release/%)
 FARPlusOptionalDebugObj = $(FARPlusOptionalRTL:>%=.gcc.debug/%)
 
-main: .gcc.release .gcc.release/farplus.a .gcc.debug .gcc.debug/farplus.a \
- $(FARPlusOptionalObj) $(FARPlusOptionalDebugObj)
+all: debug release
+
+debug: .gcc.debug .gcc.debug/farplus.a $(FARPlusOptionalDebugObj)
+release: .gcc.release .gcc.release/farplus.a $(FARPlusOptionalObj) 
 
 .gcc.release/farplus.a: $(FARPlusObj) 
 	ar qs $@ $^

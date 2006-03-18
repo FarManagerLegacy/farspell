@@ -26,6 +26,8 @@
 #pragma pack()
 #pragma pack(pop)
 #include "../dialogres.h"
+#include "../../FarLNG/farlng.h"
+
 #define malloc(nBytes) HeapAlloc(GetProcessHeap(), 0, nBytes)
 #define free(pChunk) HeapFree(GetProcessHeap(), 0, pChunk)
 
@@ -53,6 +55,9 @@ enum DexLng {
   MTooLarge,
   MUnknownError,
   MFilePosition,
+
+  MAskLanguage,
+  MSelectLanguage,
 };
 
 static struct PluginStartupInfo Info;
@@ -66,11 +71,17 @@ static const char *GetMsg(enum DexLng MsgId) {
   return Info.GetMsg(Info.ModuleNumber, MsgId);
 }
 
-void ShowDialog(dialogtemplate* pDialog)
+void ShowDialog(dialogtemplate* pDialog, const char* zLngFile)
 {
   dialogitem *pDialogItem;
   struct FarDialogItem *pItem, *pItems;
   char buf[32];
+  char **pStrings;
+  int nStringsCount;
+  unsigned nMsgId;
+  const bool bLngOk = zLngFile
+    ? LoadLanguageFile(zLngFile, NULL, pStrings, nStringsCount)
+    : false;
 
   dialogtemplate_create_items(pDialog, 0, &pItems);
   pItem = pItems;
@@ -88,7 +99,12 @@ void ShowDialog(dialogtemplate* pDialog)
         strncpy(pItem->Data, dialogitem_datasource_text(pDialogItem), sizeof(pItem->Data));
         break;
       case DI_DATASOURCE_MSGID: 
-        strncpy(pItem->Data, _itoa(dialogitem_datasource_msgid(pDialogItem), buf, 10), sizeof(pItem->Data));
+        nMsgId = dialogitem_datasource_msgid(pDialogItem);
+        strncpy(pItem->Data, 
+          bLngOk && nMsgId<(unsigned)nStringsCount 
+            ? pStrings[nMsgId]
+            : _itoa(nMsgId, buf, 10), 
+          sizeof(pItem->Data));
         break;
     }
   }
@@ -98,6 +114,22 @@ void ShowDialog(dialogtemplate* pDialog)
     pItems->Y1+pItems->Y2+1,
     NULL, pItems, dialogtemplate_items_count(pDialog));
   dialogres_free(pItems);
+  if (bLngOk) 
+    FinalizeLanguageStrings(pStrings, nStringsCount);
+}
+
+int WINAPI GetLngCountCb(const WIN32_FIND_DATA *FData,
+                         const char *FullName, void *Param) {
+  (*(int*)Param)++;
+  return TRUE;
+}
+
+int WINAPI GetLanguagesCb(const WIN32_FIND_DATA *FData,
+                         const char *FullName, void *Param) {
+  struct FarMenuItemEx **ppItem = (struct FarMenuItemEx **)Param;
+  strncpy((*ppItem)->Text.Text, FSF.PointToName(FullName), sizeof((*ppItem)->Text.Text));
+  (*ppItem)++;
+  return TRUE;
 }
 
 BOOL TryViewDialogRes(char *zFilename)
@@ -108,7 +140,9 @@ BOOL TryViewDialogRes(char *zFilename)
   dialogres* dr;
   dialogtemplate* pDialog;
   const char *zMsgItems[5];
-  struct FarMenuItem *pItems, *pItem;
+  struct FarMenuItemEx *pItems, *pItem, *pLngItems;
+  int nCurrentLanguage = 0;
+  static bool bAskLanguage = true;
 
   if (!zFilename || !*zFilename) return FALSE;
   if (!(z=strrchr(zFilename, '.')) || strcmp(z, ".dlg")) return FALSE;
@@ -167,29 +201,88 @@ load_again:
     if (dr) dialogres_close(dr);
     return FALSE;
   }
-  // Следующий код основан на DialogViewer Lite by Griphon.
-  // Вечная память DailogGenerator'у.
-  pItems = (struct FarMenuItem*)alloca(dialogs_count*sizeof(struct FarMenuItem));
+
+  const char *zPathEnd = FSF.PointToName(zFilename);
+  char *zPath = (char *)alloca(zPathEnd-zFilename+1);
+  int nLngFilesCount = 0;
+  strncpy(zPath, zFilename, zPathEnd-zFilename);
+  zPath[zPathEnd-zFilename] = '\0';
+  FSF.FarRecursiveSearch (zPath, "*.lng", GetLngCountCb, 0, &nLngFilesCount);
+  if (!nLngFilesCount)
+    bAskLanguage = false;
+
+  size_t nMenuBytes = (dialogs_count+nLngFilesCount+2)
+                      *sizeof(struct FarMenuItemEx);
+  pItems = (struct FarMenuItemEx*)alloca(nMenuBytes);
+  memset(pItems, 0, nMenuBytes);
+  
   pItem = pItems + dialogres_dialogs_count(dr);
   for (dialogres_last_dialog(dr, &pDialog); pDialog; dialogres_prev_dialog(dr, &pDialog))
   {
     pItem--;
-    strncpy(pItem->Text, dialogtemplate_name(pDialog), sizeof(pItem->Text));
-    pItem->Selected = 0;
-    pItem->Checked = 0;
-    pItem->Separator = 0;
+    strncpy(pItem->Text.Text, dialogtemplate_name(pDialog), sizeof(pItem->Text.Text));
   }
+
+  pItem = pItems + dialogs_count;
+  pItem->Flags = MIF_SEPARATOR;
+  pItem++;
+
+  strncpy(pItem->Text.Text, GetMsg(MAskLanguage), sizeof(pItem->Text.Text));
+  if (!nLngFilesCount) 
+    pItem->Flags |= MIF_DISABLE;
+  if (bAskLanguage)
+    pItem->Flags = MIF_CHECKED;
+  pItem++;
+
+  pLngItems = pItem; 
+  if (!bAskLanguage)
+    (pLngItems+nCurrentLanguage)->Flags = MIF_CHECKED;
+  FSF.FarRecursiveSearch (zPath, "*.lng", GetLanguagesCb, 0, &pItem);
+
   do {
-    r = Info.Menu(Info.ModuleNumber,-1,-1,0,FMENU_WRAPMODE|FMENU_AUTOHIGHLIGHT,
+    r = Info.Menu(Info.ModuleNumber, -1, -1, 0,
+                  FMENU_WRAPMODE|FMENU_AUTOHIGHLIGHT|FMENU_USEEXT,
                   GetMsg(MSelectDialog), NULL, "Contents", NULL, NULL, 
-                  pItems, dialogs_count);
+                  (struct FarMenuItem*)pItems, dialogs_count+2+(bAskLanguage?0:nLngFilesCount));
     if (r>=0) { 
-       rc = dialogres_get_dialog(dr, (pItems+r)->Text, &pDialog); 
-       ShowDialog(pDialog);
+       if (r<dialogs_count) {
+         if (bAskLanguage) 
+           nCurrentLanguage = 0;
+         do {
+           if (bAskLanguage && nLngFilesCount) {
+             pItem = (pLngItems+nCurrentLanguage);
+             pItem->Flags |= MIF_SELECTED;
+             int l = Info.Menu(Info.ModuleNumber, -1, -1, 0,
+                       FMENU_WRAPMODE|FMENU_AUTOHIGHLIGHT|FMENU_USEEXT,
+                       GetMsg(MSelectLanguage), NULL, "Contents", NULL, NULL, 
+                       (struct FarMenuItem*)pLngItems, nLngFilesCount);
+             if (l>=0) nCurrentLanguage = l;
+             pItem->Flags &= ~MIF_SELECTED;
+             if (l<0) break;
+           }
+           rc = dialogres_get_dialog(dr, (pItems+r)->Text.Text, &pDialog); 
+           ShowDialog(pDialog, nLngFilesCount
+                ? (pLngItems+nCurrentLanguage)->Text.Text
+                : NULL);
+         } while (bAskLanguage);
+       } else if (r==dialogs_count+1) {
+         bAskLanguage = !bAskLanguage;
+         if (bAskLanguage) {
+           (pItems+r)->Flags |= MIF_CHECKED;
+           (pLngItems+nCurrentLanguage)->Flags &= ~MIF_CHECKED;
+         } else {
+           (pItems+r)->Flags &= ~MIF_CHECKED;
+           (pLngItems+nCurrentLanguage)->Flags |= MIF_CHECKED;
+         }
+       } else { // language
+         (pLngItems+nCurrentLanguage)->Flags &= ~MIF_CHECKED;
+         nCurrentLanguage = (pItems+r) - pLngItems;
+         (pLngItems+nCurrentLanguage)->Flags |= MIF_CHECKED;
+       }
        // prepare menu for next usage
-       for(j=0; j<dialogs_count; j++) 
-         (pItems+j)->Selected = 0; 
-       (pItems+r)->Selected = 1;
+       for(j=0; j<dialogs_count+2+nLngFilesCount; j++) 
+         (pItems+j)->Flags &= ~MIF_SELECTED; 
+       (pItems+r)->Flags |= MIF_SELECTED;
     }
    } while (r>=0); // exit loop if ESC pressed
 

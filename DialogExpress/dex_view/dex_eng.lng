@@ -20,3 +20,6 @@
 "File too large"
 "Unknown error"
 "in %s at %d:%d"
+
+"Ask language?"
+"Select language:"

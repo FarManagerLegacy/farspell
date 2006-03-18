@@ -19,11 +19,14 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
-dex_view.dll: dex_view.cpp dex_view.def ../.msvc.aided-release/dialogres_static.lib
-	cl /LD /MD /GL /Ox /Zp2 dex_view.cpp dex_view.def \
+dex_view.dll: dex_view.cpp dex_view.def ../.msvc.aided-release/dialogres_static.lib \
+   ../../FarLNG/farlng.h farlng.obj
+	cl /nologo /o $@ /LD /MD /GL /Ox /Zp2 dex_view.cpp dex_view.def \
  -I../../../../PlugDoc/Headers.c \
- ../.msvc.aided-release/dialogres_static.lib \
- /Fm kernel32.lib
+ ../.msvc.aided-release/dialogres_static.lib farlng.obj kernel32.lib /Fm
+
+farlng.obj: ..\..\FarLNG\farlng.cpp
+	cl /nologo /c /o $@  /MD /GL /Ox ..\..\FarLNG\farlng.cpp
 
 ../.msvc.aided-release/dialogres_static.lib:
 	cd ..
@@ -38,3 +41,4 @@ clean:
 	-del dex_view.map
 	-del dex_view.pdb
 	-del dex_view.ilk
+	-del farlng.obj

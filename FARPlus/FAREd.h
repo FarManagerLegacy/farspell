@@ -1,6 +1,7 @@
 /* $Header: /cvsroot/farplus/FARPlus/FAREd.h,v 1.4 2002/05/05 15:38:29 yole Exp $
    FAR+Plus: FAR editor API wrappers interface
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
+   (C) 2006 Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
 #ifndef __FARED_H
@@ -80,24 +81,18 @@ public:
 
 // -- FarEdString --------------------------------------------------------------
 
-class FarEdString
+class FarEdString: public EditorGetString
 {
 public:
 	FarEdString();
 	FarEdString(int StringNumber);
 	bool Update();
 	bool Update(int StringNumber);
-	int StringNumber;
-	const char *StringText;
-	const char *StringEOL;
-	int StringLength;
-	int SelStart;
-	int SelEnd;
 };
 
 // -- FarEdInfo --------------------------------------------------------------
 
-class FarEdInfo
+class FarEdInfo: public EditorInfo
 {
 private:
 	FarEdInfo (const FarEdInfo &rhs);
@@ -105,27 +100,6 @@ private:
 
 public:
 	FarEdInfo();
-
-    int EditorID;
-    const char *FileName;
-    int WindowSizeX;
-    int WindowSizeY;
-    int TotalLines;
-    int CurLine;
-    int CurPos;
-    int CurTabPos;
-    int TopScreenLine;
-    int LeftPos;
-    int Overtype;
-    int BlockType;
-    int BlockStartLine;
-    int AnsiMode;
-    int TableNum;
-    DWORD Options;
-    int TabSize;
-    int BookMarkCount;
-    DWORD CurState;
-    DWORD Reserved[6];
 };
 
 // -- inline functions -------------------------------------------------------

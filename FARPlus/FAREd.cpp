@@ -1,6 +1,7 @@
 /* $Header: /cvsroot/farplus/FARPlus/FAREd.cpp,v 1.3 2002/04/14 10:39:29 yole Exp $
    FAR+Plus: FAR editor API wrappers implementation
    (C) 2001-02 Dmitry Jemerov <yole@yole.ru>
+   (C) 2006 Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
 #include "FAREd.h"
@@ -206,48 +207,14 @@ bool FarEdString::Update()
 
 bool FarEdString::Update(int _StringNumber)
 {
-	EditorGetString egs;
-	egs.StringNumber = _StringNumber;
-	if (FarEd::ECTL (ECTL_GETSTRING, &egs)) 
-	{
-		StringNumber	= egs.StringNumber;
-		StringText	= egs.StringText;
-		StringEOL	= egs.StringEOL;
-		StringLength	= egs.StringLength;
-		SelStart	= egs.SelStart;
-		SelEnd		= egs.SelEnd;
-		return true;
-	}
-	return false;
+	StringNumber = _StringNumber;
+	return FarEd::ECTL (ECTL_GETSTRING, this);
 }
 
 // -- FarEdInfo --------------------------------------------------------------
 
 FarEdInfo::FarEdInfo()
 {
-    EditorInfo ei;
-    if (FarEd::ECTL (ECTL_GETINFO, &ei)) 
-	{
-		EditorID       = ei.EditorID;
-		FileName       = ei.FileName;
-		WindowSizeX    = ei.WindowSizeX;
-		WindowSizeY    = ei.WindowSizeY;
-		TotalLines     = ei.TotalLines;
-		CurLine        = ei.CurLine;
-		CurPos         = ei.CurPos;
-		CurTabPos      = ei.CurTabPos;
-		TopScreenLine  = ei.TopScreenLine;
-		LeftPos        = ei.LeftPos;
-		Overtype       = ei.Overtype;
-		BlockType      = ei.BlockType;
-		BlockStartLine = ei.BlockStartLine;
-		AnsiMode       = ei.AnsiMode;
-		TableNum       = ei.TableNum;
-		Options        = ei.Options;
-		TabSize        = ei.TabSize;
-                BookMarkCount  = ei.BookMarkCount;
-                CurState       = ei.CurState;
-                memcpy(Reserved, ei.Reserved, sizeof(ei.Reserved));
-	}
+    FarEd::ECTL (ECTL_GETINFO, this);
 }
 

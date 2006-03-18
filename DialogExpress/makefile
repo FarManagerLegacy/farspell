@@ -25,7 +25,7 @@ TARGET = Debug
 !message Target is $(TARGET)
 
 LEMON = ..\make-tools\lemon.exe
-COMMONFLAGS = -nologo -Fo$(OUTDIR)\  -I..\..\..\PlugDoc\Headers.c
+COMMONFLAGS = -nologo -GF -Fo$(OUTDIR)\ -I..\..\..\PlugDoc\Headers.c
 CLIB = lib -nologo 
 
 !if "$(TARGET)"=="Release"

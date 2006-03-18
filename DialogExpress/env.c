@@ -45,7 +45,7 @@ int dialogresLookupColorId(Parse *pParse, Token sId)
   assert(sId.z);
   assert(sId.n);
   for (pBind = aEnvColors; pBind->sName.z; pBind++)
-    if (pBind->sName.n == sId.n && strcmp(pBind->sName.z, sId.z)==0 )
+    if (pBind->sName.n == sId.n && strncmp(pBind->sName.z, sId.z, sId.n)==0 )
       return pBind->nValue;
   pParse->rc = dialogres_UnknownIdentifier;
   pParse->sErrToken = sId;

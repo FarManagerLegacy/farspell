@@ -210,6 +210,7 @@ bool ScanLanguageFile (
 				char *lpString = (char*)malloc (nLength+2);
 
 				strncpy(lpStringCopy, qb, nLength+1);
+				lpStringCopy[nLength+1] = '\0';
 
 				TranslateMessage (lpStringCopy, lpString);
 

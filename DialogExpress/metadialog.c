@@ -149,7 +149,7 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
   enum dialogres_error rc;
   struct FarDialogItem *pItem, *pItems = NULL;
   int bSkip, bCondition = 0, bSkipNewline, bNot;
-  int nColorIndex, fIsPalette;
+  int nColorIndex;
   TemplateToken *pToken;
   char *sid;
   for (pToken = pTemplate; pToken;)

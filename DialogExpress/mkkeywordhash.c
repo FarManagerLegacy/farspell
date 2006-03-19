@@ -309,9 +309,6 @@ int main(int argc, char **argv){
   }
   printf("%s  };\n", j==0 ? "" : "\n");
 
-  printf("#ifdef _MSC_VER\n");
-  printf("#define strncasecmp _strnicmp\n");
-  printf("#endif\n");
   printf("  int h, i;\n");
   //printf("  if( n<2 ) return TK_ID;\n");
   printf("  h = ((UpperToLower[((unsigned char*)z)[0]]*4) ^\n"

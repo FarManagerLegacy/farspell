@@ -275,7 +275,7 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
   dialogresParseFree(pParse);
 #ifdef _DEBUG
   printf("// pool size=%d unused pool %d\n", pParse->nPoolBytes, (pDr->pPool+pParse->nPoolBytes) - pPoolEnd);
-#endif _DEBUG
+#endif //_DEBUG
   assert(pPoolEnd <= (pDr->pPool + pParse->nPoolBytes));
   return pDr->rc;
 fatal_error:
@@ -635,7 +635,7 @@ STATIC void Collect_Token(Token *s, char **ppPool)
 {
   const char *o;
   char *m;
-  if (s->s) return; // true STATIC
+  if (s->s) return; // static
   o = s->z;
   s->z = (*ppPool);
   (*ppPool) += s->n+1;

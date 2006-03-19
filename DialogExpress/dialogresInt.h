@@ -42,6 +42,9 @@ void dialogres_free(void *pChunk);
 
 #define SIZEOF_FAR_DIALOG_ITEM_TEMPLATE (sizeof(struct FarDialogItem) - sizeof(char[512]))
 
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#endif
 
 typedef struct
 {

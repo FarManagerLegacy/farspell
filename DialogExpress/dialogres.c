@@ -450,6 +450,125 @@ int dialogitem_index(dialogitem *pDi)
   return pDi->nIndex;
 }
 
+enum dialogres_error dialogitem_get_property(dialogitem *pDi, const char *zName, struct GenericProperty **ppProp)
+{
+  struct GenericProperty *pProp;
+  size_t n = strlen(zName);
+  assert(pDi);
+  assert(zName);
+  assert(ppProp);
+  *ppProp = NULL;
+  for (pProp = pDi->pProperties; pProp; pProp = pProp->prev) 
+    if (n==pProp->sName.n && strcmp(zName, pProp->sName.z)==0) {
+      *ppProp = pProp;
+      return dialogres_Ok;
+    }
+  return dialogres_NotFound;
+}
+
+enum dialogres_error dialogitem_has_str_property(
+  dialogitem *pDi, const char *zName)
+{
+  struct GenericProperty *pProp;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(zName);
+  rc = dialogitem_get_property(pDi, zName, &pProp);
+  if (rc == dialogres_NotFound) return dialogres_NotFound;
+  assert(pProp);
+  return (pProp->sValue.n)? dialogres_Ok : dialogres_NotFound;
+}
+
+enum dialogres_error dialogitem_has_int_property(
+  dialogitem *pDi, const char *zName)
+{
+  struct GenericProperty *pProp;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(zName);
+  rc = dialogitem_get_property(pDi, zName, &pProp);
+  if (rc == dialogres_NotFound) return dialogres_NotFound;
+  assert(pProp);
+  return (!pProp->sValue.n && pProp->sValue.s)? dialogres_Ok : dialogres_NotFound;
+}
+
+enum dialogres_error dialogitem_get_str_property( 
+  dialogitem *pDi, const char *zName, const char **pValue)
+{
+  struct GenericProperty *pProp;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(zName);
+  assert(pValue);
+  rc = dialogitem_get_property(pDi, zName, &pProp);
+  if (rc == dialogres_NotFound) 
+    return dialogres_NotFound;
+  assert(pProp);
+  if (pProp->sValue.n) {
+    *pValue = pProp->sValue.z;
+    return dialogres_Ok;
+  }
+  return dialogres_NotFound;
+}
+
+enum dialogres_error dialogitem_get_int_property(
+  dialogitem *pDi, const char *zName, int *pValue)
+{
+  struct GenericProperty *pProp;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(zName);
+  assert(pValue);
+  rc = dialogitem_get_property(pDi, zName, &pProp);
+  if (rc == dialogres_NotFound)  
+    return dialogres_NotFound;
+  assert(pProp);
+  if (!pProp->sValue.n && pProp->sValue.s) {
+    *pValue = pProp->sValue.i;
+    return dialogres_Ok;
+  }
+  return dialogres_NotFound;
+}
+
+enum dialogres_error dialogitem_color_index(dialogitem *pDi, int *pColorIndex)
+{
+  extern Token dialogres_color_index_property_token;
+  assert(pDi);
+  assert(pColorIndex);
+  return dialogitem_get_int_property(
+    pDi, dialogres_color_index_property_token.z, pColorIndex);
+}
+
+enum dialogres_error dialogitem_fgcolor_index(dialogitem *pDi, int *pColorIndex)
+{
+  extern Token dialogres_color_property_token; 
+  int nRawColor;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(pColorIndex);
+  rc = dialogitem_get_int_property(
+    pDi, dialogres_color_property_token.z, &nRawColor);
+  if (rc == dialogres_NotFound || nRawColor&0x1000) 
+    return dialogres_NotFound;
+  *pColorIndex = nRawColor&0xFFFF;
+  return dialogres_Ok;
+}
+
+enum dialogres_error dialogitem_bgcolor_index(dialogitem *pDi, int *pColorIndex)
+{
+  extern Token dialogres_color_property_token; 
+  int nRawColor;
+  enum dialogres_error rc;
+  assert(pDi);
+  assert(pColorIndex);
+  rc = dialogitem_get_int_property(
+    pDi, dialogres_color_property_token.z, &nRawColor);
+  if (rc == dialogres_NotFound || nRawColor&(0x1000<<16)) 
+    return dialogres_NotFound;
+  *pColorIndex = nRawColor>>16;
+  return dialogres_Ok;
+}
+
 int dialogitem_datasource_type(dialogitem *pDi)
 {
   assert(pDi);
@@ -524,11 +643,26 @@ STATIC void Collect_Token(Token *s, char **ppPool)
   m[s->n] = '\0';
 }
 
+STATIC void Collect_GenericProperty(struct GenericProperty *pProp, char **ppPool)
+{
+  for (; pProp; pProp = pProp->prev)
+  {  
+    Collect_Token(&pProp->sName, ppPool); 
+    Collect_Token(&pProp->sValue, ppPool); 
+    if (pProp->prev)
+      Collect_Chunk((void**)&pProp->prev, sizeof(struct GenericProperty), ppPool, 1); 
+  }
+}
+
 STATIC void Collect_dialogitem(struct dialogitem *pItem, char **ppPool) 
 {
   for (; pItem; pItem = pItem->next)
   {  
     Collect_Token(&pItem->sId, ppPool); 
+    if (pItem->pProperties) {
+      Collect_Chunk((void**)&pItem->pProperties, sizeof(struct GenericProperty), ppPool, 1); 
+      Collect_GenericProperty(pItem->pProperties, ppPool);
+    }
     assert(pItem->pDataSource);
     switch (pItem->pDataSource->nType)
     {
@@ -641,6 +775,26 @@ void dialogresParseFree(Parse* pParse)
   dialogres_free(pParse);
 }
 
+struct GenericProperty *GenericPropertyAlloc(
+  struct GenericProperty *pPrev,
+  struct GenericProperty *pSrc) 
+{
+  ALLOC_STRUCT_VAR(pProp, GenericProperty);
+  memcpy(pProp, pSrc, sizeof(struct GenericProperty));
+  pProp->prev = pPrev;
+  return pProp;
+}
+
+void GenericPropertyFreeAll(struct GenericProperty *pProp)
+{
+  struct GenericProperty *pTmp;
+  while (pProp) {
+    pTmp = pProp;
+    pProp = pProp->prev;
+    dialogres_free(pTmp);
+  }
+}
+
 struct DataSource* dialogitemDataSourceAlloc(int nType)
 {
   ALLOC_STRUCT_VAR(pDataSource, DataSource);
@@ -653,8 +807,28 @@ void dialogitemDataSourceFree(struct DataSource* pData)
   dialogres_free(pData);
 }
 
-//extern FILE *yyTraceFILE;
-struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, struct FarDialogItem *pFarDialogItem, struct DataSource *pDataSource)
+void DialogItemColor_to_Flags(dialogitem *pDialogItem)
+{
+  extern Token dialogres_color_property_token; 
+  unsigned long nFlags = 0;
+  int nRawColor;
+  enum dialogres_error rc;
+  assert(pDialogItem);
+  assert(pDialogItem->pFarDialogItem);
+  rc = dialogitem_get_int_property(
+    pDialogItem, dialogres_color_property_token.z, &nRawColor);
+  if (rc == dialogres_NotFound)  
+    return;
+  if (nRawColor&0x1000)
+    nFlags = nRawColor&0xF | DIF_SETCOLOR;
+  if (nRawColor&(0x1000<<16))
+    nFlags |= (((nRawColor>>16)&0xF)<<4) | DIF_SETCOLOR;
+  pDialogItem->pFarDialogItem->Flags |= nFlags;
+}
+
+struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, 
+  struct FarDialogItem *pFarDialogItem, struct DataSource *pDataSource,
+  struct GenericProperty *pProperties)
 {
   extern Token dialogres_itemid_is_msgid_token;
   static Token null_token =     { "",  1, 0, 0, 0 };
@@ -684,9 +858,11 @@ struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, struct F
   pParse->nPoolBytes += pDialogItem->sId.n+1;
   pFarDialogItem->Type = nType;
   pDialogItem->pFarDialogItem = pFarDialogItem;    
+  pDialogItem->pProperties = pProperties;
   pDialogItem->pDataSource = pDataSource;
   pDialogItem->sHistory = null_token;
   pDialogItem->next = NULL;
+  DialogItemColor_to_Flags(pDialogItem);
   return pDialogItem;
 }
 
@@ -697,6 +873,8 @@ void dialogitemFree(struct dialogitem* pItem, int AllRest)
   {
     if (pItem->pFarDialogItem) 
       dialogres_free(pItem->pFarDialogItem);
+    if (pItem->pProperties)
+      GenericPropertyFreeAll(pItem->pProperties);
     dialogitemDataSourceFree(pItem->pDataSource);
     tmp = pItem;
     assert(pItem != pItem->next);

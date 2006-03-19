@@ -46,6 +46,18 @@ void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*
   strcpy(pItems->Data, "%[text]");
 %[has history?]
   pItems->History = "%[history]";
+%[has foreground.index?]
+  pItems->Flags |= 0x0F&pInfo->AdvControl(pInfo->ModuleNumber, ACTL_GETCOLOR, 
+                    (void*)%[foreground.index])
+                | DIF_SETCOLOR;
+%[has background.index?]
+  pItems->Flags |= 0xF0&pInfo->AdvControl(pInfo->ModuleNumber, ACTL_GETCOLOR, 
+                    (void*)%[background.index])
+                | DIF_SETCOLOR;
+%[has color.index?]
+  pItems->Flags |= pInfo->AdvControl(pInfo->ModuleNumber, ACTL_GETCOLOR, 
+                    (void*)%[color.index])
+                | DIF_SETCOLOR;
 %[common]
   pItems++;
 %[next item]

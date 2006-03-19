@@ -65,6 +65,8 @@ static Token null_token =     { "",  1, 0, 0, 0};
 static Token contents_token = { "Contents", 1, 8, 0, 0};
 static Token version_token =  { "Dex.2006",  1, 8, 0, 0};
 Token dialogres_itemid_is_msgid_token =  { "%LNG%",  1, 5, 0, 0};
+Token dialogres_color_property_token =  { "COLOR",  1, 5, 0, 0};
+Token dialogres_color_index_property_token =  { "COLOR.INDEX",  1, 11, 0, 0};
 
 /*char* strFromToken(Token sTok)
 {
@@ -217,38 +219,38 @@ items(L) ::= items(IS) item(I).   {
 %destructor item { dialogitemFree($$, 1); }
 
 item(I) ::= TEXT         item_id(ID) item_data(D) data_source(S) item_properties(P).
-            { I = dialogitemAlloc(pParse, DI_TEXT,        ID, D, S); /* P */  }
-item(I) ::= VTEXT        item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_VTEXT,       ID, D, S); /* P */ }
-item(I) ::= SINGLEBOX    item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_SINGLEBOX,   ID, D, S); /* P */ }
-item(I) ::= DOUBLEBOX    item_id(ID) item_data(D) data_source(S). 
-            { I = dialogitemAlloc(pParse, DI_DOUBLEBOX,   ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_TEXT,        ID, D, S, P);  }
+item(I) ::= VTEXT        item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_VTEXT,       ID, D, S, P); }
+item(I) ::= SINGLEBOX    item_id(ID) item_data(D) data_source(S) item_properties(P). 
+            { I = dialogitemAlloc(pParse, DI_SINGLEBOX,   ID, D, S, P); }
+item(I) ::= DOUBLEBOX    item_id(ID) item_data(D) data_source(S) item_properties(P).  
+            { I = dialogitemAlloc(pParse, DI_DOUBLEBOX,   ID, D, S, P); }
 
 item(I) ::= EDIT         item_id(ID) item_data(D) data_source(S) history(H) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_EDIT,        ID, D, S); 
+            { I = dialogitemAlloc(pParse, DI_EDIT,        ID, D, S, P); 
               I->sHistory = H; 
-              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; /* P */ }
+              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; }
 
 item(I) ::= FIXEDIT      item_id(ID) item_data(D) data_source(S) history(H) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_FIXEDIT,     ID, D, S); 
+            { I = dialogitemAlloc(pParse, DI_FIXEDIT,     ID, D, S, P); 
               I->sHistory = H; 
-              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; /* P */ }
+              if (H.n) I->pFarDialogItem->Flags |= DIF_HISTORY; }
 
 item(I) ::= PSWEDIT      item_id(ID) item_data(D) data_source(S) item_properties(P).  
-            { I = dialogitemAlloc(pParse, DI_PSWEDIT,     ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_PSWEDIT,     ID, D, S, P); }
 item(I) ::= BUTTON       item_id(ID) item_data(D) data_source(S) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_BUTTON,      ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_BUTTON,      ID, D, S, P); }
 item(I) ::= CHECKBOX     item_id(ID) item_data(D) data_source(S) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_CHECKBOX,    ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_CHECKBOX,    ID, D, S, P); }
 item(I) ::= RADIOBUTTON  item_id(ID) item_data(D) data_source(S) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_RADIOBUTTON, ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_RADIOBUTTON, ID, D, S, P); }
 item(I) ::= COMBOBOX     item_id(ID) item_data(D) data_source(S) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_COMBOBOX,    ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_COMBOBOX,    ID, D, S, P); }
 item(I) ::= LISTBOX      item_id(ID) item_data(D) data_source(S) item_properties(P).  
-            { I = dialogitemAlloc(pParse, DI_LISTBOX,     ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_LISTBOX,     ID, D, S, P); }
 item(I) ::= USERCONTROL  item_id(ID) item_data(D) data_source(S) item_properties(P). 
-            { I = dialogitemAlloc(pParse, DI_USERCONTROL, ID, D, S); /* P */ }
+            { I = dialogitemAlloc(pParse, DI_USERCONTROL, ID, D, S, P); }
 
 //%type snum {int}
 //snum(N) ::= INTEGER(I).       { N = toint(I); }
@@ -337,13 +339,48 @@ label_def ::= REM DEF REM.
 label_ver ::= REM VER REM.
 label_history ::= HISTORY EQ. 
 
-item_properties(S) ::= . { assert("NYI"); /* S */ }
+%type item_properties {struct GenericProperty *}
+%destructor item_properties { GenericPropertyFreeAll($$); }
+item_properties(S) ::= . { S = NULL; }
 item_properties(S) ::= item_properties(PS) item_property(P). { 
-  /* S P PS */
-  assert("NYI"); 
+  S = GenericPropertyAlloc(PS, &P);
+  pParse->nPoolBytes += sizeof(struct GenericProperty) + P.sName.n + 1;
+  if (P.sValue.n) 
+    pParse->nPoolBytes += P.sValue.n + 1;
 }
-item_property(P) ::= VAR ID(I) EQ STRING(S). { assert("NYI"); /* P I S */ }
-item_property(P) ::= COLOR EQ LB color_id(B) COMMA color_id(F) RP. { assert("NYI"); /* P B F */ }
 
-%type color_id {int}
-color_id(C) ::= ID(I). { C = dialogresLookupColorId(pParse, I); }
+%type  item_property {struct GenericProperty}
+item_property(P) ::= VAR ID(I) EQ STRING(S). { 
+  P.sName = I; 
+  P.sValue = S; 
+  P.prev = NULL; 
+}
+
+item_property(P) ::= VAR ID(I) EQ cexpr(E). { 
+  P.sName = I; 
+  P.sValue.n = 0;
+  P.sValue.s = 1;
+  P.sValue.i = E;
+  P.prev = NULL; 
+}
+
+item_property(P) ::= COLOR EQ LB half_color_id(TEXT) COMMA half_color_id(BACK) RB. { 
+  P.sName = dialogres_color_property_token; 
+  P.sValue.n = 0;
+  P.sValue.s = 1;
+  P.sValue.i = (TEXT) | (BACK<<16);
+  P.prev = NULL; 
+}
+
+item_property(P) ::= COLOR EQ color_index(I). { 
+  P.sName = dialogres_color_index_property_token; 
+  P.sValue.n = 0;
+  P.sValue.s = 1;
+  P.sValue.i = I;
+  P.prev = NULL; 
+}
+
+%type color_index {int}
+color_index(C) ::= ID(I). { C = dialogresLookupColorId(pParse, I, 1); }
+%type half_color_id {int}
+half_color_id(C) ::= ID(I). { C = dialogresLookupColorId(pParse, I, 0); }

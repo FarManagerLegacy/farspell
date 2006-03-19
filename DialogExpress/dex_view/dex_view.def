@@ -9,6 +9,7 @@ EXPORTS
 	dialogres_last_error
 	dialogres_error_pos
 	dialogres_error_line
+	dialogres_get_color_index_name
 	dialogres_dialogs_count
 	dialogres_get_dialog
 	dialogres_last_dialog
@@ -25,6 +26,13 @@ EXPORTS
 	dialogitem_id
 	dialogitem_sid
 	dialogitem_index
+	dialogitem_has_str_property
+	dialogitem_has_int_property
+	dialogitem_get_str_property
+	dialogitem_get_int_property
+	dialogitem_color_index
+	dialogitem_fgcolor_index
+	dialogitem_bgcolor_index
 	dialogitem_datasource_text
 	dialogitem_datasource_msgid
 	dialogitem_history

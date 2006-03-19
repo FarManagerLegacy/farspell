@@ -63,6 +63,7 @@ enum dialogres_error dialogres_last_error(dialogres* pDr);
 int dialogres_error_pos(dialogres* pDr);
 int dialogres_error_line(dialogres* pDr);
 
+const char* dialogres_get_color_index_name(int nColorIndex);
 
 int dialogres_dialogs_count(dialogres* pDr);
 enum dialogres_error dialogres_get_dialog(dialogres* pDr, char *zName, dialogtemplate** ppDt);
@@ -97,6 +98,19 @@ const char *dialogitem_datasource_text(dialogitem *pDi);
 int dialogitem_datasource_msgid(dialogitem *pDi);
 const char* dialogitem_datasource_smsgid(dialogitem *pDi);
 const char *dialogitem_history(dialogitem *pDi);
+
+enum dialogres_error dialogitem_has_str_property(
+  dialogitem *pDi, const char *zName);
+enum dialogres_error dialogitem_has_int_property(
+  dialogitem *pDi, const char *zName);
+enum dialogres_error dialogitem_get_str_property(
+  dialogitem *pDi, const char *zName, const char **pValue);
+enum dialogres_error dialogitem_get_int_property(
+  dialogitem *pDi, const char *zName, int *pValue);
+
+enum dialogres_error dialogitem_color_index(dialogitem *pDi, int *pColorIndex);
+enum dialogres_error dialogitem_fgcolor_index(dialogitem *pDi, int *pColorIndex);
+enum dialogres_error dialogitem_bgcolor_index(dialogitem *pDi, int *pColorIndex);
 
 #ifdef __cplusplus
 }

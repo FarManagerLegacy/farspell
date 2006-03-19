@@ -33,6 +33,9 @@ enum Predicate {
   ItemHasIdP, 
   ItemHasHistoryP,
   ItemHasTextP,
+  ItemHasColorIndexP,
+  ItemHasFgColorIndexP,
+  ItemHasBgColorIndexP,
 };
 enum Variable { 
   vDialogId, 
@@ -58,6 +61,9 @@ enum Variable {
   vItemText,
   vItemCData,
   vItemHistory,
+  vItemColorIndex,
+  vItemFgColorIndex,
+  vItemBgColorIndex,
 };
 
 typedef struct _TemplateToken

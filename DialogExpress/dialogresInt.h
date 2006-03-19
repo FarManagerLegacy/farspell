@@ -45,7 +45,11 @@ void dialogres_free(void *pChunk);
 
 typedef struct
 {
-  const char *z;          /* Text of the token.  Not NULL-terminated! */
+  union {
+    const char *z;          /* Text of the token.  Not NULL-terminated! */
+    int i;                  /* Special, number token when (n == 0)&&(s == 1) 
+                               (used only for property values) */
+  };
   unsigned s    : 1;      /* True if static / no malloc'ed / always live  */
   unsigned n    : 31;     /* Number of characters in this token */
   unsigned line : 22;
@@ -87,7 +91,7 @@ void AddIntBind(Parse *pParse, Token sName, unsigned nValue);
 unsigned LookupIntBind(Parse *pParse, Token sName);
 
 void dialogresInitEnvironment(Parse *pParse);
-int dialogresLookupColorId(Parse *pParse, Token sId);
+int dialogresLookupColorId(Parse *pParse, Token sId, int fPaletteOnly);
 
 void *dialogresParserAlloc(void *(*mallocProc)(size_t));
 void dialogresParserFree(
@@ -103,6 +107,19 @@ void dialogresParser(
 
 
 void dialogresParserTrace(FILE *TraceFILE, char *zTracePrompt);
+
+struct GenericProperty {
+  Token sName;
+  Token sValue;
+  struct GenericProperty* prev;
+};
+
+struct GenericProperty *GenericPropertyAlloc(
+  struct GenericProperty *pPrev,
+  struct GenericProperty *pSrc);
+void GenericPropertyFreeAll(struct GenericProperty *pProp);
+
+void DialogItemColor_to_Flags(dialogitem *pDialogItem);
 
 struct RegDefault {
   enum { bytes, dword } type;
@@ -139,12 +156,15 @@ struct dialogitem
   Token sId;
   int nIndex;
   struct FarDialogItem *pFarDialogItem;
+  struct GenericProperty *pProperties;
   struct DataSource *pDataSource;
   Token sHistory;
   struct dialogitem *next;
 };
 
-struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, struct FarDialogItem *tmpl, struct DataSource *data);
+struct dialogitem* dialogitemAlloc(Parse* pParse, int nType, Token sId, 
+  struct FarDialogItem *tmpl, struct DataSource *data,
+  struct GenericProperty *pProperties);
 void dialogitemFree(struct dialogitem* pItem, int AllRest);
 
 struct dialogtemplate

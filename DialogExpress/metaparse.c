@@ -37,6 +37,9 @@ static char* PredicateStr[] = {
   "id?", 
   "history?",
   "text?",
+  "color.index?",
+  "foreground.index?",
+  "background.index?",
   0
 };
 
@@ -64,6 +67,9 @@ static char* VariableStr[] = {
   "text",
   "cdata",
   "history",
+  "color.index",
+  "foreground.index",
+  "background.index",
   0,
 };
 

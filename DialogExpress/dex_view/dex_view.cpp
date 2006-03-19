@@ -25,6 +25,7 @@
 #include <plugin.hpp>
 #pragma pack()
 #pragma pack(pop)
+#include <farcolor.hpp>
 #include "../dialogres.h"
 #include "../../FarLNG/farlng.h"
 
@@ -108,6 +109,7 @@ void ShowDialog(dialogtemplate* pDialog, const char* zPath, const char* zLngFile
   char **pStrings;
   int nStringsCount;
   unsigned nMsgId;
+  int nColorIndex;
   const bool bLngOk = zLngFile
     ? LoadLanguageFile(zLngFile, NULL, pStrings, nStringsCount)
     : false;
@@ -133,6 +135,19 @@ void ShowDialog(dialogtemplate* pDialog, const char* zPath, const char* zLngFile
     pItem = pItems + dialogitem_index(pDialogItem);
     if (pItem->Flags&DIF_HISTORY)
       pItem->History = dialogitem_history(pDialogItem);
+    if (dialogitem_color_index(pDialogItem, &nColorIndex)==dialogres_Ok) 
+      pItem->Flags |= Info.AdvControl(Info.ModuleNumber, ACTL_GETCOLOR, 
+                             (void*)nColorIndex)
+                   | DIF_SETCOLOR;
+    if (dialogitem_fgcolor_index(pDialogItem, &nColorIndex)==dialogres_Ok) 
+      pItem->Flags |= 0x0F&Info.AdvControl(Info.ModuleNumber, ACTL_GETCOLOR, 
+                             (void*)nColorIndex)
+                   | DIF_SETCOLOR;
+    if (dialogitem_bgcolor_index(pDialogItem, &nColorIndex)==dialogres_Ok) 
+      pItem->Flags |= 0xF0&Info.AdvControl(Info.ModuleNumber, ACTL_GETCOLOR, 
+                             (void*)nColorIndex)
+                   | DIF_SETCOLOR;
+
     switch (dialogitem_datasource_type(pDialogItem))
     {
       case DI_DATASOURCE_TEXT: 

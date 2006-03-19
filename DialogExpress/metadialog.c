@@ -149,6 +149,7 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
   enum dialogres_error rc;
   struct FarDialogItem *pItem, *pItems = NULL;
   int bSkip, bCondition = 0, bSkipNewline, bNot;
+  int nColorIndex, fIsPalette;
   TemplateToken *pToken;
   char *sid;
   for (pToken = pTemplate; pToken;)
@@ -258,6 +259,20 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
          case ItemHasTextP:
            assert(pDialogItem);
            bSkip = dialogitem_datasource_type(pDialogItem)!=DI_DATASOURCE_TEXT;
+           break;
+         case ItemHasColorIndexP:
+           assert(pDialogItem);
+           bSkip = dialogitem_color_index(pDialogItem, &nColorIndex) == dialogres_NotFound;
+           break;
+         case ItemHasFgColorIndexP:
+           assert(pDialogItem);
+           bSkip = dialogitem_fgcolor_index(pDialogItem, &nColorIndex) 
+                   == dialogres_NotFound;
+           break;
+         case ItemHasBgColorIndexP:
+           assert(pDialogItem);
+           bSkip = dialogitem_bgcolor_index(pDialogItem, &nColorIndex) 
+                   == dialogres_NotFound;
            break;
          default:
            bSkip = 1;
@@ -417,6 +432,24 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
                 fprintf(pFile, " /* reg */");
                 break;
             }
+            break;
+          case vItemColorIndex:
+            assert(pDialogItem);
+            assert(dialogitem_color_index(pDialogItem, &nColorIndex) 
+                   == dialogres_Ok); // TODO: produce error
+            fprintf(pFile, "%s", dialogres_get_color_index_name(nColorIndex));
+            break;
+          case vItemFgColorIndex:
+            assert(pDialogItem);
+            assert(dialogitem_fgcolor_index(pDialogItem, &nColorIndex) 
+                   == dialogres_Ok); // TODO: produce error
+            fprintf(pFile, "%s", dialogres_get_color_index_name(nColorIndex));
+            break;
+          case vItemBgColorIndex:
+            assert(pDialogItem);
+            assert(dialogitem_bgcolor_index(pDialogItem, &nColorIndex) 
+                   == dialogres_Ok); // TODO: produce error
+            fprintf(pFile, "%s", dialogres_get_color_index_name(nColorIndex));
             break;
           default: 
             assert("Unknown internal variable");

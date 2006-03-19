@@ -39,15 +39,26 @@ void dialogresInitEnvironment(Parse *pParse)
     AddIntBind(pParse, pBind->sName, pBind->nValue);
 }
 
-int dialogresLookupColorId(Parse *pParse, Token sId)
+int dialogresLookupColorId(Parse *pParse, Token sId, int fPaletteOnly)
 {
   const struct EnvVar *pBind;
   assert(sId.z);
   assert(sId.n);
   for (pBind = aEnvColors; pBind->sName.z; pBind++)
-    if (pBind->sName.n == sId.n && strncmp(pBind->sName.z, sId.z, sId.n)==0 )
+    if (pBind->sName.n == sId.n && strncmp(pBind->sName.z, sId.z, sId.n)==0 ) {
+      if (fPaletteOnly && pBind->nValue&0x1000) break;
       return pBind->nValue;
+    }
   pParse->rc = dialogres_UnknownIdentifier;
   pParse->sErrToken = sId;
   return 0;
+}
+
+const char* dialogres_get_color_index_name(int nColorIndex)
+{
+  const struct EnvVar *pBind;
+  for (pBind = aEnvColors; pBind->sName.z; pBind++)
+    if (pBind->nValue == nColorIndex)
+      return pBind->sName.z;
+  return NULL;
 }

@@ -33,6 +33,8 @@
 #include <MLang.h>
 #endif HARDCODED_MLDATA
 
+#include <farcolor.hpp>
+
 #include "FARPlus/FARMenu.h"
 #include "FARPlus/FARMemory.h"
 #include "FARPlus/FARLog.h"

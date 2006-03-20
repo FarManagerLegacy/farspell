@@ -133,7 +133,7 @@ long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
     case DN_HELP:
       if (pDlgInfo->zHlfPath)
         Info.ShowHelp(pDlgInfo->zHlfPath, pDlgInfo->zHelpTopic, FHELP_CUSTOMFILE);
-      return NULL;
+      return 0;
   }
   return Info.DefDlgProc(hDlg, Msg, Param1, Param2);
 }
@@ -213,7 +213,7 @@ void ShowDialog(dialogtemplate* pDialog, const char* zPath, const char* zLngFile
     pItems->X1+pItems->X2+1, 
     pItems->Y1+pItems->Y2+1,
     NULL, pItems, dialogtemplate_items_count(pDialog), 
-    NULL, 0, DlgProc, (long)&sDlgInfo);
+    0, 0, DlgProc, (long)&sDlgInfo);
   dialogres_free(pItems);
   if (bLngOk) 
     FinalizeLanguageStrings(pStrings, nStringsCount);

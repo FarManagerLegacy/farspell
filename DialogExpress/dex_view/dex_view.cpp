@@ -177,8 +177,17 @@ void ShowDialog(dialogtemplate* pDialog, const char* zPath, const char* zLngFile
        dialogtemplate_next_item(pDialog, &pDialogItem))
   {
     pItem = pItems + dialogitem_index(pDialogItem);
-    if (pItem->Flags&DIF_HISTORY)
-      pItem->History = dialogitem_history(pDialogItem);
+    switch (pItem->Type) {
+      case DI_EDIT:
+      case DI_FIXEDIT:
+        if (pItem->Flags&DIF_HISTORY)
+          pItem->History = dialogitem_history(pDialogItem);
+        break;
+      case DI_LISTBOX:
+      case DI_COMBOBOX:
+        pItem->ListItems = NULL;
+        break;
+    }
     if (dialogitem_color_index(pDialogItem, &nColorIndex)==dialogres_Ok) 
       pItem->Flags |= Info.AdvControl(Info.ModuleNumber, ACTL_GETCOLOR, 
                              (void*)nColorIndex)

@@ -20,6 +20,8 @@
       Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 */
 
+#include <malloc.h>
+#include <stdio.h>
 #include "DecisionTable.hpp"
 
 DecisionTable::action_t DecisionTable::noaction = -1;

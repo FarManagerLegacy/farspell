@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include "FARPlus/FARString.h"
+
 class DecisionTable
 {
   public:

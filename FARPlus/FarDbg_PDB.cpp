@@ -8,9 +8,9 @@
 //
 
 #include <malloc.h>
+#include "FARDbg.h"
 
 #ifdef _FARPLUS
-#include "FARDbg.h"
 #include "FARPlus.h"
 #define PointToName FarSF::PointToName
 #else

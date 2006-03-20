@@ -25,7 +25,7 @@ dex_view.dll: dex_view.o dex_view.def ../.gcc.aided-release/dialogres-static.a f
  -Wl,-s,-Map,dex_view.map,--enable-stdcall-fixup
 
 dex_view.o: dex_view.cpp ../dialogres.h
-	g++ -c -Wall -mdll -mno-cygwin -O3 -I../../../../PlugDoc/Headers.c $< -o $@
+	g++ -c -Wall -mdll -mno-cygwin -O3 -DNDEBUG -I../../../../PlugDoc/Headers.c $< -o $@
 
 farlng.o: ../../FarLNG/farlng.cpp
 	g++ -c -Wall -mdll -mno-cygwin -O3 $< -o $@

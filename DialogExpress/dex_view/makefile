@@ -19,18 +19,39 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
-dex_view.dll: dex_view.cpp dex_view.def ../.msvc.aided-release/dialogres_static.lib \
+!ifndef TARGET
+TARGET = Release
+!endif            
+!message Target is $(TARGET)
+
+COMMONFLAGS =  -nologo 
+FARPLUS = ../../FARPlus
+
+!if "$(TARGET)"=="Release"
+DIALOGRES_LIB = .msvc.aided-release/dialogres_static.lib
+LIBS = 
+CC = cl $(COMMONFLAGS) -MD -GL -Og -Ox -DNDEBUG 
+!endif
+
+!if "$(TARGET)"=="Debug"
+DIALOGRES_LIB = .msvc.debug/dialogres_static.lib
+LIBS =  $(FARPLUS)/FarDbg_PDB.cpp
+CC = cl $(COMMONFLAGS) -MT -Od -Fd -Zi -D_DEBUG -EHsc
+!endif
+
+dex_view.dll: dex_view.cpp dex_view.def ../$(DIALOGRES_LIB) $(LIBS) \
    ../../FarLNG/farlng.h farlng.obj
-	cl /nologo /o $@ /LD /MD /GL /Ox /Zp2 dex_view.cpp dex_view.def \
+	$(CC) /o $@ -LD dex_view.cpp dex_view.def \
  -I../../../../PlugDoc/Headers.c \
- ../.msvc.aided-release/dialogres_static.lib farlng.obj kernel32.lib /Fm
+ ../$(DIALOGRES_LIB) $(LIBS) farlng.obj user32.lib kernel32.lib -Fm \
+ -link -NODEFAULTLIB:LIBC
 
 farlng.obj: ..\..\FarLNG\farlng.cpp
-	cl /nologo /c /o $@  /MD /GL /Ox ..\..\FarLNG\farlng.cpp
+	$(CC) /c /o $@ ..\..\FarLNG\farlng.cpp
 
-../.msvc.aided-release/dialogres_static.lib:
+../$(DIALOGRES_LIB):
 	cd ..
-	$(MAKE) /nologo aided .msvc.aided-release/dialogres_static.lib
+	$(MAKE) -nologo aided $(DIALOGRES_LIB)
 	cd "$(MAKEDIR)"
 
 clean:
@@ -42,3 +63,5 @@ clean:
 	-del dex_view.pdb
 	-del dex_view.ilk
 	-del farlng.obj
+	-del vc70.pdb
+	-del FarDbg_PDB.obj

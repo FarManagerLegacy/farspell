@@ -29,6 +29,50 @@
 #include "../dialogres.h"
 #include "../../FarLNG/farlng.h"
 
+#ifdef _DEBUG
+#include <assert.h>
+#include <stdio.h>
+#include "../../FARPlus/FARDbg.h"
+#ifdef _MSC_VER
+extern "C" void __cdecl _assert(const char *zExp, const char *zFile, unsigned nLine)
+{
+  //far_assert_message(zFile, nLine, zExp, FALSE);
+  fprintf(stderr, "Assertion `%s' failed at %s:%n\n", zFile, nLine, zExp);
+  exit(1);
+}
+#endif
+
+#define save_dialogres_free dialogres_free
+#undef dialogres_free
+extern "C"  void dialogres_free(void* pChunk)
+{  
+  _dialogres_free(&pChunk, __FILE__, __LINE__);
+}
+#define dialogres_free save_dialogres_free 
+
+static void DumpToFile(void* const param, const char* Fmt, ...)
+{
+  FILE *pFile = (FILE *)param;
+  va_list argPtr;
+  va_start( argPtr, Fmt );
+  vfprintf(pFile, Fmt, argPtr);
+  va_end( argPtr );
+}
+
+int far_exc_dump(PEXCEPTION_POINTERS pExInfo)
+{
+  try
+  {
+    FarDumpStackCb(pExInfo, DumpToFile, stderr);
+    return EXCEPTION_EXECUTE_HANDLER;
+  }
+  catch(...)
+  {
+    return EXCEPTION_EXECUTE_HANDLER;
+  }
+}
+#endif
+
 #define malloc(nBytes) HeapAlloc(GetProcessHeap(), 0, nBytes)
 #define free(pChunk) HeapFree(GetProcessHeap(), 0, pChunk)
 
@@ -379,6 +423,9 @@ void WINAPI _export GetPluginInfo(struct PluginInfo *pi)
  ***************************************************************************/
 HANDLE WINAPI _export OpenPlugin(int OpenFrom, int item)
 {
+#if defined(_MSC_VER) && defined(_DEBUG)
+  __try {
+#endif
   switch (OpenFrom)
   {
     case OPEN_COMMANDLINE:
@@ -396,6 +443,9 @@ HANDLE WINAPI _export OpenPlugin(int OpenFrom, int item)
       TryViewDialogRes(PInfo.PanelItems[PInfo.CurrentItem].FindData.cFileName);
     }
   }
+#if defined(_MSC_VER) && defined(_DEBUG)
+  } __except(far_exc_dump(GetExceptionInformation())) { }
+#endif
   return INVALID_HANDLE_VALUE;
 }
 
@@ -412,7 +462,7 @@ HANDLE WINAPI _export OpenFilePlugin(char *zFilename, const unsigned char *Data,
 #ifdef __cplusplus
 extern "C" {
 #endif //__cplusplus
-
+#ifdef NDEBUG
 int __cdecl atexit(void (__cdecl *rest)(void))
 {
 	return 1;
@@ -427,13 +477,15 @@ int __stdcall _cygwin_dll_entry(HANDLE hDllHandle, DWORD dwReason, LPVOID lprese
 {
 	return 1;
 }
-
+#endif //NDEBUG
 #ifdef __cplusplus
 }
 #endif //__cplusplus
 
+#ifdef NDEBUG
 int main()
 {
 	return 1;
 }
+#endif //NDEBUG
 

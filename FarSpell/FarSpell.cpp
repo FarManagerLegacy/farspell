@@ -1580,6 +1580,11 @@ int WINAPI _export SetLngMode() //Exported for DialogGenerator
   return 0;
 }
 
+int WINAPI GetMinFarVersion()
+{
+  return MAKEFARVERSION(1, 70, 0);
+}
+
 void WINAPI _export SetStartupInfo (const struct PluginStartupInfo *Info)
 {
 #ifdef _DEBUG

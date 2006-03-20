@@ -1,5 +1,6 @@
 LIBRARY farspell.dll
 EXPORTS
+	GetMinFarVersion=_GetMinFarVersion@0
    ExitFAR=_ExitFAR@0
    GetPluginInfo=_GetPluginInfo@4
    OpenPlugin=_OpenPlugin@8

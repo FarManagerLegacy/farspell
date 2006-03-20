@@ -33,7 +33,9 @@ CINCLUDE = -I".." \
  -I"C:\Program Files\Microsoft Visual C++ Toolkit 2003\INCLUDE" \
  -I"C:\Program Files\Microsoft Visual C++ Toolkit 2003\PlatformSDK\INCLUDE" \
  -I$(Hunspell)
-CPPFILES = farspell.cpp
+CPPFILES = farspell.cpp FarSpell_UI.cpp \
+  ParserFactory.cpp SpellFactory.cpp \
+  DecisionTable.cpp
 DIST = farspell
 
 CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= $(CINCLUDE)
@@ -135,8 +137,11 @@ $(MJU_SED):
 	$(MAKE) /nologo -f makefile.vc mju-sed.exe
 	cd "$(MAKEDIR)"
 
-farspell.cpp: FarSpell.h ParserFactory.hpp SpellFactory.hpp codepages.cpp \
- dialogs.cpp ftl.hpp
+farspell.hpp: FarSpell.h ParserFactory.hpp SpellFactory.hpp
+farspell.cpp: farspell.hpp codepages.cpp 
+farspell_UI.cpp: dialogs.cpp ftl.hpp
+ParserFactory.cpp: ParserFactory.hpp
+SpellFactory.cpp: SpellFactory.hpp
 
 $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
  	$(MYLIBS)

@@ -41,7 +41,7 @@ class SpellInstance: public Hunspell
         ~WordList();
         int Count() const { return count; }
         FarStringW& operator[](int index);
-      private:
+      protected:
         WordList(int _encoding, char** _wlst, int _count);
         int encoding;
         char **wlst;
@@ -54,7 +54,7 @@ class SpellInstance: public Hunspell
     bool Check(FarStringW &word);
     const FarStringW &GetWordChars() {  return word_chars; }
     void SetWordChars(FarStringW &new_wc);
-  private:
+  protected:
     FarStringW GetWordChars_FromDict();
     FarRegistry reg;
     FarStringW word_chars;
@@ -81,7 +81,7 @@ class SpellFactory
       cache_engine_instances.Clear();
     }
     void EnumDictionaries(SpellFactoryEnumProc enum_proc, void* param);
-  private:
+  protected:
     FarString reg_root;
     FarFileName dict_root;
     FarArray<FarString> cache_engine_langs;

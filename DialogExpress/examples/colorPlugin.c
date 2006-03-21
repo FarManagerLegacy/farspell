@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <string.h>
 #include "plugin.hpp"
+#include "farcolor.hpp"
 #define malloc(nBytes) HeapAlloc(GetProcessHeap(), 0, nBytes)
 #define free(pChunk) HeapFree(GetProcessHeap(), 0, pChunk)
 

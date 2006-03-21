@@ -215,8 +215,6 @@ void FarSpellEditor::Manager::CheckDictionaries()
 
 // config format: int highlight | string dictinoary | int parser_id
 char *const config_template = "%d|%s||%s";
-char *const default_config_hl = "1|en_US||*";
-char *const default_config_nhl = "0|en_US||*";
 
 FarSpellEditor::FarSpellEditor():
   dict(editors->default_dict)
@@ -232,7 +230,6 @@ FarSpellEditor::FarSpellEditor():
   //editors->GetLog().Message("Creatig 0x%X (%d)", this, EditorId);
   file_name = fei.FileName;
   highlight = 1;
-  default_config_string = default_config_hl;
   parser_id = "*";
   _dict_instance = NULL;
   _parser_instance = NULL;
@@ -259,7 +256,6 @@ FarSpellEditor::FarSpellEditor():
   else
   {
     highlight = FarSF::CmpNameList(editors->highlight_list, file_name, true);
-    default_config_string = highlight ? default_config_hl : default_config_nhl;
   }
   //RecreateEngine(RS_ALL);
   if (parser_id.IsEmpty())
@@ -344,10 +340,7 @@ void FarSpellEditor::Save(FarEdInfo *fei)
      highlight,
      dict.c_str(),
      parser_id.c_str());
-  if (strcmp(default_config_string, config_text))
-    editors->reg.SetRegKey(editor_files_key, file_name, config_text);
-  else
-    editors->reg.DeleteRegValue(editor_files_key, file_name); // reconstruction possible
+  editors->reg.SetRegKey(editor_files_key, file_name, config_text);
 }
 
 void FarSpellEditor::DropEngine(int what)

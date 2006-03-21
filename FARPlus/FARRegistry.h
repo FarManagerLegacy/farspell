@@ -92,6 +92,12 @@ public:
 		bool Default, HKEY hRoot=HKEY_CURRENT_USER);
 	FarString GetRegStr (const char *Key, const char *ValueName,
 		const char *Default, HKEY hRoot=HKEY_CURRENT_USER);
+    template <class TChar>
+    FarStringT<TChar> GetFarString(const char *Key, const char *ValueName,
+      const FarStringT<TChar> &Default, HKEY hRoot=HKEY_CURRENT_USER);
+    template <class TChar>
+    bool SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<TChar> &Value, HKEY hRoot=HKEY_CURRENT_USER);
 
     int DeleteRegKey (const char *RootKey, const char *KeyName, 
         HKEY hRoot=HKEY_CURRENT_USER);

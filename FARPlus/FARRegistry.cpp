@@ -112,6 +112,48 @@ FarString FarRegistry::GetRegStr (const char *Key, const char *ValueName,
 	return retStr;
 }
 
+template <class TChar>
+FarStringT<TChar> FarRegistry::GetFarString (const char *Key, 
+	const char *ValueName, const FarStringT<TChar> &Default, HKEY hRoot)
+{
+	HKEY hKey=OpenRegKey (hRoot, Key, true);
+	if (!hKey)
+		return Default;
+	DWORD Type;
+	TChar Data [256];
+	DWORD dataSize = sizeof (Data);
+
+	FarString retStr;
+	int retVal = RegQueryValueEx (hKey, ValueName, NULL, &Type, 
+	                              (BYTE *) Data, &dataSize);
+	if (retVal == ERROR_MORE_DATA)
+	{
+		if (Type == REG_SZ)
+		  dataSize -= sizeof(TChar);
+		RegQueryValueEx (hKey, ValueName, NULL, &Type, 
+		   (BYTE *) retStr.GetBuffer(dataSize/sizeof(TChar)), &dataSize);
+	}
+	else if (retVal == ERROR_SUCCESS)
+	{
+		if (Type == REG_SZ)
+		  dataSize -= sizeof(TChar);
+		retStr.SetText (Data, dataSize/sizeof(TChar));
+	}
+	else
+		retStr = Default;
+
+	RegCloseKey (hKey);
+	return retStr;
+}
+
+template <class TChar>
+bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<TChar> &Value, HKEY hRoot)
+{
+	return SetRegKey(Key, ValueName, (const void*)Value.data(), 
+                   Value.Length()*sizeof(TChar), hRoot);
+}
+
 bool FarRegistry::KeyExists (const char *key, const char *valueName, HKEY hRoot)
 {
 	HKEY hKey = OpenRegKey (hRoot, key, true);

@@ -21,6 +21,7 @@
 */
 
 #pragma once
+#include <FARPlus/FARPlus.h>
 #include <FARPlus/FARArray.h>
 #include <FARPlus/FARString.h>
 #include <FARPlus/FARRegistry.h>

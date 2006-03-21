@@ -257,7 +257,7 @@ _CRT_ALLOC_HOOK CDbgReportInit::m_OrigAllocHook = NULL;
 CDbgReportInit _DbgReportInit;
 
 #endif HAVE_DEBUGCRT
-#endif _DEBUG
+#endif //_DEBUG
 
 class CTraceClipboardData
 {

@@ -19,15 +19,17 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
+ROOT := ..
+include $(ROOT)/config.mak
+
 ifndef TARGET
 TARGET = Debug
 endif
 $(warning Target is $(TARGET))
 
-CMD = cmd.exe /c
-LEMON = ../make-tools/lemon.exe
+LEMON = $(ROOT)/make-tools/lemon.exe
 CLIB = ar
-COMMONFLAGS =  -mno-cygwin -I../../../PlugDoc/Headers.c
+COMMONFLAGS =  -mno-cygwin -I"$(PLUGINSDK_HEADERS)"
 
 ifeq ("$(TARGET)","Release")
 override CC = gcc -O3 -DNDEBUG $(COMMONFLAGS)
@@ -142,7 +144,7 @@ $(OUTDIR):
 	mkdir $(OUTDIR)
 
 $(LEMON):
-	$(MAKE) -C ../make-tools lemon.exe
+	$(MAKE) -C $(ROOT)/make-tools lemon.exe
 
 clean:
 	-$(RM) --force parse.c parse.h parse.out
@@ -152,4 +154,4 @@ clean:
 	
 
 distclean: clean
-	$(MAKE) -C ../make-tools clean
+	$(MAKE) -C $(ROOT)/make-tools clean

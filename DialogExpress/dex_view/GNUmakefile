@@ -19,19 +19,23 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
-dex_view.dll: dex_view.o dex_view.def ../.gcc.aided-release/dialogres-static.a farlng.o
+ROOT := ../..
+include $(ROOT)/config.mak
+DEX := ..
+
+dex_view.dll: dex_view.o dex_view.def $(DEX)/.gcc.aided-release/dialogres-static.a farlng.o
 	dllwrap -mno-cygwin -o $@ dex_view.o --def dex_view.def \
- ../.gcc.aided-release/dialogres-static.a farlng.o \
+ $(DEX)/.gcc.aided-release/dialogres-static.a farlng.o \
  -Wl,-s,-Map,dex_view.map,--enable-stdcall-fixup
 
-dex_view.o: dex_view.cpp ../dialogres.h
-	g++ -c -Wall -mdll -mno-cygwin -O3 -DNDEBUG -I../../../../PlugDoc/Headers.c $< -o $@
+dex_view.o: dex_view.cpp $(DEX)/dialogres.h
+	g++ -c -Wall -mdll -mno-cygwin -O3 -DNDEBUG -I"$(PLUGINSDK_HEADERS)" $< -o $@
 
-farlng.o: ../../FarLNG/farlng.cpp
+farlng.o: $(ROOT)/FarLNG/farlng.cpp
 	g++ -c -Wall -mdll -mno-cygwin -O3 $< -o $@
 
-../.gcc.aided-release/dialogres-static.a:
-	$(MAKE) -C .. aided .gcc.aided-release/dialogres-static.a
+$(DEX)/.gcc.aided-release/dialogres-static.a:
+	$(MAKE) -C $(DEX) aided .gcc.aided-release/dialogres-static.a
 
 clean:
 	-$(RM) dex_view.o

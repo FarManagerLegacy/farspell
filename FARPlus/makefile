@@ -1,7 +1,10 @@
-INCLUDE="C:\Program Files\Far\PlugDoc\Headers.c";"C:\Program Files\Microsoft Visual C++ Toolkit 2003\include";"C:\Program Files\Microsoft Visual C++ Toolkit 2003\PlatformSDK\include"
+ROOT = ..
+!include $(ROOT)\config.mak
+
 CC=cl
 LIB=lib /nologo
-COMMON_FLAGS = /c  /nologo /DUSE_FAR_170  /Zp2 /D_export= /D_FARPLUS=1
+COMMON_FLAGS = /c  /nologo /DUSE_FAR_170  /Zp2 /D_export= /D_FARPLUS=1 \
+ -I"$(PLUGINSDK_HEADERS)"
 RELEASE_FLAGS = /LD /Ox /Gy  /GL
 DEBUG_FLAGS =  /LD /Od /Ge /Zi /D_DEBUG
 FARPlusCPP = FAR_SF.cpp \

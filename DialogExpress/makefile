@@ -19,13 +19,16 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
+ROOT = ..
+!include $(ROOT)\config.mak
+
 !ifndef TARGET
 TARGET = Debug
 !endif            
 !message Target is $(TARGET)
 
-LEMON = ..\make-tools\lemon.exe
-COMMONFLAGS = -nologo -GF -Fo$(OUTDIR)\ -I..\..\..\PlugDoc\Headers.c
+LEMON = $(ROOT)\make-tools\lemon.exe
+COMMONFLAGS = -nologo -GF -Fo$(OUTDIR)\ -I"$(PLUGINSDK_HEADERS)"
 CLIB = lib -nologo 
 
 !if "$(TARGET)"=="Release"
@@ -60,6 +63,7 @@ aided:
 # Prevents from build of something useless cdialog.exe
 executables: cdialog.exe$(OUTDIR) metadialog.exe$(OUTDIR)
 $(OUTDIR)\cdialog.exe: cdialog.c $(OUTDIR)\dialogres_static.lib
+	$(MAKE) -nologo $(OUTDIR)
 	$(CC) -o $@ cdialog.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
 cdialog.exe$(OUTDIR): $(OUTDIR)\cdialog.exe
 	-del cdialog.exe.*.aided-release
@@ -70,6 +74,7 @@ cdialog.exe$(OUTDIR): $(OUTDIR)\cdialog.exe
 
 $(OUTDIR)\metadialog.exe: metadialog.c metaparse.c metaparse.h  \
         	$(OUTDIR)\dialogres_static.lib 
+	$(MAKE) -nologo $(OUTDIR)
         $(CC) -o $@ metadialog.c metaparse.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
 metadialog.exe$(OUTDIR): $(OUTDIR)\metadialog.exe
 	-del metadialog.exe.*
@@ -137,7 +142,7 @@ $(OUTDIR)\mkcolors.exe: mkcolors.c
 	$(CC) -o $@ mkcolors.c
 
 $(LEMON):
-	cd ..\make-tools
+	cd $(ROOT)\make-tools
 	$(MAKE) -nologo -f makefile.vc lemon.exe
 	cd "$(MAKEDIR)"
 
@@ -157,7 +162,7 @@ clean:
 	-rmdir /S /Q .msvc.debug
 
 distclean: clean
-	cd ..\make-tools
+	cd $(ROOT)\make-tools
 	$(MAKE) -nologo -f makefile.vc clean
 	cd "$(MAKEDIR)"
 	

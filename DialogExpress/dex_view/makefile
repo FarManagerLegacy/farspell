@@ -19,13 +19,17 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
+ROOT = ..\..
+!include $(ROOT)\config.mak
+DEX = ..
+
 !ifndef TARGET
 TARGET = Release
 !endif            
 !message Target is $(TARGET)
 
 COMMONFLAGS =  -nologo 
-FARPLUS = ../../FARPlus
+FARPLUS = $(ROOT)\FARPlus
 
 !if "$(TARGET)"=="Release"
 DIALOGRES_LIB = .msvc.aided-release/dialogres_static.lib
@@ -39,18 +43,18 @@ LIBS =  $(FARPLUS)/FarDbg_PDB.cpp
 CC = cl $(COMMONFLAGS) -MT -Od -Fd -Zi -D_DEBUG -EHsc
 !endif
 
-dex_view.dll: dex_view.cpp dex_view.def ../$(DIALOGRES_LIB) $(LIBS) \
-   ../../FarLNG/farlng.h farlng.obj
+dex_view.dll: dex_view.cpp dex_view.def $(DEX)/$(DIALOGRES_LIB) $(LIBS) \
+   $(ROOT)/FarLNG/farlng.h farlng.obj
 	$(CC) /o $@ -LD dex_view.cpp dex_view.def \
- -I../../../../PlugDoc/Headers.c \
- ../$(DIALOGRES_LIB) $(LIBS) farlng.obj user32.lib kernel32.lib -Fm \
+ -I"$(PLUGINSDK_HEADERS)" \
+ $(DEX)/$(DIALOGRES_LIB) $(LIBS) farlng.obj user32.lib kernel32.lib -Fm \
  -link -NODEFAULTLIB:LIBC
 
-farlng.obj: ..\..\FarLNG\farlng.cpp
-	$(CC) /c /o $@ ..\..\FarLNG\farlng.cpp
+farlng.obj: $(ROOT)\FarLNG\farlng.cpp
+	$(CC) /c /o $@ $(ROOT)\FarLNG\farlng.cpp
 
-../$(DIALOGRES_LIB):
-	cd ..
+$(DEX)/$(DIALOGRES_LIB):
+	cd $(DEX)
 	$(MAKE) -nologo aided $(DIALOGRES_LIB)
 	cd "$(MAKEDIR)"
 

@@ -19,20 +19,19 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
+ROOT = ..
+!include $(ROOT)\config.mak
+
 !ifdef EXINFO
 !include makefile.exinfo
 !endif
 
-SEVEN_ZIP = "c:\program files\7-zip\7z.exe"
-
 Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
-FARPlus = ..\FARPlus
-DEX = ..\DialogExpress
-CINCLUDE = -I".." \
- -I"C:\Program Files\Far\PlugDoc\Headers.c" \
- -I"C:\Program Files\Microsoft Visual C++ Toolkit 2003\INCLUDE" \
- -I"C:\Program Files\Microsoft Visual C++ Toolkit 2003\PlatformSDK\INCLUDE" \
- -I$(Hunspell)
+
+FARPlus = $(ROOT)\FARPlus
+DEX = $(ROOT)\DialogExpress
+CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell) 
+ 
 CPPFILES = farspell.cpp FarSpell_UI.cpp \
   ParserFactory.cpp SpellFactory.cpp \
   DecisionTable.cpp
@@ -46,9 +45,9 @@ LINKFLAGS = /nologo /dll /opt:ref
 !endif
 BUILT_STAMP = farspell.dll-debug
 OBJ_FILES = $(CPPFILES:.cpp=.obj_d)
-FARPLUS_LIB = $(FARPlus)/farplus_d.lib
 HUNSPELL_LIBS = $(Hunspell)/hunspell/hunspell_d.lib \
   $(Hunspell)/parsers/hunparsers_d.lib
+FARPLUS_LIB = $(FARPlus)/farplus_d.lib
 FARPLUS_OPTS = $(FARPlus)/FARDbg.obj_d $(FARPlus)/FarDbg_PDB.obj_d
 CC = cl $(CFLAGS) /D_DEBUG /Ge /Od /Zi
 #CC_DLL = $(CC)
@@ -61,9 +60,9 @@ CC_DLL = link $(LINKFLAGS) /debug
 !endif DEBUG
 BUILT_STAMP = farspell.dll-release
 OBJ_FILES = $(CPPFILES:.cpp=.obj_r)
-FARPLUS_LIB = $(FARPlus)/farplus_r.lib
 HUNSPELL_LIBS = $(Hunspell)/hunspell/hunspell_r.lib \
   $(Hunspell)/parsers/hunparsers_r.lib
+FARPLUS_LIB = $(FARPlus)/farplus_r.lib
 FARPLUS_OPTS =
 CC = cl $(CFLAGS) /DNDEBUG /Ox /Gy /GL
 #CC_DLL = $(CC)
@@ -74,7 +73,7 @@ CC_DLL = link $(LINKFLAGS)
 MYLIBS = $(FARPLUS_OPTS) $(FARPLUS_LIB) $(HUNSPELL_LIBS)
 LIBS = $(MYLIBS) advapi32.lib user32.lib kernel32.lib ole32.lib oleaut32.lib
 
-MJU_SED = ..\make-tools\mju-sed.exe
+MJU_SED = $(ROOT)\make-tools\mju-sed.exe
 
 !ifdef RELEASE_BUILT
 !ifdef DEBUG_BUILT
@@ -179,7 +178,7 @@ $(Hunspell)\parsers\makefile.vc: makefile.parsers
 $(HUNSPELL_LIBS): $(Hunspell)\hunspell\makefile.vc $(Hunspell)\parsers\makefile.vc
 	cd $(Hunspell)\hunspell
         $(MAKE) /nologo /f makefile.vc
-	cd ..\parsers
+	cd $(ROOT)\parsers
         $(MAKE) /nologo /f makefile.vc
 	cd "$(MAKEDIR)"
 
@@ -195,7 +194,7 @@ distclean: clean
 	cd $(DEX)
 	$(MAKE) /nologo -f makefile clean
 	cd "$(MAKEDIR)"
-	cd ..\make-tools
+	cd $(ROOT)\make-tools
 	$(MAKE) /nologo -f makefile.vc clean
 	cd "$(MAKEDIR)"
 	cd $(FARPlus)
@@ -203,7 +202,7 @@ distclean: clean
 	cd $(Hunspell)\hunspell
         -$(MAKE) /nologo /f makefile.vc clean
         -del makefile.vc
-	cd ..\parsers
+	cd (ROOT)\parsers
         -$(MAKE) /nologo /f makefile.vc clean
         -del makefile.vc
 	cd "$(MAKEDIR)"

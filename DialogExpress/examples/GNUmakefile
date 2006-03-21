@@ -19,15 +19,19 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
+ROOT := ../..
+include $(ROOT)\config.mak
+DEX :=  ..
+
 colorPlugin.dll: colorPlugin.o colorPlugin.def
 	dllwrap -mno-cygwin -o $@ colorPlugin.o --def colorPlugin.def -Wl,-s,-Map,colorPlugin.map,--enable-stdcall-fixup
 
 colorPlugin.o: colorPlugin.c color.c
 	gcc -c -mdll -mno-cygwin -O3 $< -o $@
 
-color.c: color.dlg ../metadialog_c.txt
-	$(MAKE) -C .. aided
-	../metadialog.exe ../metadialog_c.txt $< > $@
+color.c: color.dlg $(DEX)/metadialog_c.txt
+	$(MAKE) -C $(DEX) aided
+	$(DEX)/metadialog.exe $(DEX)/metadialog_c.txt $< > $@
 
 clean:
 	-$(RM) color.c

@@ -1,5 +1,5 @@
 #
-#    makefile for build sample plugin by VC.
+#    Global makefile config.
 #    Copyright (c) Sergey Shishmintzev, Kiev 2006
 #
 #    This library is free software; you can redistribute it and/or
@@ -19,27 +19,20 @@
 #    Contributor(s):
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
-ROOT = ..\..
-!include $(ROOT)\config.mak
-DEX = ..
+# Для работы всех *makefile* в этом дереве папок нужно
+# скопировать этот файл в config.mak и установить правильные пути.
+# Для корректной работы make.exe из поставки cygwin,
+# все разделители папок должны быть /
 
-colorPlugin.dll: colorPlugin.c color.c colorPlugin.def
-	cl /LD /MD /GL /Ox /I"$(PLUGINSDK_HEADERS)" colorPlugin.c colorPlugin.def \
- /Fm kernel32.lib
+### Абсолютный путь к этой папке:
+ABSROOT = C:/Program Files/Far/Plugins/far-unlimited
 
-color.c: color.dlg $(DEX)/metadialog_c.txt
-	cd $(DEX)
-	$(MAKE) -nologo aided
-	cd "$(MAKEDIR)"
-	$(DEX)\metadialog.exe $(DEX)\metadialog_c.txt color.dlg > $@
+### Microsoft-совместимый интерпретатор команд:
+CMD = cmd.exe /c
 
-clean:
-	-del color.c
-	-del color.dlg.log
-	-del colorPlugin.obj
-	-del colorPlugin.lib
-	-del colorPlugin.exp
-	-del colorPlugin.dll
-	-del colorPlugin.map
-	-del colorPlugin.pdb
-	-del colorPlugin.ilk
+### Абсолютный путь к папке с заголовочными файлами FAR Plugin SDK:
+PLUGINSDK_HEADERS = C:/Program Files/Far/PluginSDK/Headers.c
+
+### Абсолютный путь к консольному архиватору 7z:
+SEVEN_ZIP = "c:/program files/7-zip/7z.exe"
+

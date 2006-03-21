@@ -1,5 +1,7 @@
-CINCLUDE="C:/Program Files/Far/PlugDoc/Headers.c"
-CC=g++ -I$(CINCLUDE)
+ROOT := ..
+include $(ROOT)/config.mak
+
+CC=g++ -I"$(PLUGINSDK_HEADERS)"
 LIB=ld
 COMMON_FLAGS = -c -mno-cygwin -DUSE_FAR_170  -D_FARPLUS=1
 RELEASE_FLAGS = -O3  -DNDEBUG

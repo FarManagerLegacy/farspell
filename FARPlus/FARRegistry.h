@@ -109,6 +109,18 @@ public:
 	ValueIterator EnumValues (const char *Key, HKEY hRoot = HKEY_CURRENT_USER);
 };
 
+#ifdef __GNUC__
+// Explicit template instatiations
+template FarStringT<char> FarRegistry::GetFarString (const char *Key, 
+	const char *ValueName, const FarStringT<char> &Default, HKEY hRoot);
+template FarStringT<wchar_t> FarRegistry::GetFarString (const char *Key, 
+	const char *ValueName, const FarStringT<wchar_t> &Default, HKEY hRoot);
+template bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<char> &Value, HKEY hRoot);
+template bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<wchar_t> &Value, HKEY hRoot);
+#endif
+
 inline bool FarRegistry::GetRegBool (const char *Key, const char *ValueName, 
 									 bool Default, HKEY hRoot/* =HKEY_CURRENT_USER */)
 {

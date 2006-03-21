@@ -123,7 +123,7 @@ FarStringT<TChar> FarRegistry::GetFarString (const char *Key,
 	TChar Data [256];
 	DWORD dataSize = sizeof (Data);
 
-	FarString retStr;
+	FarStringT<TChar> retStr;
 	int retVal = RegQueryValueEx (hKey, ValueName, NULL, &Type, 
 	                              (BYTE *) Data, &dataSize);
 	if (retVal == ERROR_MORE_DATA)
@@ -153,6 +153,18 @@ bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
 	return SetRegKey(Key, ValueName, (const void*)Value.data(), 
                    Value.Length()*sizeof(TChar), hRoot);
 }
+
+#ifdef _MSC_VER
+// Explicit template instatiations
+template FarStringT<char> FarRegistry::GetFarString (const char *Key, 
+	const char *ValueName, const FarStringT<char> &Default, HKEY hRoot);
+template FarStringT<wchar_t> FarRegistry::GetFarString (const char *Key, 
+	const char *ValueName, const FarStringT<wchar_t> &Default, HKEY hRoot);
+template bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<char> &Value, HKEY hRoot);
+template bool FarRegistry::SetFarString(const char *Key, const char *ValueName,
+      const FarStringT<wchar_t> &Value, HKEY hRoot);
+#endif
 
 bool FarRegistry::KeyExists (const char *key, const char *valueName, HKEY hRoot)
 {

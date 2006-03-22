@@ -47,7 +47,7 @@ FarStringW& SpellInstance::WordList::operator[](int index)
   return _word_cache;
 }
 
-SpellInstance::WordList *SpellInstance::Suggest(FarStringW &word)
+SpellInstance::WordList *SpellInstance::Suggest(const FarStringW &word)
 {
   FarString aword;
   char **wlst;
@@ -56,7 +56,8 @@ SpellInstance::WordList *SpellInstance::Suggest(FarStringW &word)
   return new WordList(encoding, wlst, count);
 }
 
-SpellInstance::SpellInstance( FarString &reg_root, FarFileName &dict_root, FarString &dict)
+SpellInstance::SpellInstance( const FarString &reg_root, 
+  const FarFileName &dict_root, const FarString &dict)
 : Hunspell(FarFileName::MakeName(dict_root, dict+".aff").c_str(),
            FarFileName::MakeName(dict_root, dict+".dic").c_str())
 , reg(reg_root, dict)
@@ -77,13 +78,13 @@ SpellInstance::SpellInstance( FarString &reg_root, FarFileName &dict_root, FarSt
     word_chars = orig_word_chars;
 }
 
-void SpellInstance::SetWordChars(FarStringW &new_wc)
+void SpellInstance::SetWordChars(const FarStringW &new_wc)
 {
   word_chars = new_wc;
   reg.SetRegKey("", "WordChars", (char*)word_chars.c_str(), word_chars.Length()*sizeof(wchar_t));
 }
 
-bool SpellInstance::Check(FarStringW &word)
+bool SpellInstance::Check(const FarStringW &word)
 {
   FarString aword;
   ToAscii(encoding, word, aword);
@@ -104,7 +105,7 @@ FarStringW SpellInstance::GetWordChars_FromDict()
   }
 }
 
-SpellInstance* SpellFactory::GetDictInstance(FarString& dict)
+SpellInstance* SpellFactory::GetDictInstance(const FarString& dict)
 {
   for (int i = 0; i < cache_engine_langs.Count(); i++)
   {

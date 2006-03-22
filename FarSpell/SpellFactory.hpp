@@ -49,12 +49,12 @@ class SpellInstance: public Hunspell
         int count;
         FarStringW _word_cache;
     };
-    SpellInstance( FarString &reg_root, FarFileName &dict_root, 
-                   FarString &dict);
-    WordList *Suggest(FarStringW &word);
-    bool Check(FarStringW &word);
+    SpellInstance( const FarString &reg_root, const FarFileName &dict_root, 
+                   const FarString &dict);
+    WordList *Suggest(const FarStringW &word);
+    bool Check(const FarStringW &word);
     const FarStringW &GetWordChars() {  return word_chars; }
-    void SetWordChars(FarStringW &new_wc);
+    void SetWordChars(const FarStringW &new_wc);
   protected:
     FarStringW GetWordChars_FromDict();
     FarRegistry reg;
@@ -67,13 +67,13 @@ class SpellFactory
 {
   public:
     typedef int (*SpellFactoryEnumProc)(const FarString& name, void* param);
-    SpellFactory(FarFileName &_dict_root, FarString &_reg_root)
+    SpellFactory(const FarFileName &_dict_root, const FarString &_reg_root)
     : dict_root(_dict_root)
     , reg_root(_reg_root+"\\Hunspell\\")
     {
     }
     ~SpellFactory() {};
-    SpellInstance* GetDictInstance(FarString& dict);
+    SpellInstance* GetDictInstance(const FarString& dict);
     bool AnyDictionaryExists();
     bool DictionaryExists(const char *dict);
     void UnloadDictionaries()

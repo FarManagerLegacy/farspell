@@ -92,7 +92,7 @@ public:
 	void Remove ( int index )
 	{
 		far_assert(index >= 0);
-		far_assert(index < Parent::fCount);
+		far_assert(index < fCount);
 		BaseRemove( index );
 	}
 

@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "FARDbg.h"
 #include "FARMemory.h"
 
 #if _MSC_VER >= 1000
@@ -34,6 +35,7 @@ protected:
 		  fResizeDelta (resizeDelta), fItemSize (itemSize) {};
 
 	void BaseAdd (const void *item);
+	void BaseRemove (int index);
 
 	void InternalClear()
 	{
@@ -85,6 +87,13 @@ public:
 	void Add (T &item)
 	{
 		BaseAdd (&item);
+	}
+
+	void Remove ( int index )
+	{
+		far_assert(index >= 0);
+		far_assert(index < Parent::fCount);
+		BaseRemove( index );
 	}
 
 	int IndexOf (T &item) const
@@ -142,6 +151,15 @@ public:
 	{
 		T *addItem = const_cast<T *> (item);
 		Parent::Add (addItem);
+	}
+
+	void Remove ( int index )
+	{
+		far_assert(index >= 0);
+		far_assert(index < Parent::fCount);
+		if (fOwnsItems)
+			delete Parent::At(index);
+		BaseFarArray::BaseRemove( index );
 	}
 
 	bool OwnsItems() const

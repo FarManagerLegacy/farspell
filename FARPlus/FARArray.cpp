@@ -19,6 +19,16 @@ void BaseFarArray::BaseAdd (const void *item)
 	fCount++;
 }
 
+void BaseFarArray::BaseRemove (int index)
+{
+	far_assert(index >= 0);
+	far_assert(index < fCount);
+	memmove(fItems + index * fItemSize, 
+	        fItems + (index+1) * fItemSize, 
+	        (fCount - index - 1) * fItemSize);
+	fCount--;
+}
+
 void BaseFarArray::InternalSort (BaseCmpFunc cmpFunc)
 {
 	FarSF::qsort (fItems, fCount, fItemSize, cmpFunc);

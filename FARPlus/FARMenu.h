@@ -72,6 +72,7 @@ public:
     int Show();
     int GetBreakCode() const
 		{ return fBreakCode; }
+    const char* GetItemText(int index);
 };
 
 typedef FarMenuT<FarMenuItem> FarMenu;

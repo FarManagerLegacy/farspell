@@ -194,6 +194,24 @@ int FarMenuT<FarMenuItemEx>::Show()
         (FarMenuItem*)fItems, fItemsNumber);
 }
 
+const char* FarMenuT<FarMenuItem>::GetItemText(int index)
+{
+  far_assert(index>=0);
+  far_assert(index<fItemsNumber);
+  return fItems[index].Text;
+}
+
+const char* FarMenuT<FarMenuItemEx>::GetItemText(int index)
+{
+  far_assert(index>=0);
+  far_assert(index<fItemsNumber);
+  FarMenuItemEx *fItem = fItems+index;
+  if (fItem->Flags&MIF_USETEXTPTR)
+    return fItem->Text.TextPtr;
+  else
+    return fItem->Text.Text;
+}
+
 #ifdef _MSC_VER
 // -- FarMenu[Ex] -------------------------------------------------------------
 

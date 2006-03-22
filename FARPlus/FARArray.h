@@ -7,7 +7,7 @@
 #define __FARLIST_H
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 #include "FARMemory.h"
 
 #if _MSC_VER >= 1000

@@ -24,14 +24,23 @@
 #include <stdio.h>
 #include "DecisionTable.hpp"
 
-DecisionTable::action_t DecisionTable::noaction = -1;
-DecisionTable::condition_id_t DecisionTable::nocondition_id = -1;
+DecisionTable::Action::~Action()
+{
+}
+
+DecisionTable::Condition::~Condition()
+{
+}
 
 DecisionTable::~DecisionTable()
 {
-  delete[] _conditions;
-  delete[] actions;
-  delete[] condition_ids;
+  delete[] _condition_cache;
+  for (int a = n_rules-1; a>=0; a--)
+    delete action_insts[a];
+  delete[] action_insts;
+  for (int c = n_conditions-1; c>=0; c--)
+    delete condition_insts[c];
+  delete[] condition_insts;
   for (unsigned r = 0; r<n_rules; r++)
     delete[] rules[r];
   delete[] rules;
@@ -39,26 +48,25 @@ DecisionTable::~DecisionTable()
 
 DecisionTable::DecisionTable()
 {
+  context = NULL;
   rules = NULL;
-  actions  = NULL;
-  condition_ids = NULL;
+  action_insts  = NULL;
+  condition_insts = NULL;
   n_conditions = n_rules = 0;
-  _conditions = NULL;
+  _condition_cache = NULL;
   LastError = Ok;
 }
 
-DecisionTable::DecisionTable(const FarString &source)
+void DecisionTable::SetContext(Context *in_context)
+{
+  context = in_context;
+}
+
+void DecisionTable::FromString(const FarString &source)
 {
   unsigned i, r, c;
   FarStringTokenizer tokenizer (source, '|');
 
-  rules = NULL;
-  actions  = NULL;
-  condition_ids = NULL;
-  n_conditions = 0;
-  n_rules = 0;
-  _conditions = NULL;
-  
   LastError = Ok;
 
   for (i = 0; i<2 && tokenizer.HasNext(); i++) 
@@ -78,8 +86,9 @@ DecisionTable::DecisionTable(const FarString &source)
 
   Allocate(n_rules, n_conditions);
 
-  for (c = 0; c<n_conditions && tokenizer.HasNext(); c++)  
-    condition_ids[c] = atoi(tokenizer.NextToken());
+  for (c = 0; c<n_conditions && tokenizer.HasNext(); c++) {
+    condition_insts[c] = context->GetCondition(atoi(tokenizer.NextToken()));
+  }
   if (c!=n_conditions) {
     LastError = InvalidSource;
     return;
@@ -94,7 +103,7 @@ DecisionTable::DecisionTable(const FarString &source)
       LastError = InvalidSource;
       return;
     }
-    actions[r] = atoi(tokenizer.NextToken());
+    action_insts[r] = context->GetAction(atoi(tokenizer.NextToken()));
   }
   if (r!=n_rules) {
     LastError = InvalidSource;
@@ -113,7 +122,8 @@ FarString DecisionTable::AsString()
   s = buf;
   if (n_conditions==0 || n_rules==0) return s;
   for (unsigned c = 0; c<n_conditions; c++) {
-    sprintf(buf, "%u|", condition_ids[c]);
+    condition_insts[c]->OnSave();
+    sprintf(buf, "%u|", condition_insts[c]->uid);
     s += buf;
   }
   for (unsigned r = 0; r<n_rules; r++) {
@@ -123,25 +133,27 @@ FarString DecisionTable::AsString()
       coded_rule<<=2;
       coded_rule |= rule[c];
     }
-    sprintf(buf, "%u|%u|", coded_rule, actions[r]);
+    action_insts[r]->OnSave();
+    sprintf(buf, "%u|%u|", coded_rule, action_insts[r]->uid);
     s += buf;
   }
 
   return s;
 }
 
-int DecisionTable::InsertCondition(unsigned at, condition_id_t id)
+DecisionTable::condition_inst_t DecisionTable::InsertCondition(unsigned at)
 {
   if (at>n_conditions) {
     LastError = OutOfRange;
-    return -1;
+    return NULL;
   }
   n_conditions++;
-  condition_ids = (condition_id_t*)realloc(condition_ids, n_conditions*sizeof(condition_id_t));
+  condition_insts = (condition_inst_t*)realloc(condition_insts, n_conditions*sizeof(condition_inst_t));
   for (signed c = n_conditions-1; c > at; c--) 
-    condition_ids[c] = condition_ids[c-1];
-  condition_ids[at] = id;    
-  if (n_rules == 0) return at;
+    condition_insts[c] = condition_insts[c-1];
+  condition_inst_t inst = context->CreateCondition();
+  condition_insts[at] = inst;
+  if (n_rules == 0) return inst;
   for (unsigned r = 0; r<n_rules; r++) {
     condition_t *rule = rules[r] = (condition_t*)realloc(rules[r], 
       n_conditions*sizeof(condition_t));
@@ -150,28 +162,38 @@ int DecisionTable::InsertCondition(unsigned at, condition_id_t id)
     rule[at] = any;
   }
   LastError = Ok;
-  return at;
+  return inst;
 }
 
-int DecisionTable::InsertRule(unsigned at, int action)
+DecisionTable::action_inst_t DecisionTable::InsertRule(unsigned at, action_inst_t in_action)
 {
   if (at>n_rules) {
     LastError = OutOfRange;
-    return -1;
+    return NULL;
   }
   n_rules++;
   rules = (condition_t**)realloc(rules, n_rules*sizeof(condition_t*));
-  actions = (action_t*)realloc(actions, n_rules*sizeof(action_t));
+  action_insts = (action_inst_t*)realloc(action_insts, n_rules*sizeof(action_inst_t));
   for (signed r = n_rules-1; r > at; r--) {
     rules[r] = rules[r-1];
-    actions[r] = actions[r-1];
+    action_insts[r] = action_insts[r-1];
   }
   condition_t *rule = rules[at] = new condition_t[n_conditions];
   for (unsigned c = 0; c<n_conditions; c++)
     rule[c] = any;
-  actions[at] = action;
+  action_inst_t action;
+  if (in_action)
+    action = context->GetAction(in_action->uid);
+  else
+    action = context->CreateAction();
+  action_insts[at] = action;
   LastError = Ok;
-  return at;
+  return action;
+}
+
+DecisionTable::action_inst_t DecisionTable::InsertRule(unsigned at)
+{
+  return InsertRule(at, NULL);
 }
 
 void DecisionTable::SwapConditions(unsigned c1, unsigned c2)
@@ -181,9 +203,9 @@ void DecisionTable::SwapConditions(unsigned c1, unsigned c2)
     return;
   }
 
-  condition_id_t id = condition_ids[c1];
-  condition_ids[c1] = condition_ids[c2];
-  condition_ids[c2] = id;
+  condition_inst_t id = condition_insts[c1];
+  condition_insts[c1] = condition_insts[c2];
+  condition_insts[c2] = id;
 
   for (unsigned r = 0; r<n_rules; r++) {
     condition_t *rule = rules[r];
@@ -200,9 +222,9 @@ void DecisionTable::SwapRules(unsigned r1, unsigned r2)
     LastError = OutOfRange;
     return;
   }
-  action_t action = actions[r1];
-  actions[r1] = actions[r2];
-  actions[r2] = action;
+  action_inst_t action = action_insts[r1];
+  action_insts[r1] = action_insts[r2];
+  action_insts[r2] = action;
 
   condition_t *rule = rules[r1];
   rules[r1] = rules[r2];
@@ -218,8 +240,9 @@ void DecisionTable::DeleteCondition(unsigned at)
     return;
   }
   n_conditions--;
+  delete condition_insts[at];
   for (unsigned c = at; c<n_conditions; c++)
-    condition_ids[c] = condition_ids[c+1];
+    condition_insts[c] = condition_insts[c+1];
   for (unsigned r = 0; r<n_rules; r++) {
     condition_t *rule = rules[r];
     for (unsigned c = at; c<n_conditions; c++)
@@ -236,9 +259,10 @@ void DecisionTable::DeleteRule(unsigned at)
   }
   n_rules--;
   delete [] rules[at];
+  delete action_insts[at];
   for (unsigned r = at; r < n_rules; r++) {
     rules[r] = rules[r+1];
-    actions[r] = actions[r+1];
+    action_insts[r] = action_insts[r+1];
   }
   LastError = Ok;
 }
@@ -247,50 +271,62 @@ void DecisionTable::Allocate(unsigned init_rules, unsigned init_conditions)
 {
   n_conditions = init_conditions;
   n_rules = init_rules;
-  _conditions = new condition_t[n_conditions];
-  condition_ids = new condition_id_t[n_conditions];
-  actions = new action_t[n_rules];
+  _condition_cache = new condition_t[n_conditions];
+  condition_insts = new condition_inst_t[n_conditions];
+  action_insts = new action_inst_t[n_rules];
   rules = new condition_t *[n_rules];
   for (unsigned r = 0; r<n_rules; r++)
     rules[r] = new condition_t[n_conditions];
   LastError = Ok;
 }
 
-DecisionTable::action_t DecisionTable::Execute(get_condition_t input_callback, void* context)
+DecisionTable::action_inst_t DecisionTable::Execute()
 {
   LastError = Ok;
   for (unsigned c = 0; c<n_conditions; c++) 
-    _conditions[c] = input_callback(condition_ids[c], context)? tt : ff;
+    _condition_cache[c] = condition_insts[c]->Execute()? tt : ff;
   for (unsigned r = 0; r<n_rules; r++) {
     const condition_t *rule = rules[r];
     bool status = true;
     for (unsigned c = 0; c<n_conditions; c++) 
       switch(rule[c]) {
-        case tt: status = status && (_conditions[c]==tt); break;
-        case ff: status = status && (_conditions[c]==ff); break;
+        case tt: status = status && (_condition_cache[c]==tt); break;
+        case ff: status = status && (_condition_cache[c]==ff); break;
       }
     if (status)
-      return actions[r];
+      return action_insts[r];
   }
-  return noaction;
+  return NULL;
 }
 
-DecisionTable::action_t DecisionTable::GetAction(unsigned rule)
+DecisionTable::action_inst_t DecisionTable::GetActionInst(unsigned rule)
 {
   LastError = OutOfRange;
   if (rule>=n_rules) 
-    return any;
+    return NULL;
   LastError = Ok;
-  return actions[rule];
+  return action_insts[rule];
 }
 
-DecisionTable::condition_id_t DecisionTable::GetConditionId(unsigned condition)
+DecisionTable::condition_inst_t DecisionTable::GetConditionInst(unsigned condition)
 {
   LastError = OutOfRange;
   if (condition>=n_conditions) 
-    return nocondition_id;
+    return NULL;
   LastError = Ok;
-  return condition_ids[condition];
+  return condition_insts[condition];
+}
+
+int DecisionTable::GetConditionNumber(condition_inst_t inst)
+{
+  LastError = Ok;
+  for (int c = 0; c<n_conditions; c++)
+  {
+    if (condition_insts[c] == inst)
+      return c;
+  }
+  LastError = OutOfRange;
+  return -1;
 }
 
 DecisionTable::condition_t DecisionTable::GetCell(unsigned rule, unsigned condition)
@@ -337,7 +373,7 @@ void DecisionTable::Expand()
       {
         if (rule1[c]==any) {
           loop = true;
-          InsertRule(r+1, actions[r]);
+          InsertRule(r+1, action_insts[r]);
           condition_t *rule2 = rules[r+1];
           for (unsigned c2 = 0; c2 < n_conditions; c2++) 
             rule2[c2] = rule1[c2];
@@ -361,7 +397,7 @@ void DecisionTable::Dump(FILE* out)
     fprintf(out, " %d", r);
   fprintf(out, "\n");
   for (unsigned c = 0; c<GetConditionsCount(); c++) {
-    fprintf(out, "C%02d: ", GetConditionId(c));
+    fprintf(out, "C%02d: ", GetConditionInst(c)->uid);
     for (unsigned r = 0; r<GetRulesCount(); r++) {
       switch(GetCell(r, c)) {
         case DecisionTable::any: fprintf(out, " -"); break;
@@ -373,6 +409,6 @@ void DecisionTable::Dump(FILE* out)
   }
   fprintf(out, "ACT: ");
   for (unsigned r = 0; r<GetRulesCount(); r++) 
-    fprintf(out, " %d", GetAction(r));
+    fprintf(out, " %d", GetActionInst(r)->uid);
   fprintf(out, "\n");
 }

@@ -24,41 +24,71 @@
 
 #include "FARPlus/FARString.h"
 
+
 class DecisionTable
 {
   public:
+    class Action {
+      friend class DecisionTable;
+      public:
+        void *client_context;
+      protected:
+        int uid;
+        virtual ~Action();
+        virtual void OnSave() = 0;
+        virtual void Execute() = 0;
+    };
+    class Condition {
+      friend class DecisionTable;
+      public:
+        void *client_context;
+      protected:
+        int uid;
+        virtual void OnSave() = 0;
+        virtual bool Execute() = 0;
+        virtual ~Condition();
+    };
+    typedef Condition *condition_inst_t;
+    typedef Action *action_inst_t;
+    class Context {
+      friend class DecisionTable;
+    protected:
+      virtual condition_inst_t GetCondition(int uid) = 0;
+      virtual condition_inst_t CreateCondition() = 0;
+      virtual action_inst_t GetAction(int uid) = 0;
+      virtual action_inst_t CreateAction() = 0;
+    };
     typedef enum { any, ff, tt } condition_t;
-    typedef int condition_id_t;
-    typedef int action_t;
-    typedef bool (*get_condition_t)(condition_id_t id, void* context);
-    static action_t noaction;
-    static condition_id_t nocondition_id;
   protected:
+    Context *context;
     condition_t **rules;
-    action_t *actions;
-    condition_id_t *condition_ids;
+    action_inst_t *action_insts;
+    condition_inst_t *condition_insts;
     unsigned n_conditions;
     unsigned n_rules;
-    condition_t *_conditions;
+    condition_t *_condition_cache;
     void Allocate(unsigned init_rules, unsigned init_conditions);
   public:
-    DecisionTable(const FarString &source);
     DecisionTable();
     //DecisionTable(DecisionTable &rhs);
     ~DecisionTable();
-    action_t Execute(get_condition_t input_callback, void* context);
+    void SetContext(Context *);
+    action_inst_t Execute();
+    void FromString(const FarString &source);
     FarString AsString();
     void Dump(FILE* out);
-    int InsertCondition(unsigned at, condition_id_t id);
+    condition_inst_t InsertCondition(unsigned at);
     void SwapConditions(unsigned c1, unsigned c2);
     void DeleteCondition(unsigned at);
-    int InsertRule(unsigned at, action_t action);
+    action_inst_t InsertRule(unsigned at);
+    action_inst_t InsertRule(unsigned at, action_inst_t action);
     void SwapRules(unsigned r1, unsigned r2);
     void DeleteRule(unsigned at);
-    action_t GetAction(unsigned rule);
-    condition_t GetCell(unsigned rule, unsigned condition);
-    condition_id_t GetConditionId(unsigned condition);
-    void SetCell(unsigned rule, unsigned condition, condition_t content);
+    action_inst_t GetActionInst(unsigned n_rule);
+    condition_t GetCell(unsigned rule, unsigned n_condition);
+    condition_inst_t GetConditionInst(unsigned n_condition);
+    int GetConditionNumber(condition_inst_t inst);
+    void SetCell(unsigned n_rule, unsigned n_condition, condition_t content);
     unsigned GetRulesCount();
     unsigned GetConditionsCount();
     enum {

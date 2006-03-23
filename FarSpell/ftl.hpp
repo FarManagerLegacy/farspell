@@ -33,9 +33,15 @@ protected:
 	FarList fFarList;
 	BaseListItems(FarDialogItem *item): fItem(item) 
 	{
-		fItem->ListItems = &fFarList;
+		if (fItem)
+			fItem->ListItems = &fFarList;
 	};
 public:
+        void AttachDialogItem(FarDialogItem *item)
+        {
+        	far_assert(item);
+        	item->ListItems = &fFarList;
+        }
 	void AddItem (const char *Text, int Flags = 0)
 	{
 		FarListItem newItem;
@@ -46,6 +52,7 @@ public:
 	}
 	int GetListPos() const
 	{
+		far_assert(fItem);
 		return fItem->ListPos;
 	}
 	void BeforeShow()
@@ -69,10 +76,12 @@ public:
 		: BaseListItems(item) {};
 	void SetText (char *pText)
 	{
+		far_assert(fItem);
 		strncpy (fItem->Data, pText, sizeof (fItem->Data)-1);
 	}
 	void SetText (FarString &String)
 	{
+		far_assert(fItem);
 		strncpy (fItem->Data, String.c_str(), sizeof (fItem->Data)-1);
 	}
 	void GetText (char *Text, int MaxLength)
@@ -81,6 +90,7 @@ public:
 	}
 	FarString GetText()
 	{
+		far_assert(fItem);
 		return fItem->Data;
 	}
 };

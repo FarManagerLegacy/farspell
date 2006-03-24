@@ -516,8 +516,9 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
       hunspell_free(token);
     }
   }
-  FarEd::SetPos(fei.CurLine, -1);
-  FarEd::SetViewPos(fei.TopScreenLine, -1);
+  // TODO: restore position in one call:
+  FarEd::SetPos(fei.CurLine, fei.CurPos);
+  FarEd::SetViewPos(fei.TopScreenLine, fei.LeftPos);
 }
 
 void FarSpellEditor::ClearAndRedraw(FarEdInfo &fei)

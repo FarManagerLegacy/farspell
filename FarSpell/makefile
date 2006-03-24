@@ -118,7 +118,7 @@ debug: makefile.exinfo
 	del makefile.exinfo
 !endif !EXINFO
 
-farspell.dll-debug: $(DIST)\farspell.dll
+farspell.dll-debug: 
 	echo "Debug built at &[TIMESTAMP]" | $(MJU_SED) > $@
 
 makefile.exinfo: $(MJU_SED)

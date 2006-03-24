@@ -530,7 +530,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
             FarEd::SetViewPos(fei.CurLine-fei.WindowSizeY+2+3, -1);
             show_upper = true;
           }
-          Far::AdvControl(ACTL_COMMIT, 0); // без этого не отображается FarEd::InsertText, SetViewPos
+          FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
           FarEditorSuggestList sl(fei, this, token->begin, token->len);
           SuggestionDialog sd(this, sl, true);
           int result = sd.Execute(-1, 
@@ -595,7 +595,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
   } // for (;;)
   if (text_terminated)
   { // достигли края документа.
-    Far::AdvControl(ACTL_COMMIT, 0); // без этого не отображается FarEd::InsertText, SetViewPos
+    FarEd::Redraw(); // без этого не отображается FarEd::InsertText, SetViewPos
     FarMessage msg;
     msg.AddLine(MFarSpell);
     msg.AddLine(MSpellcheckDone);

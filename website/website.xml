@@ -1,0 +1,21 @@
+<!DOCTYPE webpage
+  PUBLIC "-//Norman Walsh//DTD Website V2.6//EN"
+  "http://docbook.sourceforge.net/release/website/2.6/schema/dtd/website.dtd">
+<webpage id="home">
+<config param="desc" value="Far Unlimited Home Page"/>
+<head>
+<title>Welcome to Far Unlimited</title>
+<summary>Introduction</summary>
+<keywords>Far Manager, Spell check, plugin</keywords>
+</head>
+
+<para>Please select your language:</para>
+<webtoc/>
+
+</webpage>
+
+<!--
+Local variables:
+mode: docbook
+End:
+-->

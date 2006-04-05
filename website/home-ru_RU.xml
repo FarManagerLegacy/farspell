@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE webpage
+  PUBLIC "-//Norman Walsh//DTD Website V2.6//EN"
+  "http://docbook.sourceforge.net/release/website/2.6/schema/dtd/website.dtd">
+<webpage id="ru_RU">
+<head>
+<title>Русский Far Unlimited</title>
+<summary>Far Unlimited Russian</summary>
+</head>
+<section id="mission">
+<title>Миссия</title>
+<!--para>
+Хотели разработать FarSpell, а понадобилось дописывать кучу всего.
+</para-->
+<variablelist>
+<varlistentry><term>FarSpell</term><listitem><para>
+Плагин для проверки орфографии во встроенном редакторе
+в файловом менеджере FAR.
+</para><para>
+Полезен для всех кто пользуется встроенным редактором для
+написания больше одного слова и OCR'щикам, которые любят FAR.
+</para><para>
+Для проверки орфографии используется библиотека Hunspell
+из <ulink url="http://www.openoffice.org/">OpenOffice.Org</ulink>.
+Поэтому плагин понимает словари в формате 
+<ulink url="http://lingucomponent.openoffice.org/spell_dic.html">MySpell</ulink>.
+и <ulink url="http://hunspell.sourceforge.net/">Hunspell</ulink>.
+</para><para>
+Скачать свежую версию 
+<ulink url="http://bookmania.com.ru/farspell/">отсюда</ulink>.
+</para><para>
+Основные возможности FarSpell:
+</para><itemizedlist><listitem><para>
+Отключаемая подсветка потенциально неправильных слов.
+</para></listitem><listitem><para>
+Выдача вариантов написания слова.
+</para></listitem><listitem><para>
+Поиск ошибок
+</para></listitem><listitem><para>
+Может запоминать настройки для каждого файла
+</para></listitem></itemizedlist><para>
+Написан на C++ с использованием модифицированной библиотеки FARPlus.
+</para><para>
+Компилятор(ы): Microsoft VC.
+</para><para>
+Исходники доступны через SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarSpell
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+</programlisting>
+</listitem></varlistentry>
+<varlistentry><term>DialogExpress</term><listitem><para>
+Средства разработки диалогов написанных на языке диалоговых ресурсов.
+DialogExpress состоит из библиотеки чтения диалоговых ресурсов,
+конвертера в любой язык программирования и плагина для
+мгновенной визуализации ресурсов.
+Посвящается всем разработчикам интерфейса FAR Manager/плагинов.
+</para><para>
+DialogExpress можно использовать для динамической загрузки диалогов.
+Написан на чистом C. Компилируется статически и динамически.
+Лицензия LGPL.
+</para><para>
+Компилятор(ы): GNU project C compiler, Microsoft VC.
+</para><para>
+Исходники доступны через SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+</programlisting>
+</listitem></varlistentry>
+<varlistentry><term>Исправленный и дополненный 
+<ulink url="http://farplus.sourceforge.net">FARPlus</ulink></term><listitem>
+<para>
+В FARPlus было внесено множество изменений и дополнений. В основном это 
+исправление старых ошибок, подключение нововведений Plugin API, поддержка 
+Unicode строк. 
+</para><para>
+Компилятор(ы): Microsoft VC, GNU project C compiler.
+</para><para>
+Благодаря <ulink url="http://svk.elixus.org/">SVK</ulink> удалось 
+сохранить журнал всех изменений. 
+</para><para>
+Исходники доступны через SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
+</programlisting>
+</listitem></varlistentry>
+</variablelist>
+</section>
+
+<section id="background">
+<title>Подробности</title>
+<para>Мне в FAR'е очень не хватало проверки орфографии. 
+Существует плагин gSpell Семенова Алексея. Но он привязаны к платному офисному пакету. 
+Есть, также, некоторые другие плагины подобного назначения. Но всех их 
+объединяет то, что они не развиваются, их исходные коды закрыты.
+</para><para>
+В конце 2005 года я взялся за написание FarSpell.
+</para><para>
+В начале, я попытался подключить 
+<ulink url="http://www.aspell.org/">Aspell</ulink>. Библиотека
+оказалась слишком громоздкая. Были некоторые неясности по поводу
+её использования.
+</para><para>
+Потом я увидел MySpell и Hunspell из 
+<ulink url="http://www.openoffice.org/">OpenOffice.Org</ulink>.
+И было решено подключить Hunspell вместо Aspell. Почему именно Hunspell?
+Потому что он развивается, а MySpell разработчики, скорее всего, забросили.
+</para><para>
+Для того чтобы ускорить разработку FarSpell, была взята 
+библиотека <ulink url="http://farplus.sourceforge.net">FARPlus</ulink>, 
+которая является объектной обёрткой FAR Plugin API.
+Это автоматически определило, что FarSpell будет написан на C++.
+</para><para>
+В процессе разработки FarSpell было внесено множество изменений
+и дополнений в FARPlus. В основном это исправление старых ошибок,
+подключение нововведений Plugin API, поддержка Unicode строк,
+которая так необходима для взаимодействия с библиотекой проверки 
+орфографии, добавлена поддержка компилятора GNU project C compiler. 
+</para><para>
+Как и к любому другому плагину к FarSpell'у предъявлено требование: 
+разумное взаимодействии с пользователем. 
+Это сообщения, диалоги, интуитивный интерфейс. 
+</para><para>
+На мой взгляд, как разработчика плагинов, использование диалоговых 
+возможностей Plugin API нерационально. Для вывода сообщений сойдут 
+классы из FARPlus. А для создания диалогов был выбран DialogGenerator 
+от Семенова Алексея (автора gSpell.) Но DialogGenerator имел те же 
+проблемы что и gSpell (отсутствие развития и исходников.) Было решено 
+переизобрести велосипед и... получился DialogExpress.
+</para><para>
+DialogExpress адресован разработчикам интерфейса под FAR Manager.
+Он состоит из нескольких частей:
+</para>
+<variablelist>
+<varlistentry><term>DialogRes</term><listitem><para>
+Библиотека для чтения описания диалогов на языке аналогичном
+DialogGenerator. Сердцем этой библиотеки является парсер,
+который автоматически создаётся из грамматики с помощью 
+<ulink url="http://www.hwaci.org/">lemon</ulink>.
+DialogRes написан на чистом C и вобрал в себя многое из 
+<ulink url="http://www.sqlite.org/">SQLite</ulink>.
+</para></listitem></varlistentry>
+<varlistentry><term>DEx_View</term><listitem><para>
+Плагин для визуализации диалоговых ресурсов: как будто это 
+настоящий плагин, а не диалог от него.
+Перед показом диалога можно выбрать файл с нужным языком строк
+(благодаря <ulink 
+url="http://farmanager.com/warp/farmanager/farlng/farlng.description.php">
+FarLNG</ulink> от Warp ItSelf.) А клавиша F1 вызывает статью для выбранного 
+диалога из файла справки в текущей папке.
+</para></listitem></varlistentry>
+<varlistentry><term>Meta Dialog</term><listitem><para>
+Программа, которая конвертирует диалоговые ресурсы в формате
+DialogRes в любой другой формат по заданному шаблону.
+Сейчас есть образцы шаблонов для C и C++.
+</para><para>
+Для описания шаблонов был разработан простейший макро-язык
+со вставкой переменных, примитивными условиями и жёстко 
+ограниченными циклам. Никакого XML!
+</para></listitem></varlistentry>
+</variablelist>
+</section>
+
+<section id="resources">
+<title>Ресурсы этого проекта</title>
+<itemizedlist>
+<listitem><para>
+<ulink url="/servlets/ProjectMailingListList">
+Списки рассылки</ulink>
+</para></listitem>
+</itemizedlist>
+</section>
+
+<section id="related">
+<title>Ссылки</title>
+<itemizedlist>
+<listitem><para>
+Консольный файловый менеджер
+<ulink url="http://www.farmanager.com">Far Manager</ulink>
+</para></listitem>
+<listitem><para>
+<ulink url="http://forum.farmanager.com">Форум</ulink> посвящённый Far Manager
+</para></listitem>
+</itemizedlist>
+</section>
+</webpage>
+

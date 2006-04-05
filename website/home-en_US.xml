@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!DOCTYPE webpage
+  PUBLIC "-//Norman Walsh//DTD Website V2.6//EN"
+  "http://docbook.sourceforge.net/release/website/2.6/schema/dtd/website.dtd">
+<webpage id="en_US">
+<head>
+<title>Far Unlimited English</title>
+<summary>Far Unlimited English</summary>
+</head>
+
+<section id="mission">
+<title>Mission</title>
+<variablelist>
+<varlistentry><term>FarSpell</term><listitem><para>
+Built-in editor spell-checker plugin for file manager FAR.
+</para><para>
+It is useful for everyone write above one word in built-in editor.
+And for OCR guys who like FAR.
+</para><para>
+Hunspell from <ulink url="http://www.openoffice.org/">OpenOffice.Org</ulink>
+used as spell-checking engine.
+Therefore this plugin can use
+<ulink url="http://lingucomponent.openoffice.org/spell_dic.html">MySpell</ulink>
+and <ulink url="http://hunspell.sourceforge.net/">Hunspell</ulink> dictionaries.
+</para><para>
+Download recent version
+<ulink url="http://bookmania.com.ru/farspell/">from here</ulink>.
+</para><para>
+Major features:
+</para><itemizedlist><listitem><para>
+Optional misspelling word highligting.
+</para></listitem><listitem><para>
+Show suggestion word list for word correction.
+</para></listitem><listitem><para>
+Misspeling search.
+</para></listitem><listitem><para>
+Optional saving basic settings per file.
+</para></listitem></itemizedlist><para>
+FarSpell written in C++ and 
+<ulink url="http://farplus.sourceforge.net">FARPlus</ulink> library used.
+</para><para>
+Compiler(s): Microsoft VC.
+</para><para>
+Sources available over SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarSpell
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+</programlisting>
+</listitem></varlistentry>
+<varlistentry><term>DialogExpress Kit</term><listitem><para>
+Development kit for dialogs written in Dialog Desctiption Language
+(Dialog Resource.)
+DialogExpress contains a library for reading and parse
+Dialog Resource, tool for transform Dialog Resource
+to any programming language, and plugin for instant visualization of
+resources. DialogExpress can be used for dynamic dialog loading.
+</para><para>
+Devoted to FAR Manager/plugin developers.
+</para><para>
+Written in pure C. Resource Parser compiled as static and shared library.
+</para><para>
+Compilers(s): GNU project C compiler, Microsoft VC.
+</para><para>
+Sources available over SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+</programlisting>
+</listitem></varlistentry>
+<varlistentry><term>Fixed and upgraded
+<ulink url="http://farplus.sourceforge.net">FARPlus</ulink></term><listitem>
+<para>
+Many fixes and additions was introduced in FARPlus.
+Basically, it is bug fixing, integration with new Plugin API,
+Unicode strings support, porting to GCC.
+</para><para>
+Compiler(s): Microsoft VC, GNU project C compiler.
+</para><para>
+Thanks to <ulink url="http://svk.elixus.org/">SVK</ulink> 
+all changes saved and logged in separate revisions. 
+</para><para>
+Sources available over SVN:
+</para>
+<programlisting>
+svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
+svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
+</programlisting>
+</listitem></varlistentry>
+</variablelist>
+</section>
+
+<section id="resources">
+<title>Project resources</title>
+<itemizedlist>
+<listitem><para>
+<ulink url="/servlets/ProjectMailingListList">
+Mailing lists</ulink>
+</para></listitem>
+</itemizedlist>
+</section>
+
+<section id="related">
+<title>Related resources</title>
+<itemizedlist>
+<listitem><para>
+Console User Interface file manager
+<ulink url="http://www.farmanager.com">Far Manager</ulink>
+</para></listitem>
+<listitem><para>
+<ulink url="http://enforum.farmanager.com">Discussion board</ulink> about Far Manager
+</para></listitem>
+</itemizedlist>
+</section>
+
+</webpage>
+

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE layout PUBLIC "-//Norman Walsh//DTD Website Layout V2.5.0//EN"
+   "http://docbook.sourceforge.net/release/website/2.5.0/schema/dtd/layout.dtd">
+<layout>
+  <copyright>
+    <year>2006</year>
+    <holder>Sergey Shishmintzev</holder>
+  </copyright>
+  <style src="website.css" type="text/css"/>
+
+  <toc page="website.xml" filename="index.html">
+    <tocentry page="home-en_US.xml" dir="en_US" filename="index.html"/>
+    <tocentry page="home-ru_RU.xml" dir="ru_RU" filename="index.html"/>
+  </toc>
+</layout>
+

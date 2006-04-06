@@ -93,6 +93,18 @@ public:
 		far_assert(fItem);
 		return fItem->Data;
 	}
+	void GetText (int Index, char *Text, int MaxLength)
+	{
+		far_assert(Index>=0);
+		far_assert(Index<fListItems.Count());
+		lstrcpyn (Text, fListItems[Index].Text, MaxLength-1);
+	}
+	FarString GetText(int Index)
+	{
+		far_assert(Index>=0);
+		far_assert(Index<fListItems.Count());
+		return fListItems[Index].Text;
+	}
 };
 
 int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)

@@ -9,7 +9,7 @@ enum {
 ;           |   |  |  |  | focus(T/F|0/1) 
 ;           |   |  |  |  | | selected(T/F|0/1) 
 ;           |   |  |  |  | | | Flags DefButton Data
-name "GeneralConfig"
+name "GeneralConfigSkel"
 DOUBLEBOX   0   3  1 55 14 F F 0 0 %LNG% MGeneralConfig
 CHECKBOX  %LNG% 5  2  0  0 F F 0 0 %LNG% MPluginEnabled
 TEXT        0   5  3  0  0 F F 0 0 %LNG% MDefaultDict
@@ -28,7 +28,7 @@ TEXT        0   0 12  0  0 F F DIF_SEPARATOR   0 NULL
 BUTTON MOk     05 13  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON     -1  15 13  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
-name "ColorSelect"
+name "ColorSelectSkel"
 ; name     id     x1 y1 x2 y2 focus(T/F | 0/1) 
 ;                               selected(T/F | 0/1) 
 ;                                 Flags         DefButton Data
@@ -80,7 +80,7 @@ TEXT 0   5  12 0 0  F F DIF_SEPARATOR   0 NULL
 BUTTON 242  05 13 0 0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON -1   15 13 0 0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
-name "Suggestion"
+name "SuggestionSkel"
 DOUBLEBOX   0     3  1 40 12 F F 0 0 %LNG% MSuggestion
 EDIT   ID_S_Word  5  2 38  0 F F 0 0 NULL
 LISTBOX ID_S_WordList  5  3 38  9 F F DIF_LISTNOBOX 0 NULL
@@ -91,7 +91,7 @@ TEXT  -100        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 TEXT MDictionary  10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% "en_US"
 TEXT  -101        10 12 0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 
-name "SpellcheckDlg"
+name "SpellcheckSkel"
 ;                 x1 y1 x2 y2
 DOUBLEBOX   -10    3  1 50 16 F F 0 0 %LNG% MSpellcheck
 
@@ -118,7 +118,7 @@ RADIOBUTTON %LNG% 11 13  0  0 F F 0 0 %LNG% MOnlySetCursor
 BUTTON      %LNG%  6 15  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON      -11    6 15  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
-name "DictViewEditorDlg"
+name "DictViewEditorSkel"
 DOUBLEBOX   0      3  1 57 14 F F 0 0 %LNG% MDictViewsEditor
 TEXT        0      5  2 10  0 F F 0 0 %LNG% MDictViewName 
 EDIT  ID_Name     12  2 55  0 F F 0 0 NULL HISTORY = "FarSpell.DictViewName"

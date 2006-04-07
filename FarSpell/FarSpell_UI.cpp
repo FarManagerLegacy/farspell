@@ -216,7 +216,7 @@ class FarEditorSuggestList
     }
 };
 
-class SuggestionDialog: public Suggestion
+class SuggestionDialog: public SuggestionSkel
 {
   private:
     FarEditorSuggestList &sl;
@@ -298,7 +298,7 @@ void FarSpellEditor::ShowSuggestion(FarEdInfo &fei)
   sd.Execute();
 }
 
-class SpellcheckDialog: SpellcheckDlg
+class SpellcheckDialog: SpellcheckSkel
 {
   public:
     static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
@@ -655,7 +655,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   }
 }
 
-class ColorDialog: ColorSelect
+class ColorDialog: ColorSelectSkel
 {
   int nCurrentColor;
   static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
@@ -714,7 +714,7 @@ int FarSpellEditor::Manager::ColorSelectDialog()
 
 
 
-class GeneralConfigDialog: GeneralConfig
+class GeneralConfigDialog: GeneralConfigSkel
 {
   static int ScanDicts(const FarString &name, void* param)
   {
@@ -772,7 +772,7 @@ class GeneralConfigDialog: GeneralConfig
   }
 };
 
-class DictViewEditorDialog: public DictViewEditorDlg
+class DictViewEditorDialog: public DictViewEditorSkel
 {
   DictViewInstance *dict_view;
   DecisionTable *dt;

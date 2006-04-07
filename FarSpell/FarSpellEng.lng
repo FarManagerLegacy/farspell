@@ -61,6 +61,15 @@
 "Delete this settings?" 
 "Settings for every file was removed"
 
+"Edit dictionary views..."
+"FarSpell: dictionary views"
+"FarSpell: dictionary views editor"
+"Name:"
+"Condition: \ Reset>"
+"Action:"
+"Par."
+"Save"
+
 "Autodetect"
 "Plain text"
 "LaTeX"

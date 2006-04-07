@@ -60,6 +60,8 @@ int search_codepage(FarString &name);
 // class ParserFactory:
 #include "ParserFactory.hpp"
 
+#define _INTERFACE
+#include "DictViewFactory.cpp"
 
 enum { // for spellcheck_area
   sa_entire_text, sa_from_cursor, sa_selection, 
@@ -104,6 +106,7 @@ class FarSpellEditor
            }
         };
         FarRegistry1 reg;
+        DictViewFactory dict_view_factory;
 #       ifndef HARDCODED_MLDATA
         IMultiLanguage2 *ml;
 #       endif HARDCODED_MLDATA
@@ -129,6 +132,8 @@ class FarSpellEditor
           int GeneralConfig(bool from_editor);
           int ColorSelectDialog();
           void ClearFileSettings();
+          void DictionaryViewSelect(bool edit_by_enter);
+          void EditDictionaryView(DictViewInstance *dict_view);
         int GetCharsetEncoding(FarString &name);
         int GetOEMCP();
         int OnEvent(int Event, int Param);

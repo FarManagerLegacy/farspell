@@ -84,6 +84,15 @@ enum {
   MWillDeleteFileSetting,
   MFileSettingsRemoved,
 
+  MEditDictViews,
+  MSelectDictView,
+  MDictViewsEditor,
+  MDictViewName,
+  MCondition,
+  MAction,
+  MDictParams,
+  MSave,
+
   M_FMT_AUTO_TEXT,
   M_FMT_TEXT,
   M_FMT_LATEX,
@@ -97,4 +106,7 @@ enum {
   ID_GC_DefaultDict,
   ID_S_Word,
   ID_S_WordList,
+  ID_Name,
+  ID_CB1, ID_CB2, ID_CB3, ID_CB4,
+  ID_BTN1, ID_BTN2, ID_BTN3, ID_BTN4,
 };

@@ -747,6 +747,9 @@ class GeneralConfigDialog: GeneralConfig
         case MColorSelectBtn:
           m->ColorSelectDialog();
           break;
+        case MEditDictViews:
+          m->DictionaryViewSelect(/*edit_by_enter=*/true);
+          break;
         case MUnloadDictionaries:
           m->spell_factory.UnloadDictionaries();
           break;
@@ -768,6 +771,268 @@ class GeneralConfigDialog: GeneralConfig
     }
   }
 };
+
+class DictViewEditorDialog: public DictViewEditorDlg
+{
+  DictViewInstance *dict_view;
+  DecisionTable *dt;
+  ftl::ComboboxItems conditions;
+  int n_conditions;
+  enum { MaxConditions = 4, MaxRules = 8, RuleMask = 0xFF };
+  static inline int CellIndex(int r, int c) { return ItemIndex(0x2000|(c<<8)|r); }
+  static inline int RuleN(int id) { return id&0xFF; }
+  static inline int CondN(int id) { return (id>>8)&0xF; }
+  static long CondToBstate(DecisionTable::condition_t cond)
+  {
+    switch(cond) {
+      case DecisionTable::any: return BSTATE_3STATE; 
+      case DecisionTable::tt: return BSTATE_CHECKED; 
+      case DecisionTable::ff: return BSTATE_UNCHECKED; 
+      default: far_assert("Invalid 'condition_t cond'");
+               return 0; // avoid compiler warning
+    }  
+  }
+  static DecisionTable::condition_t BstateToCond(long bstate)
+  {
+    switch(bstate) {
+      case BSTATE_3STATE: return DecisionTable::any; 
+      case BSTATE_CHECKED: return DecisionTable::tt; 
+      case BSTATE_UNCHECKED: return DecisionTable::ff; 
+      default: far_assert("Invalid 'long bstate'");
+               return DecisionTable::any; // avoid compiler warning
+    }  
+  }
+  void RedrawRules(HANDLE hDlg)
+  {
+    const unsigned n_conds = dt->GetConditionsCount();
+    unsigned n_rules = dt->GetRulesCount();
+    bool b_disabled_tail = false; // запрещаем менять после безусловного правила.
+    for (unsigned r = 0; r<MaxRules; r++) {
+      bool b_all_any = true; // безусловное правило?
+      bool b_rule_enabled = false; // изменяемое правило?
+      for (unsigned c = 0; c<MaxConditions; c++) {
+        long state = BSTATE_3STATE;
+        const DecisionTable::condition_t cond = dt->GetCell(r, c);
+        b_all_any = b_all_any && cond == DecisionTable::any;
+        bool b_enabled = !b_disabled_tail && c<n_conds && r<n_rules;
+        if (b_enabled) {
+          b_rule_enabled = true;
+          state = CondToBstate(cond);
+          far_assert(dt->LastError == DecisionTable::Ok);
+        }
+        const int cell_index =  CellIndex(r, c);
+        Far::SendDlgMessage(hDlg, DM_SETCHECK, cell_index, state);
+        Far::SendDlgMessage(hDlg, DM_ENABLE, cell_index, b_enabled? TRUE : FALSE);
+      }
+      b_disabled_tail = b_disabled_tail || b_all_any;
+      if (!b_all_any && r == n_rules-1 && r+1<MaxRules) { 
+        // подготовим следующее правило.
+        dt->InsertRule(n_rules);
+        n_rules++;
+      }
+      Far::SendDlgMessage(hDlg, DM_ENABLE, Index_0x1000+r, b_rule_enabled? TRUE : FALSE);
+      Far::SendDlgMessage(hDlg, DM_ENABLE, Index_0x3000+r, b_rule_enabled? TRUE : FALSE);
+      for (unsigned c = 0; c<MaxConditions; c++) {
+        // обновим кнопки со свойствами словаря.
+        Far::SendDlgMessage(hDlg, DM_ENABLE, ItemIndex(ID_BTN1+c), 
+          c<n_conds? TRUE : FALSE);
+      }
+    }
+  }
+  static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+  {
+    int id = 0;
+    DictViewEditorDialog *pThis = NULL;
+    switch (Msg) 
+    {
+      case DN_INITDIALOG:
+        pThis = (DictViewEditorDialog *)Param2;
+        far_assert(pThis);
+        Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+        pThis->RedrawRules(hDlg);
+        //FarListPos = {x,-1};DM_LISTSETCURPOS
+        break;
+      case DN_EDITCHANGE:
+        pThis = (DictViewEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+        far_assert(pThis);
+        switch(Param1) {
+          case Index_ID_CB1: id = 0; break;
+          case Index_ID_CB2: id = 1; break;
+          case Index_ID_CB3: id = 2; break;
+          case Index_ID_CB4: id = 3; break;
+          default: id = -1;
+        }
+        if (id==-1) 
+          break;
+        {
+           const unsigned last_n_conds = pThis->dt->GetConditionsCount();
+           DecisionTable::condition_inst_t cond_inst = NULL;
+           if (id>last_n_conds) return FALSE;
+           if (id==last_n_conds) 
+             cond_inst = pThis->dt->InsertCondition(id);
+           else          
+             cond_inst = pThis->dt->GetConditionInst(id);
+           far_assert(cond_inst);
+           DictViewInstance::DictParams *params = 
+             static_cast<DictViewInstance::DictParams *>(cond_inst->client_context);
+           far_assert(params);
+           far_assert(!IsBadReadPtr(reinterpret_cast<void *>(Param2), sizeof(FarDialogItem)));
+           params->dict = reinterpret_cast<FarDialogItem *>(Param2)->Data;//TODO: SetDict
+           if (!last_n_conds)
+             pThis->dt->InsertRule(0);
+           pThis->RedrawRules(hDlg);
+        }
+        break;
+      case DN_BTNCLICK:
+        pThis = (DictViewEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+        far_assert(pThis);
+        id = ItemId(Param1);
+        if ((id&0xF000) == 0x1000) { // reset rule
+          const unsigned rule = RuleN(id);
+          if (rule<pThis->dt->GetRulesCount()) {
+            const unsigned n_conds = pThis->dt->GetConditionsCount();
+            for (unsigned c = 0; c<n_conds; c++)
+              pThis->dt->SetCell(rule, c, DecisionTable::any);
+            pThis->RedrawRules(hDlg);
+          }
+          return TRUE;
+        } else if ((id&0xF000) == 0x2000) { // cell check-box
+          const unsigned rule = RuleN(id);
+          const unsigned cond = CondN(id);
+          static DecisionTable::condition_t click_to_condition[] = { 
+            DecisionTable::ff,
+            DecisionTable::tt,
+            DecisionTable::any
+          };
+          far_assert(rule<MaxRules);
+          far_assert(cond<MaxConditions);
+          far_assert(Param2>=0);
+          far_assert(Param2<sizeof(click_to_condition)/sizeof(click_to_condition[0]));
+          pThis->dt->SetCell(rule, cond, click_to_condition[Param2]);
+          if (pThis->dt->LastError != DecisionTable::Ok)
+            return FALSE;
+          pThis->RedrawRules(hDlg);
+        } else if ((id&0xF000) == 0x3000) { // action button
+          const unsigned rule = RuleN(id);
+          far_assert(rule<MaxRules);
+          pThis->RedrawRules(hDlg);
+          return TRUE;
+        } else switch(id) {
+          case ID_BTN1:
+          case ID_BTN2:
+          case ID_BTN3:
+          case ID_BTN4:
+            return TRUE;
+        }
+        break;
+    }
+    return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+  }
+  static int ScanDicts(const FarString& name, void* context)
+  {
+    DictViewEditorDialog *pThis = (DictViewEditorDialog *)context;
+    pThis->conditions.AddItem(name.c_str());
+    pThis->n_conditions++;
+    return 1;
+  }
+  public: DictViewEditorDialog()
+  : conditions(NULL)
+  {
+    n_conditions = 0;
+    conditions.AttachDialogItem(sItems+Index_ID_CB1);
+    conditions.AttachDialogItem(sItems+Index_ID_CB2);
+    conditions.AttachDialogItem(sItems+Index_ID_CB3);
+    conditions.AttachDialogItem(sItems+Index_ID_CB4);
+    //conditions.AddItem("");
+    FarSpellEditor::editors->spell_factory.EnumDictionaries(ScanDicts, this);
+    conditions.BeforeShow();
+  }
+  public: void Execute(DictViewInstance *init_dict_view)
+  { 
+    far_assert(init_dict_view);
+    dict_view = init_dict_view;
+    dt = &dict_view->logic;
+    strncpy(sItems[Index_ID_Name].Data, dict_view->name.c_str(), sizeof(sItems[0].Data));
+    const unsigned n_conds = dt->GetConditionsCount();
+    for (unsigned c = 0; c<n_conds; c++) {
+      DecisionTable::condition_inst_t cond_inst = dt->GetConditionInst(c);
+      far_assert(cond_inst);
+      DictViewInstance::DictParams *params = 
+        static_cast<DictViewInstance::DictParams *>(cond_inst->client_context);
+      far_assert(params);
+      strncpy(sItems[ItemIndex(ID_CB1+c)].Data, params->dict.c_str(), sizeof(sItems[0].Data));
+    }
+    int idx = ShowEx(0, DlgProc, (long)this);
+    if (idx>=0) switch (idx) {
+      case Index_MCancel:
+        break;
+      default:
+        dict_view->name = sItems[Index_ID_Name].Data;
+        dict_view->Save();
+        break;
+    }
+  }
+};
+
+void FarSpellEditor::Manager::EditDictionaryView(DictViewInstance *dict_view)
+{
+  DictViewEditorDialog().Execute(dict_view);
+}
+
+int ScanDictViews(const FarString& id, const FarString& name, 
+  void* client_context)
+{
+  FarMenu *menu = (FarMenu *)client_context;
+  menu->AddItem(name);
+  return 1;
+}
+
+void FarSpellEditor::Manager::DictionaryViewSelect(bool edit_by_enter)
+{
+  static int brk_keys[] = { VK_F4, VK_INSERT, VK_DELETE, 0 };
+  DictViewInstance *dict_view = NULL;
+  int selected_item = 0;
+  for (bool loop = true; loop;) {
+    loop = false;
+    FarMenu menu(MSelectDictView, FMENU_WRAPMODE, "Contents");
+    dict_view_factory.EnumDictViews(ScanDictViews, &menu);
+    menu.AddItem("");
+    menu.SetBottomLine("Enter, Esc, F4, Ins, Del");
+    menu.SetBreakKeys(brk_keys); 
+    menu.SelectItem(selected_item);
+    selected_item = menu.Show();
+    if (selected_item>=0) {
+      switch (menu.GetBreakCode()) {
+        case -1:
+          if (!edit_by_enter) break;
+        case 0: // F4
+          if (selected_item>=0) {
+            FarString name(menu.GetItemText(selected_item));
+            if (!name.IsEmpty()) {
+              dict_view = dict_view_factory.GetDictViewByName(name);
+              EditDictionaryView(dict_view);
+              delete dict_view;
+              dict_view = NULL;
+            }
+          }
+          loop = true;
+          break;
+        case 1: // Ins
+          dict_view = dict_view_factory.CreateDictView();
+          EditDictionaryView(dict_view);
+          delete dict_view;
+          dict_view = NULL;
+          loop = true;
+          break;
+        case 2: // Del
+          if (selected_item>=0)
+            dict_view_factory.DeleteDictView(menu.GetItemText(selected_item));
+          loop = true;
+          break;
+      }
+    }
+  }
+}
 
 int FarSpellEditor::Manager::GeneralConfig(bool from_editor)
 {

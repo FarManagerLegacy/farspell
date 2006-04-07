@@ -79,8 +79,8 @@ FarSpellEditor::Manager *FarSpellEditor::editors = NULL;
 FarSpellEditor::Manager::Manager()
 : reg(Far::GetRootKey(), "\\FarSpell")
 , plugin_root(FarFileName(Far::GetModuleName()).GetPath())
-, spell_factory(FarFileName(plugin_root+"dict\\")
-, FarString(Far::GetRootKey())+"\\FarSpell")
+, spell_factory(FarFileName(plugin_root+"dict\\"), FarString(Far::GetRootKey())+"\\FarSpell")
+, dict_view_factory(FarString(Far::GetRootKey())+"\\FarSpell", &spell_factory)
 {
   last = NULL;
   plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);

@@ -114,7 +114,7 @@ SpellInstance* SpellFactory::GetDictInstance(const FarString& dict)
   }
   if (!DictionaryExists(dict)) return NULL;
   HANDLE screen = Far::SaveScreen();
-  FarMessage wait(0);
+  FarMessage wait(0); // TODO: intercept stderr from Hunspell
   wait.AddLine(MFarSpell);
   wait.AddFmt(MLoadingDictionary, dict.c_str());
   wait.Show();

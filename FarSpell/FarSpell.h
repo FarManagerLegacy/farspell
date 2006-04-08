@@ -63,6 +63,7 @@ enum {
   MUnloadDictionaries,
 
   MHighlight,
+  MDictionary0,
   MDictionary,
   MParser,
 

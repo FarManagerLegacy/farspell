@@ -35,6 +35,14 @@ int ScanDicts(const FarString& name, void* param)
   return 1;
 }
 
+template <class TItems>
+int DictsToMenuT(const FarString& name, void* param)
+{
+  FarMenuT<TItems> *menu = static_cast<FarMenuT<TItems> *>(param);
+  menu->AddItem(name);
+  return 1;
+}
+
 class ParserEnumerator {
   public:
     FarComboBox *dlg_parsers;
@@ -606,6 +614,8 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
 
 void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 {
+  int last_item = -1;
+again: //{
   FarEditorSuggestList *sl 
    = insert_suggestions && editors->plugin_enabled 
      ? new FarEditorSuggestList(fei, this) : NULL;
@@ -626,6 +636,10 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     menu.DisableItem(i);
 
   menu.AddItem('G', MEditorGeneralConfig);
+  i = menu.AddItem('L', MDictionary0);
+  menu.SubmenuHint(i);
+
+  menu.SelectItem(static_part + last_item);
   menu.SetBottomLine(dict);
 
   int res = menu.Show();
@@ -640,12 +654,30 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
   }
   else
   {
-    switch (res-static_part)
+    switch (last_item = res-static_part)
     {
       case 0: ShowSuggestion(fei); break;
       case 1: Spellcheck(fei); break;
       case 2: ShowPreferences(fei); break;
       case 3: editors->GeneralConfig(true); break;
+      case 4: {
+        int last_dict = -1;
+        FarMenuT<FarMenuItemEx> menu(MDictionary0, FMENU_WRAPMODE, "Contents");
+        editors->spell_factory.EnumDictionaries("*", DictsToMenuT<FarMenuItemEx>, &menu);
+        for (int i=0; i<menu.Count(); i++) 
+          if (dict == menu.GetItemText(i)) {
+            menu.SelectItem(i);
+            last_dict = i;
+            break;
+          }
+        const int n_dict = menu.Show();
+        if (n_dict != last_dict && n_dict>=0 && n_dict<menu.Count()) {
+          dict = menu.GetItemText(n_dict);
+          DropEngine(RS_ALL);
+        }
+        goto again;
+        break;
+      }
     }
   }
   if (sl)
@@ -653,6 +685,7 @@ void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
     delete sl;
     sl = NULL;
   }
+//} // again
 }
 
 class ColorDialog: ColorSelectSkel

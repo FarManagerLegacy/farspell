@@ -72,6 +72,7 @@ public:
     int Show();
     int GetBreakCode() const
 		{ return fBreakCode; }
+    int Count() const { return fItemsNumber; }
     const char* GetItemText(int index);
 };
 

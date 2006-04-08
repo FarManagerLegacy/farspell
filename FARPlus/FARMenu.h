@@ -73,7 +73,7 @@ public:
     int GetBreakCode() const
 		{ return fBreakCode; }
     int Count() const { return fItemsNumber; }
-    const char* GetItemText(int index);
+    const char* GetItemText(int index) const;
 };
 
 typedef FarMenuT<FarMenuItem> FarMenu;

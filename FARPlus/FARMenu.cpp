@@ -194,14 +194,14 @@ int FarMenuT<FarMenuItemEx>::Show()
         (FarMenuItem*)fItems, fItemsNumber);
 }
 
-const char* FarMenuT<FarMenuItem>::GetItemText(int index)
+const char* FarMenuT<FarMenuItem>::GetItemText(int index) const
 {
   far_assert(index>=0);
   far_assert(index<fItemsNumber);
   return fItems[index].Text;
 }
 
-const char* FarMenuT<FarMenuItemEx>::GetItemText(int index)
+const char* FarMenuT<FarMenuItemEx>::GetItemText(int index) const
 {
   far_assert(index>=0);
   far_assert(index<fItemsNumber);

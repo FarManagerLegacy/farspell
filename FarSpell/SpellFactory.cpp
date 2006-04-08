@@ -143,6 +143,11 @@ bool SpellFactory::DictionaryExists(const char *dict)
   return count>0;
 }
 
+void SpellFactory::EnumDictionaries(FRSUSERFUNC Func, void *param)
+{
+  FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", Func, 0, param);
+}
+
 int WINAPI SpellFactory::GetDictCountCb(
   const WIN32_FIND_DATA *FData,
   const char *FullName,

@@ -87,10 +87,7 @@ class SpellFactory
     FarFileName dict_root;
     FarArray<FarString> cache_engine_langs;
     FarArray<SpellInstance> cache_engine_instances;
-    void EnumDictionaries(FRSUSERFUNC Func, void *param)
-    {
-      FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", Func, 0, param);
-    }
+    void EnumDictionaries(FRSUSERFUNC Func, void *param);
     static int WINAPI GetDictCountCb(const WIN32_FIND_DATA *FData, 
       const char *FullName, void *Param);
     static int WINAPI EnumDictionariesCb(const WIN32_FIND_DATA *FData, 

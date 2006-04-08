@@ -136,6 +136,18 @@ void FarMenuT<FarMenuItemEx>::SelectItem (int index)
     }
 }
 
+template <typename TItems>
+void FarMenuT<TItems>::SubmenuHint (int index)
+{
+  int max_len = fTitle.Length();
+  for (int j = 0; j < Count(); j++) 
+    max_len = max(max_len, strlen(GetItemText(j)));
+  max_len -= strlen(GetItemText(index)) + 1;
+  for (; max_len; max_len--) 
+    strcat(const_cast<char *>(GetItemText(index)), " ");
+  strcat(const_cast<char *>(GetItemText(index)), ">");
+}
+
 void FarMenuT<FarMenuItemEx>::DisableItem (int index)
 {
   if (index >= 0 && index < fItemsNumber)

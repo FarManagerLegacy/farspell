@@ -68,6 +68,7 @@ public:
 
     void ClearItems();
     void SelectItem (int index);
+    void SubmenuHint (int index); // call after all items added.
     // returns index of selected item
     int Show();
     int GetBreakCode() const

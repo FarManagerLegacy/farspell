@@ -80,8 +80,9 @@ class FarSpellEditor
     {
       public:
         FarSpellEditor *last;
-        FarFileName plugin_root;
-        SpellFactory spell_factory;
+        FarFileName plugin_root;      // keep order 1
+        FarFileName dictionary_path;  // keep order 2
+        SpellFactory spell_factory;   // keep order 3
         FarString highlight_list;
         bool plugin_enabled;
         bool enable_file_settings;

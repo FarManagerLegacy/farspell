@@ -63,7 +63,7 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
   FarControl *res;
   ParserEnumerator parser_enumumerator;
 
-  editors->spell_factory.EnumDictionaries(ScanDicts, &dlg_languages);
+  editors->spell_factory.EnumDictionaries("*", ScanDicts, &dlg_languages);
   parser_enumumerator.dlg_parsers = &dlg_parser;
   ParserFactory::EnumParsers(ScanParsers, &parser_enumumerator);
   dlg_languages.SetFlags(DIF_DROPDOWNLIST);
@@ -726,8 +726,10 @@ class GeneralConfigDialog: GeneralConfigSkel
   {
     FarDialogItem* pItem;
     int res;
-    char *p =  sItems[Index_ID_GC_SpellExts].Data;
+    char *p = sItems[Index_ID_GC_SpellExts].Data;
     strcpy(p, m->highlight_list.c_str());
+    char *dictionary_path = sItems[Index_ID_GC_DictPath].Data;
+    strcpy(dictionary_path, m->dictionary_path.c_str());
     sItems[Index_MPluginEnabled].Selected = m->plugin_enabled;
     sItems[Index_MSuggMenu].Selected = m->suggestions_in_menu;
     sItems[Index_MAnotherColoring].Selected = !m->highlight_deletecolor;
@@ -736,7 +738,7 @@ class GeneralConfigDialog: GeneralConfigSkel
       sItems[Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
     ftl::ComboboxItems default_dict_items(&sItems[Index_ID_GC_DefaultDict]);
     default_dict_items.SetText(m->default_dict);
-    m->spell_factory.EnumDictionaries(ScanDicts, &default_dict_items);
+    m->spell_factory.EnumDictionaries("*", ScanDicts, &default_dict_items);
     for (int cont=1; cont;) 
     {
       default_dict_items.BeforeShow();
@@ -760,6 +762,7 @@ class GeneralConfigDialog: GeneralConfigSkel
             char* news = m->highlight_list.GetBuffer(l);
             strncpy(news, p, l);
             m->highlight_list.ReleaseBuffer(l);
+            m->dictionary_path = dictionary_path;
             m->suggestions_in_menu = sItems[Index_MSuggMenu].Selected; 
             m->highlight_deletecolor = !sItems[Index_MAnotherColoring].Selected;
             m->plugin_enabled = sItems[Index_MPluginEnabled].Selected;
@@ -944,7 +947,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
     conditions.AttachDialogItem(sItems+Index_ID_CB3);
     conditions.AttachDialogItem(sItems+Index_ID_CB4);
     //conditions.AddItem("");
-    FarSpellEditor::editors->spell_factory.EnumDictionaries(ScanDicts, this);
+    FarSpellEditor::editors->spell_factory.EnumDictionaries("*", ScanDicts, this);
     conditions.BeforeShow();
   }
   public: void Execute(DictViewInstance *init_dict_view)

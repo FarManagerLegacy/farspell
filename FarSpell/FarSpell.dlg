@@ -10,7 +10,7 @@ enum {
 ;           |   |  |  |  | | selected(T/F|0/1) 
 ;           |   |  |  |  | | | Flags DefButton Data
 name "GeneralConfigSkel"
-DOUBLEBOX   0   3  1 55 14 F F 0 0 %LNG% MGeneralConfig
+DOUBLEBOX   0   3  1 55 16 F F 0 0 %LNG% MGeneralConfig
 CHECKBOX  %LNG% 5  2  0  0 F F 0 0 %LNG% MPluginEnabled
 TEXT        0   5  3  0  0 F F 0 0 %LNG% MDefaultDict
 COMBOBOX ID_GC_DefaultDict 
@@ -18,15 +18,18 @@ COMBOBOX ID_GC_DefaultDict
 TEXT        0   5  5  0  0 F F 0 0 %LNG% MSpellExts
 EDIT ID_GC_SpellExts 
                 5  6 52  0 F F 0 0 NULL HISTORY="FarSpell.SpellExts"
-CHECKBOX %LNG%  7  7  0  0 F F 0 0 %LNG% MSuggMenu
-CHECKBOX %LNG%  7  8  0  0 F F 0 0 %LNG% MFileSettings
-CHECKBOX %LNG%  7  9  0  0 F F 0 0 %LNG% MAnotherColoring
-BUTTON   %LNG%  5 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
-BUTTON   %LNG% 11 10  0  0 F F DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
-BUTTON   %LNG%  5 11  0  0 F F DIF_CENTERGROUP 0 %LNG% MEditDictViews
-TEXT        0   0 12  0  0 F F DIF_SEPARATOR   0 NULL
-BUTTON MOk     05 13  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
-BUTTON     -1  15 13  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
+TEXT        0   5  7  0  0 F F 0 0 %LNG% MDictPath
+EDIT ID_GC_DictPath
+                5  8 52  0 F F 0 0 NULL HISTORY="FarSpell.DictPath"
+CHECKBOX %LNG%  7  9  0  0 F F 0 0 %LNG% MSuggMenu
+CHECKBOX %LNG%  7 10  0  0 F F 0 0 %LNG% MFileSettings
+CHECKBOX %LNG%  7 11  0  0 F F 0 0 %LNG% MAnotherColoring
+BUTTON   %LNG%  5 12  0  0 F F DIF_CENTERGROUP 0 %LNG% MColorSelectBtn
+BUTTON   %LNG% 11 12  0  0 F F DIF_CENTERGROUP 0 %LNG% MUnloadDictionaries
+BUTTON   %LNG%  5 13  0  0 F F DIF_CENTERGROUP 0 %LNG% MEditDictViews
+TEXT        0   0 14  0  0 F F DIF_SEPARATOR   0 NULL
+BUTTON MOk     05 15  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
+BUTTON     -1  15 15  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
 name "ColorSelectSkel"
 ; name     id     x1 y1 x2 y2 focus(T/F | 0/1) 

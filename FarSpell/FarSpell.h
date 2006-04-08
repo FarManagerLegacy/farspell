@@ -70,6 +70,7 @@ enum {
   MPluginEnabled,
   MDefaultDict,
   MSpellExts,
+  MDictPath,
   MSuggMenu,
   MFileSettings,
   MAnotherColoring,
@@ -103,6 +104,7 @@ enum {
 
 enum {
   ID_GC_SpellExts=300,
+  ID_GC_DictPath,
   ID_GC_DefaultDict,
   ID_S_Word,
   ID_S_WordList,

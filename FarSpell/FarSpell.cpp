@@ -39,6 +39,7 @@ char *const oem_cp_source_key = "OEMCodepageSource";
 char *const spellcheck_forward_key = "Spellcheck_Forward";
 char *const spellcheck_suggestion_key = "Spellcheck_Suggestion";
 char *const spellcheck_area_key = "Spellcheck_Area";
+char *const dictionary_path_key = "DictionaryPath";
 
 FarString HRString(HRESULT hr)
 {
@@ -79,7 +80,8 @@ FarSpellEditor::Manager *FarSpellEditor::editors = NULL;
 FarSpellEditor::Manager::Manager()
 : reg(Far::GetRootKey(), "\\FarSpell")
 , plugin_root(FarFileName(Far::GetModuleName()).GetPath())
-, spell_factory(FarFileName(plugin_root+"dict\\"), FarString(Far::GetRootKey())+"\\FarSpell")
+, dictionary_path(FarFileName(plugin_root+"dict\\"))
+, spell_factory(dictionary_path, FarString(Far::GetRootKey())+"\\FarSpell")
 , dict_view_factory(FarString(Far::GetRootKey())+"\\FarSpell", &spell_factory)
 {
   last = NULL;
@@ -97,7 +99,10 @@ FarSpellEditor::Manager::Manager()
   spellcheck_forward  = reg.GetRegKey("", spellcheck_forward_key, true);
   spellcheck_suggestion = reg.GetRegKey("", spellcheck_suggestion_key, true);
   spellcheck_area = reg.GetRegKey("", spellcheck_area_key, sa_entire_text);
+  dictionary_path = reg.GetRegStr("", dictionary_path_key, dictionary_path.c_str());
+  
   CheckDictionaries();
+
 # ifndef HARDCODED_MLDATA
   HRESULT hr;
   ml = NULL;
@@ -140,6 +145,7 @@ FarSpellEditor::Manager::~Manager()
   reg.SetRegKey("", spellcheck_forward_key, spellcheck_forward );
   reg.SetRegKey("", spellcheck_suggestion_key, spellcheck_suggestion);
   reg.SetRegKey("", spellcheck_area_key, spellcheck_area);
+  reg.SetRegKey("", dictionary_path_key, dictionary_path);
 
   while (last) delete last;
 #         ifndef HARDCODED_MLDATA
@@ -202,6 +208,7 @@ void FarSpellEditor::Manager::ClearFileSettings()
 void FarSpellEditor::Manager::CheckDictionaries()
 {
   if (!plugin_enabled) return;
+  spell_factory.SetDictRoot(dictionary_path);
   if (!spell_factory.AnyDictionaryExists())
   {
     FarMessage msg(FMSG_MB_OK, "Contents");

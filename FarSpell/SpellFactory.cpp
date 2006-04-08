@@ -57,9 +57,8 @@ SpellInstance::WordList *SpellInstance::Suggest(const FarStringW &word)
 }
 
 SpellInstance::SpellInstance( const FarString &reg_root, 
-  const FarFileName &dict_root, const FarString &dict)
-: Hunspell(FarFileName::MakeName(dict_root, dict+".aff").c_str(),
-           FarFileName::MakeName(dict_root, dict+".dic").c_str())
+  const FarFileName &dict )
+: Hunspell((dict+".aff").c_str(), (dict+".dic").c_str())
 , reg(reg_root, dict)
 {
   encoding = search_codepage(FarString(get_dic_encoding()));
@@ -112,13 +111,18 @@ SpellInstance* SpellFactory::GetDictInstance(const FarString& dict)
      if ((*cache_engine_langs[i]) == dict)
        return cache_engine_instances[i];
   }
-  if (!DictionaryExists(dict)) return NULL;
+  FarFileName dict_path(DictionaryExists(dict)); // without extension
+
+  if (dict_path.IsEmpty()) return NULL;
+
   HANDLE screen = Far::SaveScreen();
   FarMessage wait(0); // TODO: intercept stderr from Hunspell
   wait.AddLine(MFarSpell);
   wait.AddFmt(MLoadingDictionary, dict.c_str());
+  wait.AddLine(dict_path.c_str());
   wait.Show();
-  SpellInstance* engine = new SpellInstance(reg_root, dict_root, dict);
+
+  SpellInstance *engine = new SpellInstance(reg_root, dict_path);
   cache_engine_langs.Add(new FarString(dict));
   cache_engine_instances.Add(engine);
   Far::RestoreScreen(screen);
@@ -129,23 +133,38 @@ SpellInstance* SpellFactory::GetDictInstance(const FarString& dict)
 bool SpellFactory::AnyDictionaryExists()
 {
   int dict_count = 0;
-  EnumDictionaries(GetDictCountCb, &dict_count);
+  EnumDictionaries("*", GetDictCountCb, &dict_count);
   return dict_count>0;
 }
 
-bool SpellFactory::DictionaryExists(const char *dict)
+FarFileName SpellFactory::DictionaryExists(const char *dict)
 {
-  int count = 0;
-  FarFileName name(dict);
-  name.SetExt(".aff");
-  FarSF::RecursiveSearch((char*)dict_root.c_str(), (char*)name.c_str(), 
-    GetDictCountCb, 0, &count);
-  return count>0;
+  FarFileName result;
+  EnumDictionaries(dict, SearchDictionary, &result);
+  return result;
 }
 
-void SpellFactory::EnumDictionaries(FRSUSERFUNC Func, void *param)
+int WINAPI SpellFactory::SearchDictionary(
+  const WIN32_FIND_DATA *FData,
+  const char *FullName,
+  void *Param
+)
 {
-  FarSF::RecursiveSearch((char*)dict_root.c_str(), "*.aff", Func, 0, param);
+  FarFileName *out_name = reinterpret_cast<FarFileName *>(Param);
+  FarFileName name(FullName, strlen(FullName)-4); // *.aff only
+  if ( FarFileInfo::FileExists(name+".dic")) {
+    *out_name = name; // return full file name without extension.
+    return 0;
+  } else
+    return 1;
+}
+
+void SpellFactory::EnumDictionaries(const FarString &mask, FRSUSERFUNC Func, void *param)
+{
+  FarStringTokenizer folders(dict_root.c_str(), ';');
+  while (folders.HasNext()) 
+    FarSF::RecursiveSearch(const_cast<char *>(folders.NextToken().c_str()),
+       const_cast<char *>((mask+".aff").c_str()), Func, 0, param);
 }
 
 int WINAPI SpellFactory::GetDictCountCb(
@@ -166,10 +185,10 @@ struct EnumProcInstance
   void* param;
 };
 
-void SpellFactory::EnumDictionaries(SpellFactoryEnumProc enum_proc, void* param)
+void SpellFactory::EnumDictionaries(const FarString &mask, SpellFactoryEnumProc enum_proc, void* param)
 {
   EnumProcInstance inst = {enum_proc, param};
-  EnumDictionaries(EnumDictionariesCb, &inst);
+  EnumDictionaries(mask, EnumDictionariesCb, &inst);
 }
 
 int WINAPI SpellFactory::EnumDictionariesCb(

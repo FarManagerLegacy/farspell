@@ -49,8 +49,7 @@ class SpellInstance: public Hunspell
         int count;
         FarStringW _word_cache;
     };
-    SpellInstance( const FarString &reg_root, const FarFileName &dict_root, 
-                   const FarString &dict);
+    SpellInstance( const FarString &reg_root, const FarFileName &dict );
     WordList *Suggest(const FarStringW &word);
     bool Check(const FarStringW &word);
     const FarStringW &GetWordChars() {  return word_chars; }
@@ -75,22 +74,30 @@ class SpellFactory
     ~SpellFactory() {};
     SpellInstance* GetDictInstance(const FarString& dict);
     bool AnyDictionaryExists();
-    bool DictionaryExists(const char *dict);
+    FarFileName DictionaryExists(const char *dict);
     void UnloadDictionaries()
     {
       cache_engine_langs.Clear();
       cache_engine_instances.Clear();
     }
-    void EnumDictionaries(SpellFactoryEnumProc enum_proc, void* param);
+    void EnumDictionaries(const FarString &mask, SpellFactoryEnumProc enum_proc, void* param);
+    void SetDictRoot(FarFileName &_dict_root) {
+      dict_root = _dict_root;
+    }
   protected:
     FarString reg_root;
     FarFileName dict_root;
     FarArray<FarString> cache_engine_langs;
     FarArray<SpellInstance> cache_engine_instances;
-    void EnumDictionaries(FRSUSERFUNC Func, void *param);
+    void EnumDictionaries(const FarString &mask, FRSUSERFUNC Func, void *param);
     static int WINAPI GetDictCountCb(const WIN32_FIND_DATA *FData, 
       const char *FullName, void *Param);
     static int WINAPI EnumDictionariesCb(const WIN32_FIND_DATA *FData, 
       const char *FullName, void *Param);
+    static int WINAPI SpellFactory::SearchDictionary(
+      const WIN32_FIND_DATA *FData,
+      const char *FullName,
+      void *Param /* out <FarFileName *> - full file name without extension */
+    );
 };
 

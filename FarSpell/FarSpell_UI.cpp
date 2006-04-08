@@ -128,7 +128,7 @@ class FarEditorSuggestList
       while ((token = parser_inst->next_token()))
       {
         ToUnicode(ascii_cp, token, token_wide);
-        if (!dict_inst->Check(token_wide))
+        //if (!dict_inst->Check(token_wide)) TODO? configurable.
         {
           tpos = parser_inst->get_tokenpos();
           tlen = strlen(token);

@@ -65,6 +65,7 @@ public:
     int AddItem (char Letter, int LngIndex, bool Selected=false, int Checked=0);
     int AddSeparator();
     void DisableItem (int index);
+    void CheckItem (int index, bool checked);
 
     void ClearItems();
     void SelectItem (int index);

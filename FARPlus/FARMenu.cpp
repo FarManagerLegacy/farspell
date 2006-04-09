@@ -156,6 +156,17 @@ void FarMenuT<FarMenuItemEx>::DisableItem (int index)
   }
 }
 
+void FarMenuT<FarMenuItemEx>::CheckItem (int index, bool checked)
+{
+  if (index >= 0 && index < fItemsNumber)
+  {
+    if (checked)
+      (fItems + index)->Flags |= MIF_CHECKED;
+    else
+      (fItems + index)->Flags &= ~MIF_CHECKED;
+  }
+}
+
 template <typename TItems>
 void FarMenuT<TItems>::SetBreakKeys (int aFirstKey, ...)
 {

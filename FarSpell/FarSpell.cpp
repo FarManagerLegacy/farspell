@@ -40,6 +40,7 @@ char *const spellcheck_forward_key = "Spellcheck_Forward";
 char *const spellcheck_suggestion_key = "Spellcheck_Suggestion";
 char *const spellcheck_area_key = "Spellcheck_Area";
 char *const dictionary_path_key = "DictionaryPath";
+char *const return_from_dictionary_menu_key = "ReturnFromDictionaryMenu";
 
 FarString HRString(HRESULT hr)
 {
@@ -100,7 +101,7 @@ FarSpellEditor::Manager::Manager()
   spellcheck_suggestion = reg.GetRegKey("", spellcheck_suggestion_key, true);
   spellcheck_area = reg.GetRegKey("", spellcheck_area_key, sa_entire_text);
   dictionary_path = reg.GetRegStr("", dictionary_path_key, dictionary_path.c_str());
-  
+  return_from_dictionary_menu = reg.GetRegKey("", return_from_dictionary_menu_key, true); 
   CheckDictionaries();
 
 # ifndef HARDCODED_MLDATA
@@ -146,6 +147,7 @@ FarSpellEditor::Manager::~Manager()
   reg.SetRegKey("", spellcheck_suggestion_key, spellcheck_suggestion);
   reg.SetRegKey("", spellcheck_area_key, spellcheck_area);
   reg.SetRegKey("", dictionary_path_key, dictionary_path);
+  reg.SetRegKey("", return_from_dictionary_menu_key, return_from_dictionary_menu); 
 
   while (last) delete last;
 #         ifndef HARDCODED_MLDATA

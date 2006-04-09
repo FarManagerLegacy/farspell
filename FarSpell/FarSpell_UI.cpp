@@ -682,12 +682,24 @@ again: //{
             last_dict = i;
             break;
           }
-        const int n_dict = menu.Show();
-        if (n_dict != last_dict && n_dict>=0 && n_dict<menu.Count()) {
-          dict = menu.GetItemText(n_dict);
-          DropEngine(RS_ALL);
-        }
-        menu_loop = true;
+        menu.AddSeparator();
+        i = menu.AddItem(MReturnToMenu);
+        menu.CheckItem(i, editors->return_from_dictionary_menu);
+        do { 
+          menu_loop = false; // dictionaries menu loop
+          const int n_dict = menu.Show();
+          if (n_dict == i) {
+            editors->return_from_dictionary_menu = 
+              !editors->return_from_dictionary_menu;
+            menu.CheckItem(i, editors->return_from_dictionary_menu);
+            menu_loop = true;
+          }
+          else if (n_dict != last_dict && n_dict>=0 && n_dict<menu.Count()) {
+            dict = menu.GetItemText(n_dict);
+            DropEngine(RS_ALL);
+          }
+        } while (menu_loop);
+        menu_loop = editors->return_from_dictionary_menu; // main menu loop
         break;
       }
     }

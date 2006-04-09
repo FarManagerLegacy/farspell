@@ -94,6 +94,7 @@ class FarSpellEditor
         bool spellcheck_suggestion;
         int spellcheck_area; 
         FarString default_dict;
+        bool return_from_dictionary_menu;
         class FarRegistry1: public FarRegistry
         {  public:
              FarRegistry1 (const char *rootKeyStart, const char *rootKeyBody)

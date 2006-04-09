@@ -95,6 +95,8 @@ enum {
   MDictParams,
   MSave,
 
+  MReturnToMenu,
+
   M_FMT_AUTO_TEXT,
   M_FMT_TEXT,
   M_FMT_LATEX,

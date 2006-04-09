@@ -622,7 +622,7 @@ again: //{
    = insert_suggestions && editors->plugin_enabled 
      ? new FarEditorSuggestList(fei, this) : NULL;
   FarMenuT<FarMenuItemEx> menu(MFarSpell, FMENU_WRAPMODE, "Contents");
-  int i, static_part = 0;
+  int mi, static_part = 0;
   static const char Numbers[] = "`1234567890-=~!@#$%^&*()_+";
   if (sl && sl->Count())
   {
@@ -631,21 +631,21 @@ again: //{
     menu.AddSeparator();
     static_part = sl->Count()+1;
   }
-  i = menu.AddItem('S', MSuggestion);
+  mi = menu.AddItem('S', MSuggestion);
   if (!editors->plugin_enabled)
-    menu.DisableItem(i);
-  i = menu.AddItem('C', MSpellcheck);
+    menu.DisableItem(mi);
+  mi = menu.AddItem('C', MSpellcheck);
   if (!editors->plugin_enabled)
-    menu.DisableItem(i);
-  i = menu.AddItem('P', MPreferences);
+    menu.DisableItem(mi);
+  mi = menu.AddItem('P', MPreferences);
   if (!editors->plugin_enabled)
-    menu.DisableItem(i);
+    menu.DisableItem(mi);
 
   menu.AddItem('G', MEditorGeneralConfig);
-  i = menu.AddItem('L', MDictionary0);
-  menu.SubmenuHint(i);
+  mi = menu.AddItem('L', MDictionary0);
+  menu.SubmenuHint(mi);
   if (!editors->plugin_enabled || !editors->spell_factory.AnyDictionaryExists())
-    menu.DisableItem(i);
+    menu.DisableItem(mi);
 
   if (last_item>=0)
     menu.SelectItem(static_part + last_item);
@@ -683,15 +683,15 @@ again: //{
             break;
           }
         menu.AddSeparator();
-        i = menu.AddItem(MReturnToMenu);
-        menu.CheckItem(i, editors->return_from_dictionary_menu);
+        mi = menu.AddItem(MReturnToMenu);
+        menu.CheckItem(mi, editors->return_from_dictionary_menu);
         do { 
           menu_loop = false; // dictionaries menu loop
           const int n_dict = menu.Show();
-          if (n_dict == i) {
+          if (n_dict == mi) {
             editors->return_from_dictionary_menu = 
               !editors->return_from_dictionary_menu;
-            menu.CheckItem(i, editors->return_from_dictionary_menu);
+            menu.CheckItem(mi, editors->return_from_dictionary_menu);
             menu_loop = true;
           }
           else if (n_dict != last_dict && n_dict>=0 && n_dict<menu.Count()) {

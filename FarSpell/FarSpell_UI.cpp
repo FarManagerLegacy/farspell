@@ -649,7 +649,10 @@ again: //{
 
   if (last_item>=0)
     menu.SelectItem(static_part + last_item);
-  menu.SetBottomLine(dict);
+  if (editors->spell_factory.AnyDictionaryExists())
+    menu.SetBottomLine(dict);
+  else
+    menu.SetBottomLine(MNoDictionaries);
 
   int res = menu.Show();
 

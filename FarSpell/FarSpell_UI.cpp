@@ -641,7 +641,8 @@ again: //{
   i = menu.AddItem('L', MDictionary0);
   menu.SubmenuHint(i);
 
-  menu.SelectItem(static_part + last_item);
+  if (last_item>=0)
+    menu.SelectItem(static_part + last_item);
   menu.SetBottomLine(dict);
 
   int res = menu.Show();

@@ -640,6 +640,8 @@ again: //{
   menu.AddItem('G', MEditorGeneralConfig);
   i = menu.AddItem('L', MDictionary0);
   menu.SubmenuHint(i);
+  if (!editors->spell_factory.AnyDictionaryExists())
+    menu.DisableItem(i);
 
   if (last_item>=0)
     menu.SelectItem(static_part + last_item);

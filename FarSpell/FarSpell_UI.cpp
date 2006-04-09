@@ -631,8 +631,12 @@ again: //{
     menu.AddSeparator();
     static_part = sl->Count()+1;
   }
-  menu.AddItem('S', MSuggestion);
-  menu.AddItem('C', MSpellcheck);
+  i = menu.AddItem('S', MSuggestion);
+  if (!editors->plugin_enabled)
+    menu.DisableItem(i);
+  i = menu.AddItem('C', MSpellcheck);
+  if (!editors->plugin_enabled)
+    menu.DisableItem(i);
   i = menu.AddItem('P', MPreferences);
   if (!editors->plugin_enabled)
     menu.DisableItem(i);
@@ -640,7 +644,7 @@ again: //{
   menu.AddItem('G', MEditorGeneralConfig);
   i = menu.AddItem('L', MDictionary0);
   menu.SubmenuHint(i);
-  if (!editors->spell_factory.AnyDictionaryExists())
+  if (!editors->plugin_enabled || !editors->spell_factory.AnyDictionaryExists())
     menu.DisableItem(i);
 
   if (last_item>=0)

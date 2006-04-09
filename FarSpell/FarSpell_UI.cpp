@@ -615,7 +615,9 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
 void FarSpellEditor::DoMenu(FarEdInfo &fei, bool insert_suggestions)
 {
   int last_item = -1;
+  bool menu_loop;
 again: //{
+  menu_loop = false;
   FarEditorSuggestList *sl 
    = insert_suggestions && editors->plugin_enabled 
      ? new FarEditorSuggestList(fei, this) : NULL;
@@ -675,7 +677,7 @@ again: //{
           dict = menu.GetItemText(n_dict);
           DropEngine(RS_ALL);
         }
-        goto again;
+        menu_loop = true;
         break;
       }
     }
@@ -686,6 +688,8 @@ again: //{
     sl = NULL;
   }
 //} // again
+  if (menu_loop) 
+    goto again;
 }
 
 class ColorDialog: ColorSelectSkel

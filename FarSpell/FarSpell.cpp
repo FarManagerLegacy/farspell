@@ -150,14 +150,14 @@ FarSpellEditor::Manager::~Manager()
   reg.SetRegKey("", return_from_dictionary_menu_key, return_from_dictionary_menu); 
 
   while (last) delete last;
-#         ifndef HARDCODED_MLDATA
+# ifndef HARDCODED_MLDATA
   if (ml)
   {
     ml->Release();
     ml = NULL;
   }
   CoUninitialize();
-#         endif  HARDCODED_MLDATA
+# endif  HARDCODED_MLDATA
   editors = NULL;
 }
 

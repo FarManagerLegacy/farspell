@@ -26,11 +26,12 @@ ROOT = ..
 !include makefile.exinfo
 !endif
 
+COMMON_LIBS = $(ROOT)\libs
 Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
 
 FARPlus = $(ROOT)\FARPlus
 DEX = $(ROOT)\DialogExpress
-CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell) 
+CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell)
  
 CPPFILES = farspell.cpp FarSpell_UI.cpp \
   ParserFactory.cpp SpellFactory.cpp \
@@ -70,7 +71,7 @@ CC_DLL = link $(LINKFLAGS)
 .cpp.obj_r:
 	$(CC) /c $< /Fo$@
 !endif !DEBUG
-MYLIBS = $(FARPLUS_OPTS) $(FARPLUS_LIB) $(HUNSPELL_LIBS)
+MYLIBS = $(FARPLUS_OPTS) $(FARPLUS_LIB) $(HUNSPELL_LIBS) CustomCodePage.lib
 LIBS = $(MYLIBS) advapi32.lib user32.lib kernel32.lib ole32.lib oleaut32.lib
 
 MJU_SED = $(ROOT)\make-tools\mju-sed.exe
@@ -164,6 +165,11 @@ $(DEX)\metadialog.exe:
 	$(MAKE) debug
 	cd "$(MAKEDIR)"
 
+CustomCodePage.lib:
+	cd "$(COMMON_LIBS)"
+	$(MAKE) "CUSTOM_CODEPAGE_OUT=$(MAKEDIR)" "$(MAKEDIR)\CustomCodePage.lib" "LIB=link /lib"
+	cd "$(MAKEDIR)"
+
 $(FARPLUS_LIB) $(FARPLUS_OPTS):
 	cd $(FARPlus)
         $(MAKE) /nologo
@@ -183,6 +189,9 @@ $(HUNSPELL_LIBS): $(Hunspell)\hunspell\makefile.vc $(Hunspell)\parsers\makefile.
 	cd "$(MAKEDIR)"
 
 clean:
+	cd "$(COMMON_LIBS)"
+	-$(MAKE) /nologo "-DCUSTOM_CODEPAGE_OUT=$(MAKEDIR)" clean
+	cd "$(MAKEDIR)"
 	-del farspell.dll* farspell.exp farspell.ilk farspell.lib *.obj* *.pdb
 	-del www\index.html
 	-del farspell\*.* /Q
@@ -212,7 +221,7 @@ templates: $(MJU_SED) $(DIST)\file_id.diz $(DIST)\FarSpell.rc \
   $(DIST)\dbghelp.dll \
   $(DIST)\FarSpellEng.hlf $(DIST)\FarSpellEng.lng \
   $(DIST)\FarSpellRus.hlf $(DIST)\FarSpellRus.lng \
-  $(DIST)\WordChars.reg
+  $(DIST)\WordChars.reg $(DIST)\cp1125.txt
 #  $(DIST)\FarSpell.dlg \
 
 www: $(MJU_SED) www\index.html
@@ -239,6 +248,8 @@ $(DIST)\history.txt: history.txt
 $(DIST)\todo.txt: todo.txt
 	copy $** $@
 $(DIST)\WordChars.reg: WordChars.reg
+	copy $** $@
+$(DIST)\cp1125.txt: cp1125.txt
 	copy $** $@
 www\index.html: www\index_t.html
 	$(MJU_SED) < $** > $@
@@ -268,6 +279,7 @@ $(DIST)\history.txt
 $(DIST)\todo.txt 
 $(DIST)\TechInfo.txt
 $(DIST)\WordChars.reg
+$(DIST)\cp1125.txt
 $(DIST)\FarSpellEng.hlf 
 $(DIST)\FarSpellEng.lng 
 $(DIST)\FarSpellRus.hlf 

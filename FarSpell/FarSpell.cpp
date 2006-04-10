@@ -21,6 +21,7 @@
 */
 
 #include "FarSpell.hpp"
+#include <libs/CustomCodePage.h>
 
 #ifdef HARDCODED_MLDATA
 #include "codepages.cpp"
@@ -86,6 +87,19 @@ FarSpellEditor::Manager::Manager()
 , dict_view_factory(FarString(Far::GetRootKey())+"\\FarSpell", &spell_factory)
 {
   last = NULL;
+  FarString path, names;
+  ;
+  int ccp_count = 0; 
+  for (FarRegistry::ValueIterator i(reg.EnumValues("CodePages")); i.NextValue(path, names);) 
+    if (!names.IsEmpty() &&
+        LoadCustomCodePage(GetModuleHandle(Far::GetModuleName()), 
+        atoi(names.c_str()), path.c_str(), names.c_str()))
+      ccp_count++;
+  if (!ccp_count)  {
+    reg.SetRegKey("CodePages", "cp1125.txt", "1125;ibm1125;cp1125;ruscii;");
+    LoadCustomCodePage(GetModuleHandle(Far::GetModuleName()), 
+                         1125, "cp1125.txt", "1125;ibm1125;cp1125;ruscii;");
+  }
   plugin_enabled = reg.GetRegKey("", plugin_enabled_key, true);
   enable_file_settings = reg.GetRegKey("", enable_file_settings_key, true);
   highlight_list = reg.GetRegStr("", highlight_mask_key, "*.txt,*.,*.tex,*.htm,*.html,*.docbook");
@@ -672,9 +686,13 @@ void WINAPI _export SetStartupInfo (const struct PluginStartupInfo *Info)
   __try
   {
 #endif _DEBUG
+    InitializeCustomCodePages();
+    CustomCodePageInterceptAPI(GetModuleHandle(Info->ModuleName));
+
     Far::Init (Info, PF_EDITOR|PF_DISABLEPANELS);
     Far::AddPluginMenu (MFarSpell);
     Far::AddPluginConfig (MFarSpell);
+
     FarSpellEditor::Init();
 #ifdef _DEBUG
   }
@@ -707,6 +725,7 @@ void WINAPI _export ExitFAR()
   {
     delete FarSpellEditor::editors;
     Far::Done();
+    FinalizeCustomCodePages();
   }
 }
 

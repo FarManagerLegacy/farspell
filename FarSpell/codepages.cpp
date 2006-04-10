@@ -22,6 +22,7 @@ const lang_t langs[] = {
     { "cn-big5", 950 },
     { "cn-gb", 936 },
     { "codepage437", 437 },
+    { "cp1025", 1025 },
     { "cp1026", 1026 },
     { "cp1256", 1256 },
     { "cp367", 1252 },
@@ -77,6 +78,7 @@ const lang_t langs[] = {
     { "greek8", 28597 },
     { "hebrew", 28598 },
     { "hz-gb-2312", 52936 },
+    { "ibm1125", 1125 },
     { "ibm367", 1252 },
     { "ibm437", 437 },
     { "ibm737", 737 },
@@ -192,6 +194,7 @@ const lang_t langs[] = {
     { "macintosh", 10000 },
     { "microsoft-cp1251", 1251 }, // from hunspell
     { "ms_kanji", 932 },
+    { "ruscii", 1125 },
     { "shift-jis", 932 },
     { "shift_jis", 932 },
     { "tis-620", 874 },

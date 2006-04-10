@@ -38,6 +38,9 @@
 #include <malloc.h>
 
 #ifdef _MT
+/****************************************************************************
+ !!! WARNING: Multithread code not yet completed                          !!!
+ ****************************************************************************/
 #define MULTITHREAD
 #else
 #undef MULTITHREAD

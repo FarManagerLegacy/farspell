@@ -178,6 +178,8 @@ FarSpellEditor::Manager::~Manager()
 int FarSpellEditor::Manager::GetCharsetEncoding(FarString &name)
 {
 # ifdef HARDCODED_MLDATA
+  if (name.IsEmpty())
+    return GetACP();
   int res = search_codepage(name);
   if (res != -1) return res;
   GetLog().Error("GetCharsetInfo: %s - not found", name.c_str());

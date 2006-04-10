@@ -255,7 +255,7 @@ FarSpellEditor::FarSpellEditor():
   //editors->GetLog().Message("Creatig 0x%X (%d)", this, EditorId);
   file_name = fei.FileName;
   highlight = 1;
-  parser_id = "*";
+  parser_id = ParserFactory::GetDefaultParser();
   _dict_instance = NULL;
   _parser_instance = NULL;
   colored_begin = INT_MAX;

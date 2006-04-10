@@ -54,6 +54,7 @@ class ParserFactory
     static const char* GetParserName(const char *parser_id);
     static ParserInstance* CreateParserInstance(const char *parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name);
     static ParserInstance* CreateParserInstance(int parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name);
+    static const char* GetDefaultParser();
   private:
     enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
     static char * HunspellParser[];

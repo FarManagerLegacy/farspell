@@ -197,3 +197,8 @@ ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int for
       p = new TextParser(wordchars);
     return new ParserInstance(p);
 }
+
+const char* ParserFactory::GetDefaultParser()
+{
+  return HunspellParser[FMT_AUTO_TEXT];
+}

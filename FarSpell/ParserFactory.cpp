@@ -200,5 +200,5 @@ ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int for
 
 const char* ParserFactory::GetDefaultParser()
 {
-  return HunspellParser[FMT_AUTO_TEXT];
+  return HunspellParser[FMT_TEXT];
 }

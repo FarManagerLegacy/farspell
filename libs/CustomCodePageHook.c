@@ -13,7 +13,7 @@
  *
  * Contributor(s):
  *   Sergey Shishmintzev <sergey.shihshmintzev@gmail.com>
- *     Custom CodePage Libarary
+ *     Custom CodePage Library
  *   V. A. Tikhomirov <kmopevm@knastu.ru>
  *     http://rsdn.ru/article/baseserv/apicallsintercepting.xml  
  *     http://rsdn.ru/article/baseserv/IntercetionAPI.xml

@@ -52,7 +52,7 @@ FARPLUS_LIB = $(FARPlus)/farplus_d.lib
 FARPLUS_OPTS = $(FARPlus)/FARDbg.obj_d $(FARPlus)/FarDbg_PDB.obj_d
 CC = cl $(CFLAGS) /D_DEBUG /Ge /Od /Zi
 #CC_DLL = $(CC)
-CC_DLL = link $(LINKFLAGS) /debug
+CC_DLL = link $(LINKFLAGS) /ltcg /debug
 .cpp.obj_d:
 	$(CC) /c $< /Fo$@
 !else

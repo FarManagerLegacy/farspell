@@ -57,6 +57,7 @@ class ParserFactory
     static const char* GetDefaultParser();
   private:
     enum { FMT_AUTO_TEXT, FMT_TEXT, FMT_LATEX, FMT_HTML, FMT_MAN, FMT_FIRST };
+    enum { DefaultParser = FMT_TEXT };
     static char * HunspellParser[];
     static int MsgIds[];
     static ParserInstance * newHunspellParser(const char *wordchars, int format, const char *extension);

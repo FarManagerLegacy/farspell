@@ -143,7 +143,7 @@ const char* ParserFactory::GetParserName(const char *parser_id)
   for (char **i = HunspellParser; *i; i++)
     if (strcmp(*i, parser_id)==0)
       return Far::GetMsg(MsgIds[i-HunspellParser]);
-  return Far::GetMsg(MsgIds[FMT_AUTO_TEXT]);
+  return Far::GetMsg(MsgIds[DefaultParser]);
 }
 
 ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name)
@@ -151,7 +151,7 @@ ParserInstance* ParserFactory::CreateParserInstance(const char *parser_id, int e
   for (char **i = HunspellParser; *i; i++)
     if (strcmp(*i, parser_id)==0)
       return CreateParserInstance(i-HunspellParser, encoding, wordchars, file_name);
-  return CreateParserInstance(FMT_AUTO_TEXT, encoding, wordchars, file_name);
+  return CreateParserInstance(DefaultParser, encoding, wordchars, file_name);
 }
 
 ParserInstance* ParserFactory::CreateParserInstance(int parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name)
@@ -200,5 +200,5 @@ ParserInstance * ParserFactory::newHunspellParser(const char *wordchars, int for
 
 const char* ParserFactory::GetDefaultParser()
 {
-  return HunspellParser[FMT_TEXT];
+  return HunspellParser[DefaultParser];
 }

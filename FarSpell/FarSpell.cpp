@@ -284,7 +284,7 @@ FarSpellEditor::FarSpellEditor():
   }
   //RecreateEngine(RS_ALL);
   if (parser_id.IsEmpty())
-    parser_id = "*";
+    parser_id = ParserFactory::GetDefaultParser();
   CheckDictionary();
 }
 

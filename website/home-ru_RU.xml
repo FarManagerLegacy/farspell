@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="windows-1251"?>
 <!DOCTYPE webpage
   PUBLIC "-//Norman Walsh//DTD Website V2.6//EN"
-  "http://docbook.sourceforge.net/release/website/2.6/schema/dtd/website.dtd">
+  "http://docbook.sourceforge.net/release/website/2.6/schema/dtd/website.dtd"
+[<!ENTITY svnroot "http://far-unlimited.tigris.org:80/svn/far-unlimited">]>
 <webpage id="ru_RU">
 <head>
 <title>Русский Far Unlimited</title>
@@ -46,12 +47,12 @@
 Исходники доступны через SVN:
 </para>
 <programlisting>
-svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarSpell
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+svn co -N &svnroot;/trunk
+svn co &svnroot;/trunk/FarSpell
+svn co &svnroot;/trunk/FARPlus
+svn co &svnroot;/trunk/DialogExpress
+svn co &svnroot;/trunk/FarLNG
+svn co &svnroot;/trunk/make-tools
 </programlisting>
 </listitem></varlistentry>
 <varlistentry><term>DialogExpress</term><listitem><para>
@@ -70,10 +71,10 @@ DialogExpress можно использовать для динамической загрузки диалогов.
 Исходники доступны через SVN:
 </para>
 <programlisting>
-svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/DialogExpress
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FarLNG
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/make-tools
+svn co -N &svnroot;/trunk
+svn co &svnroot;/trunk/DialogExpress
+svn co &svnroot;/trunk/FarLNG
+svn co &svnroot;/trunk/make-tools
 </programlisting>
 </listitem></varlistentry>
 <varlistentry><term>Исправленный и дополненный 
@@ -91,8 +92,8 @@ Unicode строк.
 Исходники доступны через SVN:
 </para>
 <programlisting>
-svn co -N http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk
-svn co http://far-unlimited.tigris.org:80/svn/far-unlimited/trunk/FARPlus
+svn co -N &svnroot;/trunk
+svn co &svnroot;/trunk/FARPlus
 </programlisting>
 </listitem></varlistentry>
 </variablelist>

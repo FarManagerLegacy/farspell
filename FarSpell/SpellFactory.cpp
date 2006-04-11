@@ -59,11 +59,12 @@ SpellInstance::WordList *SpellInstance::Suggest(const FarStringW &word)
 SpellInstance::SpellInstance( const FarString &reg_root, 
   const FarFileName &dict )
 : Hunspell((dict+".aff").c_str(), (dict+".dic").c_str())
-, reg(reg_root, dict)
+, reg(reg_root, FarSF::PointToName(dict.c_str()))
 {
   encoding = search_codepage(FarString(get_dic_encoding()));
   FarStringW orig_word_chars(GetWordChars_FromDict());
   DWORD str_size = reg.GetValueSize("", "WordChars");
+
   if ((int)str_size>0 && (str_size&1)==0) {
     if (reg.GetRegKey("", "WordChars", 
                       word_chars.GetBuffer(str_size/sizeof(wchar_t)), str_size, 

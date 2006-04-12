@@ -31,7 +31,9 @@ ABSROOT = C:/Program Files/Far/Plugins/far-unlimited
 CMD = cmd.exe /c
 
 ### Абсолютный путь к папке с заголовочными файлами FAR Plugin SDK:
-PLUGINSDK_HEADERS = C:/Program Files/Far/PluginSDK/Headers.c
+PLUGINSDK = C:/Program Files/Far/PluginSDK
+PLUGINSDK_HEADERS = $(PLUGINSDK)/Headers.c
+PLUGINSDK_COMMON = $(PLUGINSDK)/Examples/Common
 
 ### Абсолютный путь к консольному архиватору 7z:
 SEVEN_ZIP = "c:/program files/7-zip/7z.exe"

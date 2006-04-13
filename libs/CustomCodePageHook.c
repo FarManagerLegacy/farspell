@@ -11,6 +11,11 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
+ * The Initial Developer of the Original Code is
+ * Sergey Shishmintzev <sergey.shihshmintzev@gmail.com>.
+ * Portions created by the Initial Developer are Copyright (C) 2006
+ * the Initial Developer. All Rights Reserved.
+ *
  * Contributor(s):
  *   Sergey Shishmintzev <sergey.shihshmintzev@gmail.com>
  *     Custom CodePage Library

@@ -1,6 +1,11 @@
 metaquote %[]
 target C
 begin
+/*
+This file is automatically written by the metadialog auxiliary program 
+using metadialog_c.txt template. If you edit it by hand, you might 
+like to edit the Makefile to prevent its ever being regenerated.
+*/
 %[foreach dialog]
 /******************************************************************************
  %[dialog.id]

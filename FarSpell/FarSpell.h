@@ -95,6 +95,18 @@ enum {
   MDictParams,
   MSave,
 
+  MActionEditor,
+  MActionEnabled,
+  MShowSuggestion,
+  MUpDown,
+
+  MDictionaryProperties,
+  MPreprocessWord,
+  MReplaceCharsFrom,
+  MReplaceCharsTo,
+  MErrorOnTranslation,
+
+
   MReturnToMenu,
 
   M_FMT_AUTO_TEXT,

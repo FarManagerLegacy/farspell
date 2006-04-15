@@ -78,7 +78,9 @@ class DictViewInstance: protected DecisionTable::Context
     DecisionTable logic;
     int WordColor(FarStringW &word, int default_color);
     bool Save();
+    int DictCount() const;
     DictParams *AddDict(const FarString &dict);
+    DictParams *GetDict(int index);
     void RemoveDict(int index);
     void RemoveDict(DictParams *);
   protected:
@@ -415,6 +417,25 @@ DecisionTable::action_inst_t DictViewInstance::CreateAction()
   Color *act = new Color(this);
   act->client_context = act;
   return act;
+}
+
+int DictViewInstance::DictCount() const
+{
+  return logic.GetConditionsCount();
+}
+
+DictViewInstance::DictParams *DictViewInstance::GetDict(int index)
+{
+  DecisionTable::condition_inst_t cond_inst;
+
+  far_assert(index >= 0);
+  far_assert(index < logic.GetConditionsCount());
+  cond_inst = logic.GetConditionInst(index);
+  far_assert(cond_inst);
+  DictViewInstance::DictParams *params = 
+    static_cast<DictParams *>(cond_inst->client_context);
+  far_assert(params);
+  return params;
 }
 
 DictViewInstance::DictParams *DictViewInstance::AddDict(const FarString &dict)

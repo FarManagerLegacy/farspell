@@ -83,6 +83,8 @@ class DictViewInstance: protected DecisionTable::Context
     DictParams *GetDict(int index);
     void RemoveDict(int index);
     void RemoveDict(DictParams *);
+    int RuleCount() const;
+    Color *GetRuleAction(int index);
   protected:
     DictViewInstance(FarRegistry &init_reg, const FarString &init_reg_key,
       SpellFactory *init_spell_factory );
@@ -460,6 +462,25 @@ void DictViewInstance::RemoveDict(DictParams *instance)
   far_assert(index >= 0);
   far_assert(index < logic.GetConditionsCount());
   RemoveDict(index);
+}
+
+int DictViewInstance::RuleCount() const
+{
+  return logic.GetRulesCount();
+}
+
+DictViewInstance::Color *DictViewInstance::GetRuleAction(int index)
+{
+  far_assert(index >= 0);
+  far_assert(index < logic.GetRulesCount());
+
+  DecisionTable::action_inst_t act_inst = logic.GetActionInst(index);
+  far_assert(act_inst);
+
+  Color *action = static_cast<Color *>(act_inst->client_context);
+  far_assert(action);
+
+  return action;
 }
 
 int DictViewInstance::WordColor(FarStringW &word, int default_color)

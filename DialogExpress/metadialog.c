@@ -244,6 +244,10 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
            assert(pItem);
            bSkip = pItem->Flags==0;
            break;
+         case ItemHasDefaultButton:
+           assert(pItem);
+           bSkip = pItem->DefaultButton==0;
+           break;
          case ItemHasMsgidP:
            assert(pDialogItem);
            bSkip = (dialogitem_datasource_type(pDialogItem)!=DI_DATASOURCE_MSGID);
@@ -393,6 +397,10 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
           case vItemFlags:
             assert(pItem);
             FarDialogItemFlags_to_C(pFile, pItem->Type, pItem->Flags, 0);
+            break;
+          case vItemDefaultButton:
+            assert(pItem);
+            fprintf(pFile, "%d", pItem->DefaultButton);
             break;
           case vItemMsgid:
             assert(pDialogItem);

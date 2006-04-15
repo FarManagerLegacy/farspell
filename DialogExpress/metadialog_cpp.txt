@@ -50,6 +50,8 @@ class %[prefix]%[dialog.id]
       pItems->Selected = %[selected];
 %[has flags?]
       pItems->Flags = %[flags];
+%[has default?]
+      pItems->DefaultButton = %[default];
 %[has msgid?]
       strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[smsgid]));
 %[has text?]

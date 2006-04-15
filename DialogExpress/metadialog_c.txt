@@ -45,6 +45,8 @@ void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*
   pItems->Selected = %[selected];
 %[has flags?]
   pItems->Flags = %[flags];
+%[has default?]
+  pItems->DefaultButton = %[default];
 %[has msgid?]
   strcpy(pItems->Data, pInfo->GetMsg(pInfo->ModuleNumber, %[smsgid]));
 %[has text?]

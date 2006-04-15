@@ -20,7 +20,8 @@ struct InitDialogItem {
   unsigned Y1:7;
   unsigned Selected:1;
   unsigned char X2;
-  unsigned char Y2;
+  unsigned Y2:7;
+  unsigned DefaultButton:1;
   unsigned int Flags;
 };  
 #if defined(_MSC_VER)
@@ -45,6 +46,7 @@ void InitDialogItems(const struct InitDialogItem *pInitItems,
     j->Selected = i->Selected;
     j->X2    = i->X2;
     j->Y2    = i->Y2;
+    j->DefaultButton = i->DefaultButton;
     j->Flags = i->Flags;
   }
 }
@@ -66,7 +68,7 @@ void %[prefix]Fill%[dialog.cid](const struct PluginStartupInfo *pInfo, /*in,out*
 %[hasn't id?]
     /* Item Index %[index] */
 %[other]
-    { %[type], %[x1], %[focused], %[y1], %[selected], %[x2], %[y2], %[flags] },
+    { %[type], %[x1], %[focused], %[y1], %[selected], %[x2], %[y2], %[default], %[flags] },
 %[next item]
   };
 #ifdef far_assert

@@ -27,7 +27,7 @@ colorPlugin.dll: colorPlugin.o colorPlugin.def
 	dllwrap -mno-cygwin -o $@ colorPlugin.o --def colorPlugin.def -Wl,-s,-Map,colorPlugin.map,--enable-stdcall-fixup
 
 colorPlugin.o: colorPlugin.c color.c
-	gcc -c -mdll -mno-cygwin -O3 $< -o $@
+	gcc -c -mdll -mno-cygwin -O3 $< -o $@ -I"$(PLUGINSDK_HEADERS)"
 
 color.c: color.dlg $(DEX)/metadialog_c.txt
 	$(MAKE) -C $(DEX) aided

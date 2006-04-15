@@ -350,12 +350,12 @@ void DecisionTable::SetCell(unsigned rule, unsigned condition, condition_t conte
   rules[rule][condition] = content;
 }
 
-unsigned DecisionTable::GetRulesCount()
+unsigned DecisionTable::GetRulesCount() const
 {
   return n_rules;
 }
 
-unsigned DecisionTable::GetConditionsCount()
+unsigned DecisionTable::GetConditionsCount() const
 {
   return n_conditions;
 }

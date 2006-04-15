@@ -89,8 +89,8 @@ class DecisionTable
     condition_inst_t GetConditionInst(unsigned n_condition);
     int GetConditionNumber(condition_inst_t inst);
     void SetCell(unsigned n_rule, unsigned n_condition, condition_t content);
-    unsigned GetRulesCount();
-    unsigned GetConditionsCount();
+    unsigned GetRulesCount() const;
+    unsigned GetConditionsCount() const;
     enum {
       Ok,
       OutOfRange,

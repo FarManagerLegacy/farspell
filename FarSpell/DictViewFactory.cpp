@@ -337,15 +337,15 @@ DictViewInstance::Color::Color(DictViewInstance *init_owner, int init_uid)
   owner = init_owner;
   uid = init_uid;
   reg_key = owner->GetRegKeyName("Color", uid);
+  enabled = owner->reg.GetRegKey(reg_key.c_str(), dict_color_enabled_key, false);
   color = owner->reg.GetRegKey(reg_key.c_str(), dict_color_color_key, 0xF0);
-  enabled = owner->reg.GetRegKey(reg_key.c_str(), dict_color_enabled_key, true);
   suggestions = owner->reg.GetRegStr(reg_key.c_str(), dict_color_suggestions_key, ""); 
 }
 
 void DictViewInstance::Color::OnSave()
 {
-  owner->reg.SetRegKey(reg_key.c_str(), dict_color_color_key, color);
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_enabled_key, enabled);
+  owner->reg.SetRegKey(reg_key.c_str(), dict_color_color_key, color);
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_suggestions_key, suggestions.c_str());
 }
 

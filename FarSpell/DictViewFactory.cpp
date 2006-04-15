@@ -64,8 +64,11 @@ class DictViewInstance: protected DecisionTable::Context
         Color(DictViewInstance *owner);
         Color(DictViewInstance *owner, int uid);
         DictViewInstance *owner;
-        int color;
         FarString reg_key;
+      public:
+        bool enabled;          // produce spell error?
+        int color;             // native highlight color
+        FarString suggestions; // list of dictionaries separated by semicolon ";"
       protected: // Action
         void OnSave();
         void Execute();
@@ -323,7 +326,9 @@ DictViewInstance::Color::Color(DictViewInstance *init_owner)
   color = 0xF0;
 }
 
+static const char* const dict_color_enabled_key = "Enabled";
 static const char* const dict_color_color_key = "Color";
+static const char* const dict_color_suggestions_key = "Suggestions";
 
 DictViewInstance::Color::Color(DictViewInstance *init_owner, int init_uid)
 {
@@ -331,11 +336,15 @@ DictViewInstance::Color::Color(DictViewInstance *init_owner, int init_uid)
   uid = init_uid;
   reg_key = owner->GetRegKeyName("Color", uid);
   color = owner->reg.GetRegKey(reg_key.c_str(), dict_color_color_key, 0xF0);
+  enabled = owner->reg.GetRegKey(reg_key.c_str(), dict_color_enabled_key, true);
+  suggestions = owner->reg.GetRegStr(reg_key.c_str(), dict_color_suggestions_key, ""); 
 }
 
 void DictViewInstance::Color::OnSave()
 {
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_color_key, color);
+  owner->reg.SetRegKey(reg_key.c_str(), dict_color_enabled_key, enabled);
+  owner->reg.SetRegKey(reg_key.c_str(), dict_color_suggestions_key, suggestions.c_str());
 }
 
 void DictViewInstance::Color::Execute()

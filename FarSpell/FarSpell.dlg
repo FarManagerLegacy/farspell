@@ -191,14 +191,14 @@ TEXT  0           10 14  0  0 F F DIF_CENTERGROUP 0 %TXT% " "
 
 name "DictionaryPropertiesSkel"
 DOUBLEBOX   0      3  1 55  7 F F 0 0 %LNG% MDictionaryProperties
-CHECKBOX %LNG%     5  2  0  0 F F 0 0 %LNG% MPreprocessWord
-TEXT        0      5  3  0  0 F F 0 0 %LNG% MReplaceCharsFrom
-EDIT MReplaceCharsFrom 
-                  13  3 52  0 F F 0 0 NULL HISTORY = "FarSpell.ReplaceCharsFrom"
-TEXT        0      5  4  0  0 F F 0 0 %LNG% MReplaceCharsTo
-EDIT MReplaceCharsTo   
-                  13  4 52  0 F F 0 0 NULL HISTORY = "FarSpell.ReplaceCharsTo"
-CHECKBOX %LNG%     5  5  0  0 F F 0 0 %LNG% MErrorOnTranslation
+CHECKBOX %LNG%     5  2  0  0 F F 0 0 %LNG% MTransliterationEnabled
+TEXT        0      5  3  0  0 F F 0 0 %LNG% MTransliterateFrom
+EDIT MTransliterateFrom
+                  13  3 52  0 F F 0 0 NULL HISTORY = "FarSpell.TransliterateFrom"
+TEXT        0      5  4  0  0 F F 0 0 %LNG% MTransliterateTo
+EDIT MTransliterateTo
+                  13  4 52  0 F F 0 0 NULL HISTORY = "FarSpell.TransliterateTo"
+CHECKBOX %LNG%     5  5  0  0 F F 0 0 %LNG% MTransliterationIsError
 BUTTON  %LNG%      5  6  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON  %LNG%     10  6  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 

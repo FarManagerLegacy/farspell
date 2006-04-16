@@ -43,10 +43,10 @@ class DictViewInstance: protected DecisionTable::Context
         void GetWordChars(FarStringW &wc);
         void SetMiddleChars(const FarStringW &mc);
         void GetMiddleChars(FarStringW &mc);
-        void SetReplaceChars(const FarStringW &from, const FarStringW &to);
-        bool GetReplaceChars(FarStringW &out_from, FarStringW &out_to);
-        bool error_on_replace;
-        bool replace_chars;
+        void SetTransliteration(const FarStringW &from, const FarStringW &to);
+        bool GetTransliteration(FarStringW &out_from, FarStringW &out_to);
+        bool transliteration_is_error;
+        bool transliteration_enabled;
       protected:
         DictParams(DictViewInstance *owner);
         DictParams(DictViewInstance *owner, int uid);
@@ -57,8 +57,8 @@ class DictViewInstance: protected DecisionTable::Context
         FarString reg_key;
         FarStringW word_chars;
         FarStringW middle_chars;
-        FarStringW replace_from;
-        FarStringW replace_to;
+        FarStringW transliterate_from;
+        FarStringW transliterate_to;
         bool Execute(const FarStringW &word);
       protected: // Condition
         void OnSave();
@@ -140,10 +140,10 @@ static const char* const dict_params_name_key = "Name";
 static const char* const dict_params_dict_key = "Dict";
 static const char* const dict_params_word_chars_key = "WordChars";
 static const char* const dict_params_middle_chars_key = "MiddleChars";
-static const char* const dict_params_replace_chars_key = "ReplaceChars";
-static const char* const dict_params_replace_chars_from_key = "ReplaceCharsFrom";
-static const char* const dict_params_replace_chars_to_key = "ReplaceCharsTo";
-static const char* const dict_params_error_on_replace_key = "ErrorOnReplace";
+static const char* const dict_params_transliteration_enabled_key = "TransliterationEnabled";
+static const char* const dict_params_transliterate_from_key = "TransliterateFrom";
+static const char* const dict_params_transliterate_to_key = "TransliterateTo";
+static const char* const dict_params_transliteration_is_error_key = "TransliterationIsError";
              
 static FarString itoa(int i, int radix)
 {
@@ -243,10 +243,10 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner)
   dict = "en_US";
   word_chars = L"";
   middle_chars = L"'-";
-  replace_chars = false;
-  replace_from = L"";
-  replace_to = L"";
-  error_on_replace = true;
+  transliteration_enabled = false;
+  transliterate_from = L"";
+  transliterate_to = L"";
+  transliteration_is_error = true;
 }
 
 DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner, 
@@ -260,12 +260,12 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner,
   dict = owner->reg.GetRegStr(reg_key.c_str(), dict_params_dict_key, "en_US");
   word_chars = owner->reg.GetFarString(reg_key.c_str(), dict_params_word_chars_key, FarStringW(L""));
   middle_chars = owner->reg.GetFarString(reg_key.c_str(), dict_params_middle_chars_key, FarStringW(L"'-"));
-  replace_chars = owner->reg.GetRegKey(reg_key.c_str(), dict_params_replace_chars_key, false);
-  replace_from = owner->reg.GetFarString(reg_key.c_str(), dict_params_replace_chars_from_key, 
+  transliteration_enabled = owner->reg.GetRegKey(reg_key.c_str(), dict_params_transliteration_enabled_key, false);
+  transliterate_from = owner->reg.GetFarString(reg_key.c_str(), dict_params_transliterate_from_key, 
     FarStringW(L""));
-  replace_to = owner->reg.GetFarString(reg_key.c_str(), dict_params_replace_chars_to_key, 
+  transliterate_to = owner->reg.GetFarString(reg_key.c_str(), dict_params_transliterate_to_key, 
     FarStringW(L""));
-  error_on_replace = owner->reg.GetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, true);
+  transliteration_is_error = owner->reg.GetRegKey(reg_key.c_str(), dict_params_transliteration_is_error_key, true);
 }
 
 void DictViewInstance::DictParams::OnSave()
@@ -275,11 +275,11 @@ void DictViewInstance::DictParams::OnSave()
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_dict_key, dict);
   owner->reg.SetFarString(reg_key.c_str(), dict_params_word_chars_key, word_chars);
   owner->reg.SetFarString(reg_key.c_str(), dict_params_middle_chars_key, middle_chars);
-  owner->reg.SetRegKey(reg_key.c_str(), dict_params_replace_chars_key, replace_chars);
-  if (replace_chars) {
-    owner->reg.SetFarString(reg_key.c_str(), dict_params_replace_chars_from_key, replace_from);
-    owner->reg.SetFarString(reg_key.c_str(), dict_params_replace_chars_to_key, replace_to);
-    owner->reg.SetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, error_on_replace);
+  owner->reg.SetRegKey(reg_key.c_str(), dict_params_transliteration_enabled_key, transliteration_enabled);
+  if (transliteration_enabled) {
+    owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_from_key, transliterate_from);
+    owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_to_key, transliterate_to);
+    owner->reg.SetRegKey(reg_key.c_str(), dict_params_transliteration_is_error_key, transliteration_is_error);
   }
 }
 
@@ -311,26 +311,26 @@ void DictViewInstance::DictParams::GetMiddleChars(FarStringW &mc)
 }
 
 
-void DictViewInstance::DictParams::SetReplaceChars(const FarStringW &from, const FarStringW &to)
+void DictViewInstance::DictParams::SetTransliteration(const FarStringW &from, const FarStringW &to)
 {
-  replace_chars = from.Length() && to.Length() 
-                  && from.Length() == to.Length()? true : false;
-  if (replace_chars) {
-    replace_from = from;
-    replace_to = to;
+  transliteration_enabled = from.Length() && to.Length() 
+                         && from.Length() == to.Length()? true : false;
+  if (transliteration_enabled) {
+    transliterate_from = from;
+    transliterate_to = to;
   } else {
-    replace_from.Empty();
-    replace_to.Empty();
+    transliterate_from.Empty();
+    transliterate_to.Empty();
   }
 }
 
-bool DictViewInstance::DictParams::GetReplaceChars(FarStringW &out_from, 
+bool DictViewInstance::DictParams::GetTransliteration(FarStringW &out_from, 
   FarStringW &out_to)
 {
-  if (replace_chars)
+  if (transliteration_enabled)
   {
-    out_from = replace_from;
-    out_to = replace_to;
+    out_from = transliterate_from;
+    out_to = transliterate_to;
     return true;
   } else {
     out_from.Empty();
@@ -341,11 +341,13 @@ bool DictViewInstance::DictParams::GetReplaceChars(FarStringW &out_from,
 
 void DictViewInstance::DictParams::PreprocessWord(/*in,out*/FarStringW &word)
 {
-  if (replace_chars) {
-    for (int i = 0; i<replace_from.Length() && i<replace_to.Length(); i++)
+  if (transliteration_enabled) {
+    for (int i = 0; 
+         i<transliterate_from.Length() && i<transliterate_to.Length(); 
+         i++)
       for (int j = 0; j<word.Length(); j++)
-        if (word[j] == replace_from[i]) 
-          word[j] = replace_to[i];
+        if (word[j] == transliterate_from[i]) 
+          word[j] = transliterate_to[i];
   }
 }
 
@@ -354,7 +356,7 @@ bool DictViewInstance::DictParams::Execute(const FarStringW &in_word)
   far_assert(spell_factory);
   SpellInstance *dict_inst = spell_factory->GetDictInstance(dict);
   far_assert(dict_inst);
-  if (replace_chars) {
+  if (transliteration_enabled) {
     FarStringW word = in_word;
     PreprocessWord(word);
     return dict_inst->Check(word);

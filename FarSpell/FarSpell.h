@@ -101,10 +101,10 @@ enum {
   MUpDown,
 
   MDictionaryProperties,
-  MPreprocessWord,
-  MReplaceCharsFrom,
-  MReplaceCharsTo,
-  MErrorOnTranslation,
+  MTransliterationEnabled,
+  MTransliterateFrom,
+  MTransliterateTo,
+  MTransliterationIsError,
 
 
   MReturnToMenu,

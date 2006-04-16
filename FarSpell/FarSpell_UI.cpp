@@ -836,13 +836,13 @@ class GeneralConfigDialog: GeneralConfigSkel
 
 class DictionaryPropertiesDialog: public DictionaryPropertiesSkel
 {
-  static void EnableTranslation(HANDLE hDlg, BOOL enabled)
+  static void EnableTransliteration(HANDLE hDlg, BOOL enabled)
   {
-    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsFrom-1, enabled);
-    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsFrom, enabled);
-    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsTo-1, enabled);
-    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsTo, enabled);
-    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MErrorOnTranslation, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MTransliterateFrom-1, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MTransliterateFrom, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MTransliterateTo-1, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MTransliterateTo, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MTransliterationIsError, enabled);
   }
   static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
   {
@@ -853,12 +853,12 @@ class DictionaryPropertiesDialog: public DictionaryPropertiesSkel
         pThis = (DictionaryPropertiesDialog *)Param2;
         far_assert(pThis);
         Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
-        EnableTranslation(hDlg, pThis->sItems[Index_MPreprocessWord].Selected);
+        EnableTransliteration(hDlg, pThis->sItems[Index_MTransliterationEnabled].Selected);
         break;
       //pThis = (DictionaryPropertiesDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
       case DN_BTNCLICK:
-        if (Param1 == Index_MPreprocessWord) 
-          EnableTranslation(hDlg, Param2 == 1);
+        if (Param1 == Index_MTransliterationEnabled) 
+          EnableTransliteration(hDlg, Param2 == 1);
         break;
     }
     return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
@@ -872,24 +872,24 @@ public:
     FarStringW fromW;
     FarStringW toW;
 
-    params->GetReplaceChars(fromW, toW);
+    params->GetTransliteration(fromW, toW);
     FarStringA fromA(EscapeUnicode(fromW, FarSpellEditor::editors->GetOEMCP()));
     FarStringA toA(EscapeUnicode(toW, FarSpellEditor::editors->GetOEMCP()));
-    strncpy(sItems[Index_MReplaceCharsFrom].Data, fromA.c_str(), sizeof(sItems[0].Data));
-    strncpy(sItems[Index_MReplaceCharsTo].Data, toA.c_str(), sizeof(sItems[0].Data));
-    sItems[Index_MPreprocessWord].Selected = params->replace_chars;
-    sItems[Index_MErrorOnTranslation].Selected = params->error_on_replace;
+    strncpy(sItems[Index_MTransliterateFrom].Data, fromA.c_str(), sizeof(sItems[0].Data));
+    strncpy(sItems[Index_MTransliterateTo].Data, toA.c_str(), sizeof(sItems[0].Data));
+    sItems[Index_MTransliterationEnabled].Selected = params->transliteration_enabled;
+    sItems[Index_MTransliterationIsError].Selected = params->transliteration_is_error;
 
     int idx = ShowEx(0, DlgProc, (long)this);
     if (idx == Index_MOk) 
     {
-      fromA = sItems[Index_MReplaceCharsFrom].Data;
-      toA = sItems[Index_MReplaceCharsTo].Data;
+      fromA = sItems[Index_MTransliterateFrom].Data;
+      toA = sItems[Index_MTransliterateTo].Data;
       fromW = UnescapeUnicode(fromA, FarSpellEditor::editors->GetOEMCP());
       toW = UnescapeUnicode(toA, FarSpellEditor::editors->GetOEMCP());
-      params->SetReplaceChars(fromW, toW);
-      params->replace_chars = sItems[Index_MPreprocessWord].Selected;
-      params->error_on_replace = sItems[Index_MErrorOnTranslation].Selected;
+      params->SetTransliteration(fromW, toW);
+      params->transliteration_enabled = sItems[MTransliterationEnabled].Selected;
+      params->transliteration_is_error = sItems[Index_MTransliterationIsError].Selected;
     }
   }
 };

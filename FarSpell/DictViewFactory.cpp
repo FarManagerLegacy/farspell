@@ -64,11 +64,11 @@ class DictViewInstance: protected DecisionTable::Context
         void OnSave();
         bool Execute();
     };
-    class Color: protected DecisionTable::Action {
+    class Action: protected DecisionTable::Action {
       friend class DictViewInstance;
       protected:
-        Color(DictViewInstance *owner);
-        Color(DictViewInstance *owner, int uid);
+        Action(DictViewInstance *owner);
+        Action(DictViewInstance *owner, int uid);
         DictViewInstance *owner;
         FarString reg_key;
       public:
@@ -90,7 +90,7 @@ class DictViewInstance: protected DecisionTable::Context
     void RemoveDict(int index);
     void RemoveDict(DictParams *);
     int RuleCount() const;
-    Color *GetRuleAction(int index);
+    Action *GetRuleAction(int index);
   protected:
     DictViewInstance(FarRegistry &init_reg, const FarString &init_reg_key,
       SpellFactory *init_spell_factory );
@@ -362,11 +362,11 @@ bool DictViewInstance::DictParams::Execute()
   return Execute(owner->_current_word);
 }
 
-DictViewInstance::Color::Color(DictViewInstance *init_owner)
+DictViewInstance::Action::Action(DictViewInstance *init_owner)
 {
   owner = init_owner;
   uid = owner->NextUID();
-  reg_key = owner->GetRegKeyName("Color", uid);
+  reg_key = owner->GetRegKeyName("Action", uid);
   color = 0xF0;
 }
 
@@ -374,24 +374,24 @@ static const char* const dict_color_enabled_key = "Enabled";
 static const char* const dict_color_color_key = "Color";
 static const char* const dict_color_suggestions_key = "Suggestions";
 
-DictViewInstance::Color::Color(DictViewInstance *init_owner, int init_uid)
+DictViewInstance::Action::Action(DictViewInstance *init_owner, int init_uid)
 {
   owner = init_owner;
   uid = init_uid;
-  reg_key = owner->GetRegKeyName("Color", uid);
+  reg_key = owner->GetRegKeyName("Action", uid);
   enabled = owner->reg.GetRegKey(reg_key.c_str(), dict_color_enabled_key, false);
   color = owner->reg.GetRegKey(reg_key.c_str(), dict_color_color_key, 0xF0);
   suggestions = owner->reg.GetRegStr(reg_key.c_str(), dict_color_suggestions_key, ""); 
 }
 
-void DictViewInstance::Color::OnSave()
+void DictViewInstance::Action::OnSave()
 {
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_enabled_key, enabled);
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_color_key, color);
   owner->reg.SetRegKey(reg_key.c_str(), dict_color_suggestions_key, suggestions.c_str());
 }
 
-void DictViewInstance::Color::Execute()
+void DictViewInstance::Action::Execute()
 {
   owner->_current_color = color;
 }
@@ -449,14 +449,14 @@ DecisionTable::condition_inst_t DictViewInstance::CreateCondition()
 
 DecisionTable::action_inst_t DictViewInstance::GetAction(int uid)
 {
-  Color *act = new Color(this, uid);
+  Action *act = new Action(this, uid);
   act->client_context = act;
   return act;
 }
 
 DecisionTable::action_inst_t DictViewInstance::CreateAction()
 {
-  Color *act = new Color(this);
+  Action *act = new Action(this);
   act->client_context = act;
   return act;
 }
@@ -509,7 +509,7 @@ int DictViewInstance::RuleCount() const
   return logic.GetRulesCount();
 }
 
-DictViewInstance::Color *DictViewInstance::GetRuleAction(int index)
+DictViewInstance::Action *DictViewInstance::GetRuleAction(int index)
 {
   far_assert(index >= 0);
   far_assert(index < logic.GetRulesCount());
@@ -517,7 +517,7 @@ DictViewInstance::Color *DictViewInstance::GetRuleAction(int index)
   DecisionTable::action_inst_t act_inst = logic.GetActionInst(index);
   far_assert(act_inst);
 
-  Color *action = static_cast<Color *>(act_inst->client_context);
+  Action *action = static_cast<Action *>(act_inst->client_context);
   far_assert(action);
 
   return action;

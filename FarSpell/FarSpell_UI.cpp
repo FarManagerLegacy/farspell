@@ -961,7 +961,7 @@ public:
   ActionEditorDialog()
   {
   }
-  void Execute(DictViewInstance *dict_view, DictViewInstance::Color *_action)
+  void Execute(DictViewInstance *dict_view, DictViewInstance::Action *_action)
   {
     color = _action->color;
     sItems[Index_MActionEnabled].Selected = _action->enabled;
@@ -1120,7 +1120,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
         } else if ((id&0xF000) == 0x3000) 
         { // action button
           const unsigned rule = RuleN(id);
-          DictViewInstance::Color *action = pThis->dict_view->GetRuleAction(rule);
+          DictViewInstance::Action *action = pThis->dict_view->GetRuleAction(rule);
 
           ActionEditorDialog action_editor;
           Far::SendDlgMessage(hDlg, DM_ENABLEREDRAW, FALSE, 0);
@@ -1162,7 +1162,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
         { // action buttons are painted by highligting color
           const unsigned rule = RuleN(id);
           if (rule < pThis->n_enabled_rules) {
-            DictViewInstance::Color *action = pThis->dict_view->GetRuleAction(rule);
+            DictViewInstance::Action *action = pThis->dict_view->GetRuleAction(rule);
             if (action->enabled)
               return action->color;
           }

@@ -52,8 +52,8 @@ LINKFLAGS = -debug
 OUTDIR = .msvc.debug
 !endif
 
-all: executables $(OUTDIR)\dialogres.pdll
-debug: all
+all: $(OUTDIR) executables $(OUTDIR)\dialogres.pdll
+debug:  all
 release:
 	-@$(MAKE) -nologo TARGET=Release all
 aided:
@@ -63,9 +63,8 @@ aided:
 # Prevents from build of something useless cdialog.exe
 executables: cdialog.exe$(OUTDIR) metadialog.exe$(OUTDIR)
 $(OUTDIR)\cdialog.exe: cdialog.c $(OUTDIR)\dialogres_static.lib
-	$(MAKE) -nologo $(OUTDIR)
 	$(CC) -o $@ cdialog.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
-cdialog.exe$(OUTDIR): $(OUTDIR)\cdialog.exe
+cdialog.exe$(OUTDIR): $(OUTDIR) $(OUTDIR)\cdialog.exe
 	-del cdialog.exe.*.aided-release
 	-del cdialog.exe.*.release
 	-del cdialog.exe.*.debug
@@ -76,7 +75,7 @@ $(OUTDIR)\metadialog.exe: metadialog.c metaparse.c metaparse.h  \
         	$(OUTDIR)\dialogres_static.lib 
 	$(MAKE) -nologo $(OUTDIR)
         $(CC) -o $@ metadialog.c metaparse.c $(OUTDIR)\dialogres_static.lib $(EXEFLAGS)
-metadialog.exe$(OUTDIR): $(OUTDIR)\metadialog.exe
+metadialog.exe$(OUTDIR): $(OUTDIR) $(OUTDIR)\metadialog.exe
 	-del metadialog.exe.*
 	copy "$(OUTDIR)\metadialog.exe" metadialog.exe
 	echo Build stamp > $@
@@ -119,32 +118,31 @@ keywordhash.h: $(OUTDIR)\mkkeywordhash.exe keywords.txt
 $(OUTDIR)\parse.c $(OUTDIR)\parse.h: parse.y 
 	$(MAKE) -nologo $(LEMON)
 	$(LEMON) $(LEMONFLAGS) parse.y
-	-mkdir $(OUTDIR)
 	move parse.c $(OUTDIR)\parse.c
 	move parse.h $(OUTDIR)\parse.h
 
 $(OUTDIR)\mkkeywordhash.exe: mkkeywordhash.c 
-	$(MAKE) -nologo $(OUTDIR)
 	$(CC) -o $@ mkkeywordhash.c 
 
 $(OUTDIR)\env.h: $(OUTDIR)\mkconstants.exe constants.txt
 	$(OUTDIR)\mkconstants.exe < constants.txt > $@
 
 $(OUTDIR)\mkconstants.exe: mkconstants.c 
-	$(MAKE) -nologo  $(OUTDIR)
 	$(CC) -o $@ mkconstants.c 
 
 $(OUTDIR)\envcol.h: $(OUTDIR)\mkcolors.exe farcolor.txt
 	$(OUTDIR)\mkcolors.exe < farcolor.txt > $@
 
 $(OUTDIR)\mkcolors.exe: mkcolors.c
-	$(MAKE) -nologo $(OUTDIR)
 	$(CC) -o $@ mkcolors.c
 
 $(LEMON):
 	cd $(ROOT)\make-tools
 	$(MAKE) -nologo -f makefile.vc lemon.exe
 	cd "$(MAKEDIR)"
+
+"$(OUTDIR)":
+	mkdir $@
 
 clean:
 	-del parse.c

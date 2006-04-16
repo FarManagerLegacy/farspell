@@ -57,7 +57,6 @@ class DictViewInstance: protected DecisionTable::Context
         FarString reg_key;
         FarStringW word_chars;
         FarStringW middle_chars;
-        bool need_preprocess_word;
         FarStringW replace_from;
         FarStringW replace_to;
         bool Execute(const FarStringW &word);
@@ -243,7 +242,6 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner)
   name = "<noname>";
   dict = "en_US";
   replace_chars = false;
-  need_preprocess_word = false;
 }
 
 DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner, 
@@ -263,7 +261,6 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner,
   replace_to = owner->reg.GetFarString(reg_key.c_str(), dict_params_replace_chars_to_key, 
     FarStringW(L""));
   error_on_replace = owner->reg.GetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, true);
-  need_preprocess_word = replace_chars;
 }
 
 void DictViewInstance::DictParams::OnSave()
@@ -320,7 +317,6 @@ void DictViewInstance::DictParams::SetReplaceChars(const FarStringW &from, const
     replace_from.Empty();
     replace_to.Empty();
   }
-  need_preprocess_word = replace_chars;
 }
 
 bool DictViewInstance::DictParams::GetReplaceChars(FarStringW &out_from, 
@@ -353,7 +349,7 @@ bool DictViewInstance::DictParams::Execute(const FarStringW &in_word)
   far_assert(spell_factory);
   SpellInstance *dict_inst = spell_factory->GetDictInstance(dict);
   far_assert(dict_inst);
-  if (need_preprocess_word) {
+  if (replace_chars) {
     FarStringW word = in_word;
     PreprocessWord(word);
     return dict_inst->Check(word);

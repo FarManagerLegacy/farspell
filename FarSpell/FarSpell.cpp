@@ -843,7 +843,7 @@ FarString EscapeUnicode(const FarStringW &w, UINT code_page)
     return FarString("");
 
   if (w.Length()>1)
-    qsort(sorted.GetBuffer(), sorted.Length(), sizeof(wchar_t), compare_wchar_t);
+    FarSF::qsort(sorted.GetBuffer(), sorted.Length(), sizeof(wchar_t), compare_wchar_t);
 
   first = last = sorted[0];
 

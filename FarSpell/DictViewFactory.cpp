@@ -39,6 +39,10 @@ class DictViewInstance: protected DecisionTable::Context
       public:
         FarString name;
         FarString dict;
+        void SetWordChars(const FarStringW &wc);
+        void GetWordChars(FarStringW &wc);
+        void SetMiddleChars(const FarStringW &mc);
+        void GetMiddleChars(FarStringW &mc);
         void SetReplaceChars(const FarStringW &from, const FarStringW &to);
         bool GetReplaceChars(FarStringW &out_from, FarStringW &out_to);
         bool error_on_replace;
@@ -51,6 +55,8 @@ class DictViewInstance: protected DecisionTable::Context
         DictViewInstance *owner;
         SpellFactory *spell_factory;
         FarString reg_key;
+        FarStringW word_chars;
+        FarStringW middle_chars;
         bool need_preprocess_word;
         FarStringW replace_from;
         FarStringW replace_to;
@@ -133,6 +139,8 @@ static const char* const dict_view_last_uid_key = "LastUID";
 static const char* const dict_params_uid_key = "UID";
 static const char* const dict_params_name_key = "Name";
 static const char* const dict_params_dict_key = "Dict";
+static const char* const dict_params_word_chars_key = "WordChars";
+static const char* const dict_params_middle_chars_key = "MiddleChars";
 static const char* const dict_params_replace_chars_key = "ReplaceChars";
 static const char* const dict_params_replace_chars_from_key = "ReplaceCharsFrom";
 static const char* const dict_params_replace_chars_to_key = "ReplaceCharsTo";
@@ -247,6 +255,8 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner,
   reg_key = owner->GetRegKeyName("DictParams", uid);
   name = owner->reg.GetRegStr(reg_key.c_str(), dict_params_name_key, "<noname>");
   dict = owner->reg.GetRegStr(reg_key.c_str(), dict_params_dict_key, "en_US");
+  word_chars = owner->reg.GetFarString(reg_key.c_str(), dict_params_word_chars_key, FarStringW(L""));
+  middle_chars = owner->reg.GetFarString(reg_key.c_str(), dict_params_middle_chars_key, FarStringW(L"'-"));
   replace_chars = owner->reg.GetRegKey(reg_key.c_str(), dict_params_replace_chars_key, false);
   replace_from = owner->reg.GetFarString(reg_key.c_str(), dict_params_replace_chars_from_key, 
     FarStringW(L""));
@@ -261,6 +271,8 @@ void DictViewInstance::DictParams::OnSave()
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_uid_key, uid);
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_name_key, name);
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_dict_key, dict);
+  owner->reg.SetFarString(reg_key.c_str(), dict_params_word_chars_key, word_chars);
+  owner->reg.SetFarString(reg_key.c_str(), dict_params_middle_chars_key, middle_chars);
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_replace_chars_key, replace_chars);
   if (replace_chars) {
     owner->reg.SetFarString(reg_key.c_str(), dict_params_replace_chars_from_key, replace_from);
@@ -268,6 +280,34 @@ void DictViewInstance::DictParams::OnSave()
     owner->reg.SetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, error_on_replace);
   }
 }
+
+void DictViewInstance::DictParams::SetWordChars(const FarStringW &wc)
+{
+  word_chars = wc;
+}
+
+void DictViewInstance::DictParams::GetWordChars(FarStringW &wc)
+{
+  if (word_chars.IsEmpty()) 
+  {
+    far_assert(spell_factory);
+    SpellInstance *dict_inst = spell_factory->GetDictInstance(dict);
+    far_assert(dict_inst);
+    wc = dict_inst->GetWordChars();
+  } else 
+    wc = word_chars;
+}
+
+void DictViewInstance::DictParams::SetMiddleChars(const FarStringW &mc)
+{
+  middle_chars = mc;
+}
+
+void DictViewInstance::DictParams::GetMiddleChars(FarStringW &mc)
+{
+  mc = middle_chars;
+}
+
 
 void DictViewInstance::DictParams::SetReplaceChars(const FarStringW &from, const FarStringW &to)
 {

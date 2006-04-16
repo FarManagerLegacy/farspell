@@ -50,7 +50,7 @@ class DictViewInstance: protected DecisionTable::Context
       protected:
         DictParams(DictViewInstance *owner);
         DictParams(DictViewInstance *owner, int uid);
-        void PreprocessWord(/*in,out*/FarStringW &word);
+        bool Transliterate(/*in,out*/FarStringW &word);
       protected:
         DictViewInstance *owner;
         SpellFactory *spell_factory;
@@ -325,16 +325,20 @@ bool DictViewInstance::DictParams::GetTransliteration(FarStringW &out_from,
   return transliteration_enabled;
 }
 
-void DictViewInstance::DictParams::PreprocessWord(/*in,out*/FarStringW &word)
+bool DictViewInstance::DictParams::Transliterate(/*in,out*/FarStringW &word)
 {
+  bool transliteration_performed = false;
   if (transliteration_enabled) {
     for (int i = 0; 
          i<transliterate_from.Length() && i<transliterate_to.Length(); 
          i++)
       for (int j = 0; j<word.Length(); j++)
-        if (word[j] == transliterate_from[i]) 
+        if (word[j] == transliterate_from[i]) {
           word[j] = transliterate_to[i];
+          transliteration_performed = true;
+        }
   }
+  return transliteration_performed;
 }
 
 bool DictViewInstance::DictParams::Execute(const FarStringW &in_word)
@@ -344,7 +348,7 @@ bool DictViewInstance::DictParams::Execute(const FarStringW &in_word)
   far_assert(dict_inst);
   if (transliteration_enabled) {
     FarStringW word = in_word;
-    PreprocessWord(word);
+    Transliterate(word);
     return dict_inst->Check(word);
   } else 
     return dict_inst->Check(in_word);

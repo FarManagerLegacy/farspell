@@ -782,7 +782,13 @@ static bool SafeMapping(wchar_t w, char *a, size_t ac, UINT code_page)
   BOOL bad_char = FALSE;
   int n = WideCharToMultiByte(code_page, 0, &w, 1, a, ac-1, NULL, &bad_char);
   a[n] = '\0';
-  return bad_char == FALSE;
+  // check for valid back conversion:
+  if (!bad_char) {
+    wchar_t back;
+    MultiByteToWideChar(code_page, 0, a, n, &back, 1);
+    return w == back;
+  } else
+    return FALSE;
 }
 
 static void EscapeUnicode(wchar_t c, UINT code_page, FarString& result)

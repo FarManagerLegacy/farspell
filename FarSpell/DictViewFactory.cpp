@@ -241,7 +241,12 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner)
   spell_factory = owner->spell_factory;
   name = "<noname>";
   dict = "en_US";
+  word_chars = L"";
+  middle_chars = L"'-";
   replace_chars = false;
+  replace_from = L"";
+  replace_to = L"";
+  error_on_replace = true;
 }
 
 DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner, 

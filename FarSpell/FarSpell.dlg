@@ -199,23 +199,23 @@ TEXT        0      5  4  0  0 F F 0 0 %LNG% MReplaceCharsTo
 EDIT MReplaceCharsTo   
                   13  4 52  0 F F 0 0 NULL HISTORY = "FarSpell.ReplaceCharsTo"
 CHECKBOX %LNG%     5  5  0  0 F F 0 0 %LNG% MErrorOnTranslation
-BUTTON  %LNG%      5  6  0  0 F F DIF_CENTERGROUP 1 %LNG% MSave
+BUTTON  %LNG%      5  6  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON  %LNG%     10  6  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
 name "ActionEditorSkel"
 DOUBLEBOX   0      3  1 35 12 F F 0 0 %LNG% MActionEditor
-CHECKBOX    2      5  2  0  0 F F 0 0 %LNG% MActionEnabled
-TEXT        0      5  3  0  0 F F 0 0 %TXT% "Trxt"
+CHECKBOX %LNG%     5  2  0  0 F F 0 0 %LNG% MActionEnabled
+TEXT      243      5  3  0  0 F F 0 0 %TXT% "Trxt"
 BUTTON   %LNG%    10  3  0  0 F F 0 0 %LNG% MColorSelectBtn
 TEXT        0      5  4  0  0 F F DIF_BOXCOLOR|DIF_SEPARATOR 0 NULL
-TEXT        0      5  5  0  0 F F DIF_CENTERGROUP 0 %LNG% MShowSuggestion
+TEXT     %LNG%     5  5  0  0 F F DIF_CENTERGROUP 0 %LNG% MShowSuggestion
 CHECKBOX ID_CB1    5  6  0  0 F F 0 0 NULL
 CHECKBOX ID_CB2    5  7  0  0 F F 0 0 NULL
 CHECKBOX ID_CB3    5  8  0  0 F F 0 0 NULL
 CHECKBOX ID_CB4    5  9  0  0 F F 0 0 NULL
-TEXT        0      5 10 33  0 F F DIF_CENTERGROUP|DIF_BOXCOLOR|DIF_SEPARATOR 0 %LNG% MUpDown 
+TEXT     %LNG%     5 10 33  0 F F DIF_CENTERGROUP|DIF_BOXCOLOR|DIF_SEPARATOR 0 %LNG% MUpDown 
 ;TEXT        0      5 10  0  0 F F DIF_BOXCOLOR|DIF_SEPARATOR 0 NULL
-BUTTON   %LNG%     5 11  0  0 F F DIF_CENTERGROUP 1 %LNG% MSave
+BUTTON   %LNG%     5 11  0  0 F F DIF_CENTERGROUP 1 %LNG% MOk
 BUTTON   %LNG%    10 11  0  0 F F DIF_CENTERGROUP 0 %LNG% MCancel
 
 	

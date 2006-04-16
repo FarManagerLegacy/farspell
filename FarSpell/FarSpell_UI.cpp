@@ -834,12 +834,141 @@ class GeneralConfigDialog: GeneralConfigSkel
   }
 };
 
+class DictionaryPropertiesDialog: public DictionaryPropertiesSkel
+{
+  static void EnableTranslation(HANDLE hDlg, BOOL enabled)
+  {
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsFrom-1, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsFrom, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsTo-1, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MReplaceCharsTo, enabled);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MErrorOnTranslation, enabled);
+  }
+  static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+  {
+    DictionaryPropertiesDialog *pThis = NULL;
+    switch (Msg) 
+    {
+      case DN_INITDIALOG:
+        pThis = (DictionaryPropertiesDialog *)Param2;
+        far_assert(pThis);
+        Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+        EnableTranslation(hDlg, pThis->sItems[Index_MPreprocessWord].Selected);
+        break;
+      //pThis = (DictionaryPropertiesDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+      case DN_BTNCLICK:
+        if (Param1 == Index_MPreprocessWord) 
+          EnableTranslation(hDlg, Param2 == 1);
+        break;
+    }
+    return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+  }
+public:
+  DictionaryPropertiesDialog()
+  {
+  }
+  void Execute(DictViewInstance::DictParams *params)
+  {
+    FarStringW fromW;
+    FarStringW toW;
+
+    params->GetReplaceChars(fromW, toW);
+    FarStringA fromA(EscapeUnicode(fromW, FarSpellEditor::editors->GetOEMCP()));
+    FarStringA toA(EscapeUnicode(toW, FarSpellEditor::editors->GetOEMCP()));
+    strncpy(sItems[Index_MReplaceCharsFrom].Data, fromA.c_str(), sizeof(sItems[0].Data));
+    strncpy(sItems[Index_MReplaceCharsTo].Data, toA.c_str(), sizeof(sItems[0].Data));
+    sItems[Index_MPreprocessWord].Selected = params->replace_chars;
+    sItems[Index_MErrorOnTranslation].Selected = params->error_on_replace;
+
+    int idx = ShowEx(0, DlgProc, (long)this);
+    if (idx == Index_MOk) 
+    {
+      fromA = sItems[Index_MReplaceCharsFrom].Data;
+      toA = sItems[Index_MReplaceCharsTo].Data;
+      fromW = UnescapeUnicode(fromA, FarSpellEditor::editors->GetOEMCP());
+      toW = UnescapeUnicode(toA, FarSpellEditor::editors->GetOEMCP());
+      params->SetReplaceChars(fromW, toW);
+      params->replace_chars = sItems[Index_MPreprocessWord].Selected;
+      params->error_on_replace = sItems[Index_MErrorOnTranslation].Selected;
+    }
+  }
+};
+
+class ActionEditorDialog: public ActionEditorSkel
+{
+  int color;
+  void ActionEnabled(HANDLE hDlg, BOOL enable)
+  {
+    sItems[Index_MActionEnabled].Selected = enable; // Trick: store actual value
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MColorSelectBtn, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_243, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MShowSuggestion, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_ID_CB1, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_ID_CB2, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_ID_CB3, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_ID_CB4, enable);
+    Far::SendDlgMessage(hDlg, DM_ENABLE, Index_MUpDown, enable);
+  }
+  static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
+  {
+    ActionEditorDialog *pThis = NULL;
+    switch (Msg) 
+    {
+      case DN_INITDIALOG:
+        pThis = (ActionEditorDialog *)Param2;
+        far_assert(pThis);
+        Far::SendDlgMessage(hDlg, DM_SETDLGDATA, 0, Param2);
+        pThis->ActionEnabled(hDlg, pThis->sItems[Index_MActionEnabled].Selected);
+        break;
+      //pThis = (ActionEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+      case DN_CTLCOLORDLGITEM:
+        if (Param1 == Index_243) {
+          pThis = (ActionEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+          far_assert(pThis);
+          if (pThis->sItems[Index_MActionEnabled].Selected/*contains actual value*/)
+            return pThis->color;
+        }
+        break;
+      case DN_BTNCLICK:
+        pThis = (ActionEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+        far_assert(pThis);
+        switch (Param1) {
+          case Index_MColorSelectBtn: {
+            ColorDialog color_selection;
+            color_selection.Select(pThis->color);
+            return TRUE;
+          }
+          case Index_MActionEnabled:
+            pThis->ActionEnabled(hDlg, Param2 == 1);
+            return TRUE;
+        }
+        break;
+    }
+    return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
+  }
+public:
+  ActionEditorDialog()
+  {
+  }
+  void Execute(DictViewInstance *dict_view, DictViewInstance::Color *_action)
+  {
+    color = _action->color;
+    sItems[Index_MActionEnabled].Selected = _action->enabled;
+    int idx = ShowEx(0, DlgProc, (long)this);
+    if (idx == Index_MOk) {
+      _action->color = color;
+      _action->enabled = sItems[Index_MActionEnabled].Selected;
+    }
+  }
+};
+
 class DictViewEditorDialog: public DictViewEditorSkel
 {
   DictViewInstance *dict_view;
   DecisionTable *dt;
   ftl::ComboboxItems conditions;
   int n_conditions;
+  int n_enabled_rules;
   enum { MaxConditions = 4, MaxRules = 8, RuleMask = 0xFF };
   static inline int CellIndex(int r, int c) { return ItemIndex(0x2000|(c<<8)|r); }
   static inline int RuleN(int id) { return id&0xFF; }
@@ -869,6 +998,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
     const unsigned n_conds = dt->GetConditionsCount();
     unsigned n_rules = dt->GetRulesCount();
     bool b_disabled_tail = false; // запрещаем менять после безусловного правила.
+    n_enabled_rules = 0;
     for (unsigned r = 0; r<MaxRules; r++) {
       bool b_all_any = true; // безусловное правило?
       bool b_rule_enabled = false; // изменяемое правило?
@@ -899,6 +1029,8 @@ class DictViewEditorDialog: public DictViewEditorSkel
         Far::SendDlgMessage(hDlg, DM_ENABLE, ItemIndex(ID_BTN1+c), 
           c<n_conds? TRUE : FALSE);
       }
+      if (b_rule_enabled)
+        n_enabled_rules = r + 1;
     }
   }
   static long WINAPI DlgProc(HANDLE hDlg, int Msg, int Param1, long Param2)
@@ -974,18 +1106,56 @@ class DictViewEditorDialog: public DictViewEditorSkel
           if (pThis->dt->LastError != DecisionTable::Ok)
             return FALSE;
           pThis->RedrawRules(hDlg);
-        } else if ((id&0xF000) == 0x3000) { // action button
+        } else if ((id&0xF000) == 0x3000) 
+        { // action button
           const unsigned rule = RuleN(id);
-          far_assert(rule<MaxRules);
+          DictViewInstance::Color *action = pThis->dict_view->GetRuleAction(rule);
+
+          ActionEditorDialog action_editor;
+          Far::SendDlgMessage(hDlg, DM_ENABLEREDRAW, FALSE, 0);
+          action_editor.Execute(pThis->dict_view, action);
           pThis->RedrawRules(hDlg);
+          Far::SendDlgMessage(hDlg, DM_ENABLEREDRAW, TRUE, 0);
           return TRUE;
-        } else switch(id) {
+        } else switch(id) 
+        { // dictionary button
           case ID_BTN1:
           case ID_BTN2:
           case ID_BTN3:
-          case ID_BTN4:
-            return TRUE;
+          case ID_BTN4: 
+          {
+             const unsigned cond = id-ID_BTN1;
+             DictViewInstance::DictParams *params = pThis->dict_view->GetDict(cond);
+             far_assert(params);
+             DictionaryPropertiesDialog dict_properties;
+             dict_properties.Execute(params);
+             return TRUE;
+           }
         }
+        break;
+      case DN_KILLFOCUS:
+      case DN_GOTFOCUS:
+        pThis = (DictViewEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+        far_assert(pThis);
+        id = ItemId(Param1);
+        if ((id&0xF000) == 0x3000) 
+        { // focused action buttons aren't painted by highligting color
+          pThis->sItems[Param1].Selected = (Msg == DN_GOTFOCUS); // trick!
+        } 
+        break;
+      case DN_CTLCOLORDLGITEM:
+        pThis = (DictViewEditorDialog *)Far::SendDlgMessage(hDlg, DM_GETDLGDATA, 0, 0);
+        far_assert(pThis);
+        if ( !pThis->sItems[Param1].Selected 
+          && ((id = ItemId(Param1))&0xF000) == 0x3000)
+        { // action buttons are painted by highligting color
+          const unsigned rule = RuleN(id);
+          if (rule < pThis->n_enabled_rules) {
+            DictViewInstance::Color *action = pThis->dict_view->GetRuleAction(rule);
+            if (action->enabled)
+              return action->color;
+          }
+        }   
         break;
     }
     return Far::DefDlgProc(hDlg, Msg, Param1, Param2);
@@ -1015,15 +1185,10 @@ class DictViewEditorDialog: public DictViewEditorSkel
     dict_view = init_dict_view;
     dt = &dict_view->logic;
     strncpy(sItems[Index_ID_Name].Data, dict_view->name.c_str(), sizeof(sItems[0].Data));
-    const unsigned n_conds = dt->GetConditionsCount();
-    for (unsigned c = 0; c<n_conds; c++) {
-      DecisionTable::condition_inst_t cond_inst = dt->GetConditionInst(c);
-      far_assert(cond_inst);
-      DictViewInstance::DictParams *params = 
-        static_cast<DictViewInstance::DictParams *>(cond_inst->client_context);
-      far_assert(params);
-      strncpy(sItems[ItemIndex(ID_CB1+c)].Data, params->dict.c_str(), sizeof(sItems[0].Data));
-    }
+    const unsigned n_dicts = dict_view->DictCount();
+    for (unsigned c = 0; c < n_dicts; c++) 
+      strncpy(sItems[ItemIndex(ID_CB1+c)].Data, dict_view->GetDict(c)->dict.c_str(), sizeof(sItems[0].Data));
+    n_enabled_rules = dict_view->RuleCount();
     int idx = ShowEx(0, DlgProc, (long)this);
     if (idx>=0) switch (idx) {
       case Index_MCancel:

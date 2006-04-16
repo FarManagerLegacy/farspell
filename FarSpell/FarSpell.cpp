@@ -814,10 +814,15 @@ static void EscapeUnicode(wchar_t c, UINT code_page, FarString& result)
 
 static void EscapeUnicode(wchar_t first, wchar_t last, UINT code_page, FarString& result)
 {
+  far_assert(last >= first);
   EscapeUnicode(first, code_page, result);
-  if (first != last) {
-    result += '-';
-    EscapeUnicode(last, code_page, result);
+  switch (last - first) {
+    case 2: EscapeUnicode(first+1, code_page, result);
+    case 1: EscapeUnicode(last, code_page, result);
+    case 0: break;
+    default:
+      result += '-';
+      EscapeUnicode(last, code_page, result);
   }
 }
 

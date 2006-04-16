@@ -768,3 +768,169 @@ int WINAPI _export ProcessEditorEvent(int Event, int Param)
   return 0;
 #endif _DEBUG
 }
+
+
+/* translate unicode string to ascii string:
+     use ranges (e.g. a-zA-Z etc.)
+     escape unicode chars outside specified code_page (e.g. U2019 etc)
+     escape special chars ('-', ',', 'U', '\' <-> "\-", "\,", "\U", "\\")
+  FIXME: not compatible with Custom CodePage library, when 
+  FIXME: standart code page was customized.
+*/
+static bool SafeMapping(wchar_t w, char *a, size_t ac, UINT code_page)
+{
+  BOOL bad_char = FALSE;
+  int n = WideCharToMultiByte(code_page, 0, &w, 1, a, ac-1, NULL, &bad_char);
+  a[n] = '\0';
+  return bad_char == FALSE;
+}
+
+static void EscapeUnicode(wchar_t c, UINT code_page, FarString& result)
+{
+  char a[128];
+  switch(c) 
+  {
+    case '-': 
+    //case ',':
+    case 'U':
+    case '\\':
+      result += '\\';
+      result += static_cast<char>(c);
+      break;
+    default:
+      if (!SafeMapping(c, a, sizeof(a), code_page)) {
+        result += "U";
+        result += _ultoa(c, a, 16);
+      } else  
+        result += a;
+  } /// switch
+}
+
+static void EscapeUnicode(wchar_t first, wchar_t last, UINT code_page, FarString& result)
+{
+  EscapeUnicode(first, code_page, result);
+  if (first != last) {
+    result += '-';
+    EscapeUnicode(last, code_page, result);
+  }
+}
+
+static int  __cdecl compare_wchar_t(const void *elem1, const void *elem2 )
+{
+  return *static_cast<const wchar_t *>(elem1) 
+       - *static_cast<const wchar_t *>(elem1);
+         
+}
+
+FarString EscapeUnicode(const FarStringW &w, UINT code_page)
+{
+  FarString result;
+  FarStringW sorted(w);
+  wchar_t first, last;
+
+  if (w.IsEmpty())
+    return FarString("");
+
+  if (w.Length()>1)
+    qsort(sorted.GetBuffer(), sorted.Length(), sizeof(wchar_t), compare_wchar_t);
+
+  first = last = sorted[0];
+
+  for (int i = 1; i<sorted.Length(); i++) 
+  {
+    wchar_t c = sorted[i];
+    if (c == last+1) {
+      last++;
+      continue;
+    }
+    EscapeUnicode(first, last, code_page, result);
+    //result += ',';
+    first = last = c;
+  }
+  EscapeUnicode(first, last, code_page, result);
+  return result;
+}
+
+static wchar_t AsciiToUnicode(const char *z, UINT code_page)
+{
+  wchar_t w = '\0';
+  MultiByteToWideChar(code_page, 0, 
+    z, CharNextExA(code_page, z, 0)-z, 
+    &w, 1);
+  return w;
+}
+
+FarStringW UnescapeUnicode(const FarString &e, UINT code_page)
+{
+  static const char dec[] = "0123456789";
+  static const char hex[] = "abcdef";
+  static const char HEX[] = "ABCDEF";
+  wchar_t w[128];
+  FarStringW result;
+  enum State { text, escape, uX, uXX, uXXX, uXXXX, range } state = text;
+  wchar_t first, last;
+  const char *x;
+
+  const char *z = e.c_str();
+  const char *zz = z+e.Length();
+  for (; z<zz; z = CharNextExA(code_page, z, 0)) 
+  {
+    const char c = *z;
+    switch (state) {
+      case text:
+        if (c=='\\') {
+          state = escape;
+          continue;
+        }
+        switch (c) {
+          case 'U':
+            first = '\0';
+            state = uX;
+            break;
+          case '-':
+            first++;
+            state = range;
+            break;
+          default: 
+            result += first = AsciiToUnicode(z, code_page);
+        }
+        break;
+      case escape:
+        result += first = AsciiToUnicode(z, code_page);
+        state = text;
+        break;
+      case uX:
+      case uXX:
+      case uXXX:
+      case uXXXX:
+        first *= 0x10;
+        if (x = strchr(dec, c))
+          first |= x-dec;
+        else if (x = strchr(hex, c))
+          first |= 0xa+x-hex;
+        else if (x = strchr(HEX, c))
+          first |= 0xA+x-HEX;
+        state = static_cast<enum State>(state + 1);
+        if (state>uXXXX) {
+          result += first;
+          state = text;
+        }
+        break;
+      case range:
+        last = AsciiToUnicode(z, code_page);
+        if (last < first) 
+        {
+          wchar_t tmp = first;
+          first = last;
+          last = tmp;
+        }
+        for (wchar_t w = first; w<=last; w++)
+          result += w;
+        state = text;
+        break;
+      default:
+        far_assert("unexpected state");
+    } /// switch(state)
+  } /// for
+  return result;
+}

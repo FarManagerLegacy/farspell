@@ -188,3 +188,12 @@ class FarSpellEditor
     }
 };
 
+/* translate unicode string to ascii string:
+     use ranges (e.g. a-zA-Z etc.)
+     escape unicode chars outside specified code_page (e.g. U+2019 etc)
+     escape special chars ('-', ',', 'U', '\' <-> "\-", "\,", "\U", "\\")
+  FIXME: not compatible with Custom CodePage library, when 
+  FIXME: standart code page was customized.
+*/
+FarString EscapeUnicode(const FarStringW &w, UINT code_page);
+FarStringW UnescapeUnicode(const FarString &e, UINT code_page);

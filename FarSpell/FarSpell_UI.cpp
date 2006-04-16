@@ -887,8 +887,8 @@ public:
       toA = sItems[Index_MTransliterateTo].Data;
       fromW = UnescapeUnicode(fromA, FarSpellEditor::editors->GetOEMCP());
       toW = UnescapeUnicode(toA, FarSpellEditor::editors->GetOEMCP());
-      params->SetTransliteration(fromW, toW);
-      params->transliteration_enabled = sItems[MTransliterationEnabled].Selected;
+      if (params->SetTransliteration(fromW, toW))
+        params->transliteration_enabled = sItems[Index_MTransliterationEnabled].Selected;
       params->transliteration_is_error = sItems[Index_MTransliterationIsError].Selected;
     }
   }

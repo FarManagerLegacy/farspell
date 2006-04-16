@@ -41,6 +41,8 @@ class DictViewInstance: protected DecisionTable::Context
         FarString dict;
         void SetReplaceChars(const FarStringW &from, const FarStringW &to);
         bool GetReplaceChars(FarStringW &out_from, FarStringW &out_to);
+        bool error_on_replace;
+        bool replace_chars;
       protected:
         DictParams(DictViewInstance *owner);
         DictParams(DictViewInstance *owner, int uid);
@@ -50,7 +52,6 @@ class DictViewInstance: protected DecisionTable::Context
         SpellFactory *spell_factory;
         FarString reg_key;
         bool need_preprocess_word;
-        bool replace_chars;
         FarStringW replace_from;
         FarStringW replace_to;
         bool Execute(const FarStringW &word);
@@ -135,7 +136,8 @@ static const char* const dict_params_dict_key = "Dict";
 static const char* const dict_params_replace_chars_key = "ReplaceChars";
 static const char* const dict_params_replace_chars_from_key = "ReplaceCharsFrom";
 static const char* const dict_params_replace_chars_to_key = "ReplaceCharsTo";
-
+static const char* const dict_params_error_on_replace_key = "ErrorOnReplace";
+             
 static FarString itoa(int i, int radix)
 {
   FarString s;
@@ -250,6 +252,7 @@ DictViewInstance::DictParams::DictParams(DictViewInstance *init_owner,
     FarStringW(L""));
   replace_to = owner->reg.GetFarString(reg_key.c_str(), dict_params_replace_chars_to_key, 
     FarStringW(L""));
+  error_on_replace = owner->reg.GetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, true);
   need_preprocess_word = replace_chars;
 }
 
@@ -262,6 +265,7 @@ void DictViewInstance::DictParams::OnSave()
   if (replace_chars) {
     owner->reg.SetFarString(reg_key.c_str(), dict_params_replace_chars_from_key, replace_from);
     owner->reg.SetFarString(reg_key.c_str(), dict_params_replace_chars_to_key, replace_to);
+    owner->reg.SetRegKey(reg_key.c_str(), dict_params_error_on_replace_key, error_on_replace);
   }
 }
 

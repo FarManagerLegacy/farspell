@@ -829,7 +829,7 @@ static void EscapeUnicode(wchar_t first, wchar_t last, UINT code_page, FarString
 static int  __cdecl compare_wchar_t(const void *elem1, const void *elem2 )
 {
   return *static_cast<const wchar_t *>(elem1) 
-       - *static_cast<const wchar_t *>(elem1);
+       - *static_cast<const wchar_t *>(elem2);
          
 }
 

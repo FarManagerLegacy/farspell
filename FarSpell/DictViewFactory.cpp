@@ -314,7 +314,7 @@ void DictViewInstance::DictParams::GetMiddleChars(FarStringW &mc)
 void DictViewInstance::DictParams::SetTransliteration(const FarStringW &from, const FarStringW &to)
 {
   transliteration_enabled = from.Length() && to.Length() 
-                         && from.Length() == to.Length()? true : false;
+                         && from.Length() == to.Length();
   if (transliteration_enabled) {
     transliterate_from = from;
     transliterate_to = to;

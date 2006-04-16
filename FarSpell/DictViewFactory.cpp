@@ -276,11 +276,9 @@ void DictViewInstance::DictParams::OnSave()
   owner->reg.SetFarString(reg_key.c_str(), dict_params_word_chars_key, word_chars);
   owner->reg.SetFarString(reg_key.c_str(), dict_params_middle_chars_key, middle_chars);
   owner->reg.SetRegKey(reg_key.c_str(), dict_params_transliteration_enabled_key, transliteration_enabled);
-  if (transliteration_enabled) {
-    owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_from_key, transliterate_from);
-    owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_to_key, transliterate_to);
-    owner->reg.SetRegKey(reg_key.c_str(), dict_params_transliteration_is_error_key, transliteration_is_error);
-  }
+  owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_from_key, transliterate_from);
+  owner->reg.SetFarString(reg_key.c_str(), dict_params_transliterate_to_key, transliterate_to);
+  owner->reg.SetRegKey(reg_key.c_str(), dict_params_transliteration_is_error_key, transliteration_is_error);
 }
 
 void DictViewInstance::DictParams::SetWordChars(const FarStringW &wc)
@@ -315,28 +313,16 @@ void DictViewInstance::DictParams::SetTransliteration(const FarStringW &from, co
 {
   transliteration_enabled = from.Length() && to.Length() 
                          && from.Length() == to.Length();
-  if (transliteration_enabled) {
-    transliterate_from = from;
-    transliterate_to = to;
-  } else {
-    transliterate_from.Empty();
-    transliterate_to.Empty();
-  }
+  transliterate_from = from;
+  transliterate_to = to;
 }
 
 bool DictViewInstance::DictParams::GetTransliteration(FarStringW &out_from, 
   FarStringW &out_to)
 {
-  if (transliteration_enabled)
-  {
-    out_from = transliterate_from;
-    out_to = transliterate_to;
-    return true;
-  } else {
-    out_from.Empty();
-    out_to.Empty();
-    return false;
-  }
+  out_from = transliterate_from;
+  out_to = transliterate_to;
+  return transliteration_enabled;
 }
 
 void DictViewInstance::DictParams::PreprocessWord(/*in,out*/FarStringW &word)

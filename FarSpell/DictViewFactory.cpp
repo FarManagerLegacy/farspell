@@ -195,7 +195,7 @@ void DictViewFactory::DeleteDictView(const FarString &name)
 int DictViewFactory::NextUID()
 {
   static const char *last_uid_key = "LastUID";
-  int uid = reg.GetRegKey("", last_uid_key, 0) + 1;
+  int uid = reg.GetRegKey("", last_uid_key, 100000) + 1;
   reg.SetRegKey("", last_uid_key, uid);
   return uid;
 }
@@ -422,7 +422,7 @@ bool DictViewInstance::Save()
 
 int DictViewInstance::NextUID()
 {
-  int uid = reg.GetRegKey(reg_key.c_str(), dict_view_last_uid_key, 0) + 1;
+  int uid = reg.GetRegKey(reg_key.c_str(), dict_view_last_uid_key, 100000) + 1;
   reg.SetRegKey(reg_key.c_str(), dict_view_last_uid_key, uid);
   return uid;
 }

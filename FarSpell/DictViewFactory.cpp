@@ -43,7 +43,7 @@ class DictViewInstance: protected DecisionTable::Context
         void GetWordChars(FarStringW &wc);
         void SetMiddleChars(const FarStringW &mc);
         void GetMiddleChars(FarStringW &mc);
-        void SetTransliteration(const FarStringW &from, const FarStringW &to);
+        bool SetTransliteration(const FarStringW &from, const FarStringW &to);
         bool GetTransliteration(FarStringW &out_from, FarStringW &out_to);
         bool transliteration_is_error;
         bool transliteration_enabled;
@@ -309,12 +309,13 @@ void DictViewInstance::DictParams::GetMiddleChars(FarStringW &mc)
 }
 
 
-void DictViewInstance::DictParams::SetTransliteration(const FarStringW &from, const FarStringW &to)
+bool DictViewInstance::DictParams::SetTransliteration(const FarStringW &from, const FarStringW &to)
 {
   transliteration_enabled = from.Length() && to.Length() 
                          && from.Length() == to.Length();
   transliterate_from = from;
   transliterate_to = to;
+  return transliteration_enabled;
 }
 
 bool DictViewInstance::DictParams::GetTransliteration(FarStringW &out_from, 

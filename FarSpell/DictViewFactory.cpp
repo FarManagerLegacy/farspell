@@ -348,7 +348,9 @@ bool DictViewInstance::DictParams::Execute(const FarStringW &in_word)
   far_assert(dict_inst);
   if (transliteration_enabled) {
     FarStringW word = in_word;
-    Transliterate(word);
+    const bool transliterated = Transliterate(word);
+    if (transliterated && transliteration_is_error)
+      return false;
     return dict_inst->Check(word);
   } else 
     return dict_inst->Check(in_word);

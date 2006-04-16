@@ -869,21 +869,31 @@ public:
   }
   void Execute(DictViewInstance::DictParams *params)
   {
-    FarStringW fromW;
-    FarStringW toW;
+    FarStringW fromW, toW;
+    FarStringA fromA, toA;
     const UINT oem_cp = FarSpellEditor::editors->GetOEMCP();
 
+    params->GetWordChars(fromW);
+    fromA = EscapeUnicode(fromW, oem_cp);
+    strncpy(sItems[Index_MAlphabet].Data, fromA.c_str(), sizeof(sItems[0].Data));
+
+    params->GetMiddleChars(fromW);
+    fromA = EscapeUnicode(fromW, oem_cp);
+    strncpy(sItems[Index_MWordPuncts].Data, fromA.c_str(), sizeof(sItems[0].Data));
+
     params->GetTransliteration(fromW, toW);
-    FarStringA fromA(EscapeUnicode(fromW, oem_cp));
-    FarStringA toA(EscapeUnicode(toW, oem_cp));
+    fromA = EscapeUnicode(fromW, oem_cp);
+    toA = EscapeUnicode(toW, oem_cp);
     strncpy(sItems[Index_MTransliterateFrom].Data, fromA.c_str(), sizeof(sItems[0].Data));
     strncpy(sItems[Index_MTransliterateTo].Data, toA.c_str(), sizeof(sItems[0].Data));
     sItems[Index_MTransliterationEnabled].Selected = params->transliteration_enabled;
     sItems[Index_MTransliterationIsError].Selected = params->transliteration_is_error;
-    
+
     int idx = ShowEx(0, DlgProc, (long)this);
     if (idx == Index_MOk) 
     {
+      params->SetWordChars(UnescapeUnicode(sItems[Index_MAlphabet].Data, oem_cp));
+      params->SetMiddleChars(UnescapeUnicode(sItems[Index_MWordPuncts].Data, oem_cp));
       fromA = sItems[Index_MTransliterateFrom].Data;
       toA = sItems[Index_MTransliterateTo].Data;
       fromW = UnescapeUnicode(fromA, oem_cp);

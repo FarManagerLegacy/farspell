@@ -101,6 +101,8 @@ enum {
   MUpDown,
 
   MDictionaryProperties,
+  MAlphabet,
+  MWordPuncts,
   MTransliterationEnabled,
   MTransliterateFrom,
   MTransliterateTo,

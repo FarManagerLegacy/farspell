@@ -805,8 +805,8 @@ static void EscapeUnicode(wchar_t c, UINT code_page, FarString& result)
       break;
     default:
       if (!SafeMapping(c, a, sizeof(a), code_page)) {
-        result += "U";
-        result += _ultoa(c, a, 16);
+        wsprintf(a, "U%4.4X", c);
+        result +=  a;
       } else  
         result += a;
   } /// switch

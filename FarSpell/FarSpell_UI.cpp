@@ -871,22 +871,23 @@ public:
   {
     FarStringW fromW;
     FarStringW toW;
+    const UINT oem_cp = FarSpellEditor::editors->GetOEMCP();
 
     params->GetTransliteration(fromW, toW);
-    FarStringA fromA(EscapeUnicode(fromW, FarSpellEditor::editors->GetOEMCP()));
-    FarStringA toA(EscapeUnicode(toW, FarSpellEditor::editors->GetOEMCP()));
+    FarStringA fromA(EscapeUnicode(fromW, oem_cp));
+    FarStringA toA(EscapeUnicode(toW, oem_cp));
     strncpy(sItems[Index_MTransliterateFrom].Data, fromA.c_str(), sizeof(sItems[0].Data));
     strncpy(sItems[Index_MTransliterateTo].Data, toA.c_str(), sizeof(sItems[0].Data));
     sItems[Index_MTransliterationEnabled].Selected = params->transliteration_enabled;
     sItems[Index_MTransliterationIsError].Selected = params->transliteration_is_error;
-
+    
     int idx = ShowEx(0, DlgProc, (long)this);
     if (idx == Index_MOk) 
     {
       fromA = sItems[Index_MTransliterateFrom].Data;
       toA = sItems[Index_MTransliterateTo].Data;
-      fromW = UnescapeUnicode(fromA, FarSpellEditor::editors->GetOEMCP());
-      toW = UnescapeUnicode(toA, FarSpellEditor::editors->GetOEMCP());
+      fromW = UnescapeUnicode(fromA, oem_cp);
+      toW = UnescapeUnicode(toA, oem_cp);
       if (params->SetTransliteration(fromW, toW))
         params->transliteration_enabled = sItems[Index_MTransliterationEnabled].Selected;
       params->transliteration_is_error = sItems[Index_MTransliterationIsError].Selected;

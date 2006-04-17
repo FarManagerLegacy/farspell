@@ -71,6 +71,7 @@ enum { // for spellcheck_area
 class FarEditorSuggestList;
 class FarSpellEditor
 {
+  friend class CurrentSettingsDialog;
   friend class FarEditorSuggestList;
   friend class SuggestionDialog;
   public:

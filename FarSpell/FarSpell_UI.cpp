@@ -28,10 +28,11 @@
 // Generated dialogs:
 #include "dialogs.cpp"
 
+template <class receiver_t>
 int ScanDicts(const FarString& name, void* param)
 {
-  FarComboBox *dlg_languages = (FarComboBox*)param;
-  dlg_languages->AddItem(name);
+  receiver_t *receiver_inst = static_cast<receiver_t *>(param);
+  receiver_inst->AddItem(name);
   return 1;
 }
 
@@ -45,64 +46,72 @@ int DictsToMenuT(const FarString& name, void* param)
 
 class ParserEnumerator {
   public:
-    FarComboBox *dlg_parsers;
+    ftl::ComboboxItems *parsers;
     FarStringArray parser_ids;
+    static int Scan(const char* id, const char* name, void* param)
+    {
+      ParserEnumerator *pThis = static_cast<ParserEnumerator *>(param);
+      pThis->parsers->AddItem(name);
+      pThis->parser_ids.Add(id);
+      return 1;
+    }
 };
 
-int ScanParsers(const char* id, const char* name, void* param)
+
+class CurrentSettingsDialog: public CurrentSettingsSkel
 {
-  ParserEnumerator *pe = (ParserEnumerator*)param;
-  pe->dlg_parsers->AddItem(name);
-  pe->parser_ids.Add(id);
-  return 1;
-}
+public:
+  ftl::ComboboxItems languages;
+  ftl::ComboboxItems parsers;
+  ParserEnumerator parser_enumumerator;
+  CurrentSettingsDialog()
+  : languages(sItems+Index_MDictionary)
+  , parsers(sItems+Index_MParser)
+  {
+    parser_enumumerator.parsers = &parsers;
+  }
+  void Execute(FarEdInfo &fei, FarSpellEditor *editor)
+  {
+    sItems[Index_MHighlight].Selected = editor->highlight;
+
+    FarSpellEditor::editors->spell_factory
+      .EnumDictionaries("*", ScanDicts<ftl::ComboboxItems>, &languages);
+    languages.SetText(editor->dict);
+    
+    ParserFactory::EnumParsers(ParserEnumerator::Scan, &parser_enumumerator);
+    parsers.SetText(ParserFactory::GetParserName(editor->parser_id));
+
+    languages.BeforeShow();
+    parsers.BeforeShow();
+    if (Show(0) == Index_MOk) {
+      FarString new_dict = languages.GetText();
+      const char *new_parser_id;
+      if (parsers.GetListPos()>=0)
+        new_parser_id = parser_enumumerator.parser_ids[parsers.GetListPos()];
+      else
+        new_parser_id = NULL;
+      editor->highlight = sItems[Index_MHighlight].Selected;
+      if (new_dict.Length() && editor->dict != new_dict)
+      {
+        editor->dict = new_dict;
+        if (new_parser_id) editor->parser_id = new_parser_id;
+        editor->DropEngine(FarSpellEditor::RS_ALL);
+        editor->ClearAndRedraw(fei);
+      }
+      else if (new_parser_id && strcmp(new_parser_id, editor->parser_id.c_str()) != 0)
+      {
+        editor->parser_id = new_parser_id;
+        editor->DropEngine(FarSpellEditor::RS_PARSER);
+        editor->ClearAndRedraw(fei);
+      }
+    }
+  }
+};
 
 void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 {
-  FarDialog dialog(MPreferences, "Contents");
-  FarCheckCtrl dlg_highlight(&dialog, MHighlight, highlight);
-  FarTextCtrl dlg_languages_label(&dialog, MDictionary, -1);
-  FarComboBox dlg_languages(&dialog, &dict, -1, 32);
-  FarString s(ParserFactory::GetParserName(parser_id));
-  FarTextCtrl dlg_parser_label(&dialog, MParser, -1);
-  FarComboBox dlg_parser(&dialog, &s, -1, 32);
-  FarButtonCtrl dlg_ok(&dialog, MOk, DIF_CENTERGROUP);
-  FarButtonCtrl dlg_cancel(&dialog, MCancel, DIF_CENTERGROUP);
-  FarControl *res;
-  ParserEnumerator parser_enumumerator;
-
-  editors->spell_factory.EnumDictionaries("*", ScanDicts, &dlg_languages);
-  parser_enumumerator.dlg_parsers = &dlg_parser;
-  ParserFactory::EnumParsers(ScanParsers, &parser_enumumerator);
-  dlg_languages.SetFlags(DIF_DROPDOWNLIST);
-  dlg_parser.SetFlags(DIF_DROPDOWNLIST);
-  dialog.SetDefaultControl(&dlg_ok);
-
-  res=dialog.Show();
-
-  if (res == &dlg_ok)
-  {
-    FarString new_dict = dlg_languages.GetText();
-    const char *new_parser_id;
-    if (dlg_parser.GetListPos()>=0)
-      new_parser_id = parser_enumumerator.parser_ids[dlg_parser.GetListPos()];
-    else
-      new_parser_id = NULL;
-    highlight = dlg_highlight.GetSelected();
-    if (new_dict.Length() && dict != new_dict)
-    {
-      dict = new_dict;
-      if (new_parser_id) parser_id = new_parser_id;
-      DropEngine(RS_ALL);
-      ClearAndRedraw(fei);
-    }
-    else if (new_parser_id && strcmp(new_parser_id, parser_id.c_str()) != 0)
-    {
-      parser_id = new_parser_id;
-      DropEngine(RS_PARSER);
-      ClearAndRedraw(fei);
-    }
-  }
+  CurrentSettingsDialog dlg;
+  dlg.Execute(fei, this);
 }
 
 class FarEditorSuggestList
@@ -775,12 +784,6 @@ int FarSpellEditor::Manager::ColorSelectDialog()
 
 class GeneralConfigDialog: GeneralConfigSkel
 {
-  static int ScanDicts(const FarString &name, void* param)
-  {
-    ftl::ComboboxItems *dicts = (ftl::ComboboxItems*)param;
-    dicts->AddItem(name);
-    return 1;
-  }
   public: void Execute(FarSpellEditor::Manager *m, bool from_editor)
   {
     FarDialogItem* pItem;
@@ -797,7 +800,7 @@ class GeneralConfigDialog: GeneralConfigSkel
       sItems[Index_MUnloadDictionaries].Flags |= DIF_DISABLE;
     ftl::ComboboxItems default_dict_items(&sItems[Index_ID_GC_DefaultDict]);
     default_dict_items.SetText(m->default_dict);
-    m->spell_factory.EnumDictionaries("*", ScanDicts, &default_dict_items);
+    m->spell_factory.EnumDictionaries("*", ScanDicts<ftl::ComboboxItems>, &default_dict_items);
     for (int cont=1; cont;) 
     {
       default_dict_items.BeforeShow();

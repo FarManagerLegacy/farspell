@@ -74,7 +74,7 @@ class ComboboxItems: public BaseListItems
 public:
 	ComboboxItems(FarDialogItem *item)
 		: BaseListItems(item) {};
-	void SetText (char *pText)
+	void SetText (const char *pText)
 	{
 		far_assert(fItem);
 		strncpy (fItem->Data, pText, sizeof (fItem->Data)-1);
@@ -84,22 +84,22 @@ public:
 		far_assert(fItem);
 		strncpy (fItem->Data, String.c_str(), sizeof (fItem->Data)-1);
 	}
-	void GetText (char *Text, int MaxLength)
+	void GetText (char *Text, int MaxLength) const
 	{
 		lstrcpyn (Text, fItem->Data, MaxLength-1);
 	}
-	FarString GetText()
+	FarString GetText() const
 	{
 		far_assert(fItem);
 		return fItem->Data;
 	}
-	void GetText (int Index, char *Text, int MaxLength)
+	void GetText (int Index, char *Text, int MaxLength) const
 	{
 		far_assert(Index>=0);
 		far_assert(Index<fListItems.Count());
 		lstrcpyn (Text, fListItems[Index].Text, MaxLength-1);
 	}
-	FarString GetText(int Index)
+	FarString GetText(int Index) const
 	{
 		far_assert(Index>=0);
 		far_assert(Index<fListItems.Count());
@@ -107,7 +107,7 @@ public:
 	}
 };
 
-int GetRadioStatus(struct FarDialogItem* pItems, int nItems, int nItem)
+int GetRadioStatus(const struct FarDialogItem* pItems, int nItems, int nItem)
 {
   int nSelected = 0;
   for (pItems+=nItem; pItems->Type == DI_RADIOBUTTON; pItems++, nSelected++)

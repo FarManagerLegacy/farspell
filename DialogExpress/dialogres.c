@@ -249,9 +249,14 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
   pDr->rc = dialogresParseInclude(pParse, zFilename);
   if (pDr->rc != dialogres_Ok)
   {
-    pDr->sErrToken = pParse->sErrToken;
-    pDr->sErrFilename = pParse->sErrFilename;
     nSize = strlen(zFilename)+1;
+    pDr->sErrToken = pParse->sErrToken;
+    if (pParse->sErrFilename.n)
+      pDr->sErrFilename = pParse->sErrFilename;
+    else {
+      pDr->sErrFilename.z = zFilename;
+      pDr->sErrFilename.n = nSize-1;
+    }
 
     pParse->nPoolBytes = nSize + pDr->sErrToken.n+1 + pDr->sErrFilename.n+1;  
     pPoolEnd = pDr->pPool = (char*)dialogres_malloc(pParse->nPoolBytes);

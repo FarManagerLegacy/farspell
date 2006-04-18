@@ -6,6 +6,7 @@ EXPORTS
 	dialogres_last_error
 	dialogres_error_pos
 	dialogres_error_line
+	dialogres_error_file
 	dialogres_get_color_index_name
 	dialogres_dialogs_count
 	dialogres_get_dialog

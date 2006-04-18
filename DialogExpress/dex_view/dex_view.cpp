@@ -265,7 +265,7 @@ load_again:
     known_token = rc&dialogres_ErrToken && dr;
     if (known_token)  {
       FSF.sprintf(buf, GetMsg(MFilePosition), 
-          FSF.PointToName(zFilename), 
+          FSF.PointToName(dialogres_error_file(dr)), 
           dialogres_error_line(dr), 
           dialogres_error_pos(dr));
       zMsgItems[2] = buf;
@@ -296,7 +296,8 @@ load_again:
       case 1: break;
       case 0: 
         if (skip_item == 1) break;
-        if (Info.Editor(zFilename, NULL, -1, -1, -1, -1, 
+        if (Info.Editor(known_token?dialogres_error_file(dr):zFilename, 
+          NULL, -1, -1, -1, -1, 
           EF_NONMODAL|EF_ENABLE_F6, 
           known_token?dialogres_error_line(dr):0,
           known_token?dialogres_error_pos(dr):0) == EEC_MODIFIED) 

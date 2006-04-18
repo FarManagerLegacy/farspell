@@ -112,9 +112,12 @@ cmd ::= INCLUDE STRING(FN). {
     strncpy(zFilename, sFN.z, sFN.n);
     zFilename[sFN.n] = '\0';
     pParse->rc = dialogresParseInclude(pParse, zFilename);
-    if (pParse->rc!=dialogres_Ok && (pParse->rc&dialogres_ErrToken)==0) {
-      pParse->sErrToken = FN;
-      pParse->rc |= dialogres_ErrToken;
+    if (pParse->rc!=dialogres_Ok) {
+      pParse->sErrFilename = FN;
+      if ((pParse->rc&dialogres_ErrToken)==0) {
+        pParse->sErrToken = FN;
+        pParse->rc |= dialogres_ErrToken;
+      }
     }
   }
 }

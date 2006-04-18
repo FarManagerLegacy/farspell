@@ -250,14 +250,19 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
   if (pDr->rc != dialogres_Ok)
   {
     pDr->sErrToken = pParse->sErrToken;
+    pDr->sErrFilename = pParse->sErrFilename;
     nSize = strlen(zFilename)+1;
     pParse->nPoolBytes = nSize + pDr->sErrToken.n+1; 
     pParse->nPoolBytes += nSize + pDr->sErrToken.n+1;
+    pParse->nPoolBytes += pDr->sErrFilename.n+1;
     pPoolEnd = pDr->pPool = (char*)dialogres_malloc(pParse->nPoolBytes);
     assert(pPoolEnd);
     Collect_Token(&pDr->sErrToken, &pPoolEnd);
+    Collect_Token(&pDr->sErrFilename, &pPoolEnd);
+
     strncpy(pPoolEnd, zFilename, nSize);
     pPoolEnd += nSize;
+
     DialogTemplateFree(pDr->pDialogs, 1);
     dialogitemFree(pParse->pFistDialogItem, 1);
   }
@@ -311,6 +316,13 @@ int dialogres_error_line(dialogres* pDr)
 {
   assert(pDr);
   return pDr->sErrToken.line;
+}
+
+const char* dialogres_error_file(dialogres* pDr)
+{
+  int nSource;
+  assert(pDr);
+  return pDr->sErrFilename.n? pDr->sErrFilename.z : pDr->sErrToken.z;
 }
 
 int dialogres_dialogs_count(dialogres* pDr)

@@ -479,7 +479,10 @@ int process(const char *zFilename, TemplateToken *pTemplate)
   dialogres* dr;
   int rc = dialogres_open(zFilename, &dr);
   if (rc&dialogres_ErrToken) {
-      printf("// SyntaxError at %d:%d\n", dialogres_error_line(dr), dialogres_error_pos(dr));
+      printf("// SyntaxError at %s(%d,%d)\n", 
+        dialogres_error_file(dr),
+        dialogres_error_line(dr), 
+        dialogres_error_pos(dr));
       rc^=dialogres_ErrToken;
   }
   printf("// rc=%d\n", rc);

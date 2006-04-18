@@ -79,6 +79,7 @@ typedef struct
   int nEnumIndex;
   Token sLastToken;
   Token sErrToken;
+  Token sErrFilename;
   unsigned nLineNo;
   const char* zLastLine;
   TokenIntBind *binds;
@@ -188,6 +189,7 @@ struct dialogres
   struct dialogtemplate *pDialogs;
   unsigned nDialogs;
   Token sErrToken;
+  Token sErrFilename;
   char *pPool;
 };
 

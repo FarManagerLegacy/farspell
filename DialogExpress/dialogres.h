@@ -62,6 +62,7 @@ void dialogres_close(dialogres* pDr);
 enum dialogres_error dialogres_last_error(dialogres* pDr);
 int dialogres_error_pos(dialogres* pDr);
 int dialogres_error_line(dialogres* pDr);
+const char* dialogres_error_file(dialogres* pDr);
 
 const char* dialogres_get_color_index_name(int nColorIndex);
 

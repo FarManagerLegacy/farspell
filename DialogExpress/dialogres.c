@@ -207,7 +207,7 @@ enum dialogres_error dialogresParseInclude(Parse *pParse, const char* zFilename)
   pPool = (struct InputPoolList *)dialogres_malloc(nSize+1 + sizeof(struct InputPoolList));
   assert(pPool);
   pPool->prev = pParse->pInputPoolList;
-  pParse->pInputPoolList =  pPool;
+  pParse->pInputPoolList = pPool;
   pBuf = (char*)++pPool;
   while ( bRead = ReadFile(hFile, pBuf, nSize, &nRead, NULL) && nRead)
   {
@@ -252,15 +252,15 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
     pDr->sErrToken = pParse->sErrToken;
     pDr->sErrFilename = pParse->sErrFilename;
     nSize = strlen(zFilename)+1;
-    pParse->nPoolBytes = nSize + pDr->sErrToken.n+1; 
-    pParse->nPoolBytes += nSize + pDr->sErrToken.n+1;
-    pParse->nPoolBytes += pDr->sErrFilename.n+1;
+
+    pParse->nPoolBytes = nSize + pDr->sErrToken.n+1 + pDr->sErrFilename.n+1;  
     pPoolEnd = pDr->pPool = (char*)dialogres_malloc(pParse->nPoolBytes);
     assert(pPoolEnd);
+
     Collect_Token(&pDr->sErrToken, &pPoolEnd);
     Collect_Token(&pDr->sErrFilename, &pPoolEnd);
 
-    strncpy(pPoolEnd, zFilename, nSize);
+    pDr->zFilename = strncpy(pPoolEnd, zFilename, nSize);
     pPoolEnd += nSize;
 
     DialogTemplateFree(pDr->pDialogs, 1);
@@ -274,7 +274,7 @@ enum dialogres_error dialogres_open(const char* zFilename, struct dialogres** pp
     pDr->pPool = (char*)dialogres_malloc(pParse->nPoolBytes);
     assert(pDr->pPool);
     pPoolEnd = Collect(pDr, pDr->pPool);
-    strncpy(pPoolEnd, zFilename, nSize);
+    pDr->zFilename = strncpy(pPoolEnd, zFilename, nSize);
     pPoolEnd += nSize;
   }
   dialogresParseFree(pParse);

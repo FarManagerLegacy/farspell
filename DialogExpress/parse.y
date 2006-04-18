@@ -107,6 +107,7 @@ cmdlist ::= cmdlist cmd.
 
 cmd ::= INCLUDE STRING(FN). {
   if (pParse->rc == dialogres_Ok) {
+    unsigned nLastLineNo = pParse->nLineNo;
     Token sFN = unquote(FN);
     char *zFilename = alloca(sFN.n+1);
     strncpy(zFilename, sFN.z, sFN.n);
@@ -119,6 +120,7 @@ cmd ::= INCLUDE STRING(FN). {
         pParse->rc |= dialogres_ErrToken;
       }
     }
+    pParse->nLineNo = nLastLineNo;
   }
 }
 

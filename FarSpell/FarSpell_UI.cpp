@@ -993,7 +993,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
       case DecisionTable::any: return BSTATE_3STATE; 
       case DecisionTable::tt: return BSTATE_CHECKED; 
       case DecisionTable::ff: return BSTATE_UNCHECKED; 
-      default: far_assert("Invalid 'condition_t cond'");
+      default: far_assert(!"Invalid 'condition_t cond'");
                return 0; // avoid compiler warning
     }  
   }
@@ -1003,7 +1003,7 @@ class DictViewEditorDialog: public DictViewEditorSkel
       case BSTATE_3STATE: return DecisionTable::any; 
       case BSTATE_CHECKED: return DecisionTable::tt; 
       case BSTATE_UNCHECKED: return DecisionTable::ff; 
-      default: far_assert("Invalid 'long bstate'");
+      default: far_assert(!"Invalid 'long bstate'");
                return DecisionTable::any; // avoid compiler warning
     }  
   }

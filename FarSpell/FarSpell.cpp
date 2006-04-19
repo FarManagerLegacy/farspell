@@ -940,7 +940,7 @@ FarStringW UnescapeUnicode(const FarString &e, UINT code_page)
         state = text;
         break;
       default:
-        far_assert("unexpected state");
+        far_assert(!"unexpected state");
     } /// switch(state)
   } /// for
   return result;

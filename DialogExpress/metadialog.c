@@ -460,12 +460,12 @@ void dialogres_to_any(FILE* pFile, dialogres* dr, TemplateToken *pTemplate)
             fprintf(pFile, "%s", dialogres_get_color_index_name(nColorIndex));
             break;
           default: 
-            assert("Unknown internal variable");
+            assert(!"Unknown internal variable");
         }
         pToken = pToken->next;
         break;
       default:
-        assert("Unknown template token");
+        assert(!"Unknown template token");
     }
     if (bSkipNewline)
       if (pToken && pToken->nType == Newline)

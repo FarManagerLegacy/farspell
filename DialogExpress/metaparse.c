@@ -280,7 +280,7 @@ static void AddCommandArg(char *zCmd, char *zArg, struct Parse *pParse)
     case Variable:
       break;
     default:
-      assert("Unexpected pToken->nType");
+      assert(!"Unexpected pToken->nType");
   }
   AddToken(pToken, pParse);
 }

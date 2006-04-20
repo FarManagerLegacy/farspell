@@ -44,12 +44,13 @@ LINKFLAGS = /nologo /dll /opt:ref
 !ifdef RELEASE
 !error DEBUG/RELEASE conflict!
 !endif
+OUTDIR=.msvc.debug
 BUILT_STAMP = farspell.dll-debug
 OBJ_FILES = $(CPPFILES:.cpp=.obj_d)
 HUNSPELL_LIBS = $(Hunspell)/hunspell/hunspell_d.lib \
   $(Hunspell)/parsers/hunparsers_d.lib
-FARPLUS_LIB = $(FARPlus)/farplus_d.lib
-FARPLUS_OPTS = $(FARPlus)/FARDbg.obj_d $(FARPlus)/FarDbg_PDB.obj_d
+FARPLUS_LIB = $(FARPlus)/$(OUTDIR)/farplus.lib
+FARPLUS_OPTS = $(FARPlus)/$(OUTDIR)/FARDbg.obj $(FARPlus)/$(OUTDIR)/FarDbg_PDB.obj
 CC = cl $(CFLAGS) /D_DEBUG /Ge /Od /Zi
 #CC_DLL = $(CC)
 CC_DLL = link $(LINKFLAGS) /ltcg /debug
@@ -59,11 +60,12 @@ CC_DLL = link $(LINKFLAGS) /ltcg /debug
 !ifdef DEBUG
 !error DEBUG/RELEASE conflict!
 !endif DEBUG
+OUTDIR=.msvc.release
 BUILT_STAMP = farspell.dll-release
 OBJ_FILES = $(CPPFILES:.cpp=.obj_r)
 HUNSPELL_LIBS = $(Hunspell)/hunspell/hunspell_r.lib \
   $(Hunspell)/parsers/hunparsers_r.lib
-FARPLUS_LIB = $(FARPlus)/farplus_r.lib
+FARPLUS_LIB = $(FARPlus)/$(OUTDIR)/farplus.lib
 FARPLUS_OPTS =
 CC = cl $(CFLAGS) /DNDEBUG /Ox /Gy /GL
 #CC_DLL = $(CC)

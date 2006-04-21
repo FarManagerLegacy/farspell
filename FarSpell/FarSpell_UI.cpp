@@ -36,13 +36,12 @@ int ScanDicts(const FarString& name, void* param)
   return 1;
 }
 
-template <class TItems>
+template <class farplus_menu_item_t>
 int DictsToMenuT(const FarString& name, void* param)
 {
-  FarMenuT<TItems> *menu = static_cast<FarMenuT<TItems> *>(param);
-  menu->AddItem(name);
-  return 1;
+  return ScanDicts<FarMenuT<farplus_menu_item_t> >(name, param);
 }
+
 
 class ParserEnumerator {
   public:

@@ -35,6 +35,9 @@ PLUGINSDK = C:/Program Files/Far/PluginSDK
 PLUGINSDK_HEADERS = $(PLUGINSDK)/Headers.c
 PLUGINSDK_COMMON = $(PLUGINSDK)/Examples/Common
 
+### Абсолютный путь к заголовкам http://www.boost.org/
+BOOST_HEADERS = C:/libs/cpp/boost_1_33_1
+
 ### Абсолютный путь к консольному архиватору 7z:
 SEVEN_ZIP = "c:/program files/7-zip/7z.exe"
 

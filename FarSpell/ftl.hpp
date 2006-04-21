@@ -60,6 +60,10 @@ public:
 		fFarList.ItemsNumber = fListItems.Count();
 		fFarList.Items = fListItems.GetItems();
 	}
+	int Count() const
+	{
+	  return fListItems.Count();
+	}
 };
 
 class ListboxItems: public BaseListItems

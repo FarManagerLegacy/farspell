@@ -23,6 +23,7 @@
 #pragma once
 #include <malloc.h>
 #include <limits.h>
+#include <boost/noncopyable.hpp>
 #include "FARPlus/FARString.h"
 #include "FARPlus/FARArray.h"
 #include "FARPlus/FARRegistry.h"
@@ -34,6 +35,20 @@ class DictViewInstance: protected DecisionTable::Context
 {
   friend class DictViewFactory;
   public:
+    class WordList
+    : private boost::noncopyable
+    {
+      friend class DictViewInstance;
+      public:
+        ~WordList();
+        int Count() const { return words_count; }
+        FarStringW& operator[](int index);
+      protected:
+        WordList();
+        int words_count;
+        FarArray<SpellInstance::WordList> word_lists;
+        void Add(SpellInstance::WordList *wl);
+    };
     class DictParams: protected DecisionTable::Condition {
       friend class DictViewInstance;
       public:
@@ -83,6 +98,7 @@ class DictViewInstance: protected DecisionTable::Context
     FarString name;
     DecisionTable logic;
     int WordColor(FarStringW &word, int default_color);
+    WordList *WordSuggestion(FarStringW &word);
     bool Save();
     int DictCount() const;
     DictParams *AddDict(const FarString &dict);
@@ -539,4 +555,68 @@ int DictViewInstance::WordColor(FarStringW &word, int default_color)
   } else
     return default_color;
 }
+
+DictViewInstance::WordList *DictViewInstance::WordSuggestion(FarStringW &word)
+{
+  WordList *wl = new WordList();
+  _current_color = -1;
+  _current_word = word;
+  DecisionTable::action_inst_t act_inst = logic.Execute();
+  Action *action = static_cast<Action *>(act_inst->client_context);
+  far_assert(action);
+  FarString suggestion_order = action->suggestions;
+  if (suggestion_order.IsEmpty()) 
+    for (int i = 0; i<DictCount(); i++)
+      suggestion_order += GetDict(i)->dict + ';';
+  if (suggestion_order.IsEmpty())
+    return wl;
+  FarStringTokenizer dicts(suggestion_order, ';');
+  for (int i = 0; i < DictCount() && dicts.HasNext(); i++) 
+  {
+    const FarString &dict(dicts.NextToken());
+    for (int j = 0; j < DictCount(); j++)
+      if (GetDict(j)->dict == dict) {
+        far_assert(spell_factory);
+        SpellInstance *dict_inst = spell_factory->GetDictInstance(dict);
+        far_assert(dict_inst);
+        wl->Add(dict_inst->Suggest(word));
+      }
+  }
+  return wl;
+}
+
+DictViewInstance::WordList::WordList()
+{
+}
+
+void DictViewInstance::WordList::Add(SpellInstance::WordList *wl)
+{
+  far_assert(wl);
+  word_lists.Add(wl);
+  words_count += wl->Count();
+}
+
+FarStringW& DictViewInstance::WordList::operator[](int index)
+{
+  far_assert(word_lists.Count()>0);
+  far_assert(index>=0);
+  far_assert(index<words_count);
+  unsigned i = 0; // сквозной номер
+  unsigned j = 0; // номер в списке слов SpellInstance::WordList wl 
+  unsigned k = 0; // номер списка слов в word_lists.
+  SpellInstance::WordList *wl = word_lists[k];
+  while (i!=index) {
+    i++;
+    j++;
+    if (j == wl->Count()) {
+      j = 0;
+      k++;
+      far_assert(k<word_lists.Count());
+      wl = word_lists[k];
+    }
+  }
+  far_assert(j<wl->Count());
+  return (*wl)[j];
+}
+
 #endif //_INTERFACE

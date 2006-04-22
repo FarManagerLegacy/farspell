@@ -31,7 +31,7 @@ Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
 
 FARPlus = $(ROOT)\FARPlus
 DEX = $(ROOT)\DialogExpress
-CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell)
+CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell) /I"$(BOOST_HEADERS)"
  
 CPPFILES = farspell.cpp FarSpell_UI.cpp \
   ParserFactory.cpp SpellFactory.cpp \

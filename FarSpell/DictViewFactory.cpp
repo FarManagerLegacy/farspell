@@ -118,8 +118,8 @@ class DictViewFactory
     DictViewFactory(const FarString &init_reg_root, 
       SpellFactory *init_spell_factory);
     void EnumDictViews(DictViewFactoryEnumProc client, void* client_context);
-    DictViewInstance *GetDictViewByName(const FarString &name);
-    void DeleteDictView(const FarString &name);
+    DictViewInstance *GetDictView(const FarString &id);
+    void DeleteDictView(const FarString &id);
     DictViewInstance *CreateDictView();
   protected:
     int NextUID();
@@ -176,11 +176,11 @@ void DictViewFactory::EnumDictViews(DictViewFactoryEnumProc client, void* client
   }
 }
 
-DictViewInstance *DictViewFactory::GetDictViewByName(const FarString &name)
+DictViewInstance *DictViewFactory::GetDictView(const FarString &id)
 {
-  FarString id = GetDictViewIdStr(name).Mid(prefix_length);
-  if (!id.IsEmpty())
-    return new DictViewInstance(reg, id, spell_factory);
+  FarString n_id = id.Mid(prefix_length);
+  if (!n_id.IsEmpty())
+    return new DictViewInstance(reg, n_id, spell_factory);
   else
     return CreateDictView();
 }
@@ -190,11 +190,11 @@ DictViewInstance *DictViewFactory::CreateDictView()
   return new DictViewInstance(reg, itoa(NextUID(), 10), spell_factory);
 }
 
-void DictViewFactory::DeleteDictView(const FarString &name)
+void DictViewFactory::DeleteDictView(const FarString &id)
 {
-  FarString id = GetDictViewIdStr(name).Mid(prefix_length);
-  if (!id.IsEmpty())
-    reg.DeleteRegKey("", id.c_str());
+  FarString n_id = id.Mid(prefix_length);
+  if (!n_id.IsEmpty())
+    reg.DeleteRegKey("", n_id.c_str());
 }
 
 int DictViewFactory::NextUID()

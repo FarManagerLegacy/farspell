@@ -21,6 +21,7 @@
 */
 
 #include "FarSpell.hpp"
+#include <boost/noncopyable.hpp>
 
 // Dialog primitives:
 #include "ftl.hpp"
@@ -42,6 +43,28 @@ int DictsToMenuT(const FarString& name, void* param)
   return ScanDicts<FarMenuT<farplus_menu_item_t> >(name, param);
 }
 
+template <class receiver_t>
+class DictViewEnumerator: private boost::noncopyable
+{
+  typedef DictViewEnumerator<receiver_t> this_t;
+  public:
+    receiver_t &dict_views;
+    FarStringArray dict_view_ids;
+    DictViewEnumerator(receiver_t &init_dict_views)
+    : dict_views(init_dict_views) { }
+    void Enum(DictViewFactory &dict_view_factory)
+    {
+      dict_view_factory.EnumDictViews(Scan, this);
+    }
+  protected:
+    static int Scan(const FarString& id, const FarString& name, void* client_context)
+    {
+      this_t *pThis = static_cast<this_t *>(client_context);
+      pThis->dict_views.AddItem(name);
+      pThis->dict_view_ids.Add(id);
+      return 1;
+    }
+};
 
 class ParserEnumerator {
   public:
@@ -1235,7 +1258,8 @@ void FarSpellEditor::Manager::DictionaryViewSelect(bool edit_by_enter)
   for (bool loop = true; loop;) {
     loop = false;
     FarMenu menu(MSelectDictView, FMENU_WRAPMODE, "Contents");
-    dict_view_factory.EnumDictViews(ScanDictViews, &menu);
+    DictViewEnumerator<FarMenu> dict_view_enumerator(menu);
+    dict_view_enumerator.Enum(dict_view_factory);
     menu.AddItem("");
     menu.SetBottomLine("Enter, Esc, F4, Ins, Del");
     menu.SetBreakKeys(brk_keys); 
@@ -1247,9 +1271,9 @@ void FarSpellEditor::Manager::DictionaryViewSelect(bool edit_by_enter)
           if (!edit_by_enter) break;
         case 0: // F4
           if (selected_item>=0) {
-            FarString name(menu.GetItemText(selected_item));
-            if (!name.IsEmpty()) {
-              dict_view = dict_view_factory.GetDictViewByName(name);
+            FarString id(dict_view_enumerator.dict_view_ids[selected_item]);
+            if (!id.IsEmpty()) {
+              dict_view = dict_view_factory.GetDictView(id);
               EditDictionaryView(dict_view);
               delete dict_view;
               dict_view = NULL;
@@ -1266,7 +1290,7 @@ void FarSpellEditor::Manager::DictionaryViewSelect(bool edit_by_enter)
           break;
         case 2: // Del
           if (selected_item>=0)
-            dict_view_factory.DeleteDictView(menu.GetItemText(selected_item));
+            dict_view_factory.DeleteDictView(dict_view_enumerator.dict_view_ids[selected_item]);
           loop = true;
           break;
       }

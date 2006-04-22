@@ -112,6 +112,8 @@ class DictViewInstance: protected DecisionTable::Context
 class DictViewFactory
 {
   public:
+    static const char *const prefix;
+    static const size_t prefix_length;
     typedef int (*DictViewFactoryEnumProc)(const FarString& id, const FarString& name, void* client_context);
     DictViewFactory(const FarString &init_reg_root, 
       SpellFactory *init_spell_factory);
@@ -153,6 +155,9 @@ static FarString itoa(int i, int radix)
   return s;
 }
 
+const char *const DictViewFactory::prefix = "dict_view:";
+const size_t DictViewFactory::prefix_length = 10;
+
 DictViewFactory::DictViewFactory(const FarString &init_reg_root,
  SpellFactory *init_spell_factory)
 : reg(init_reg_root+"\\DictView\\")
@@ -167,13 +172,13 @@ void DictViewFactory::EnumDictViews(DictViewFactoryEnumProc client, void* client
   for (FarRegistry::KeyIterator i(reg.EnumKeys("")); i.NextKey(key);) {
     name = reg.GetRegStr(key.c_str(), dict_view_name_key, "");
     if (!name.IsEmpty())
-      client(key, name, client_context);
+      client(prefix+key, name, client_context);
   }
 }
 
 DictViewInstance *DictViewFactory::GetDictViewByName(const FarString &name)
 {
-  FarString id(GetDictViewIdStr(name));
+  FarString id = GetDictViewIdStr(name).Mid(prefix_length);
   if (!id.IsEmpty())
     return new DictViewInstance(reg, id, spell_factory);
   else
@@ -187,7 +192,7 @@ DictViewInstance *DictViewFactory::CreateDictView()
 
 void DictViewFactory::DeleteDictView(const FarString &name)
 {
-  FarString id(GetDictViewIdStr(name));
+  FarString id = GetDictViewIdStr(name).Mid(prefix_length);
   if (!id.IsEmpty())
     reg.DeleteRegKey("", id.c_str());
 }
@@ -211,7 +216,7 @@ int DictViewFactory::FindDictViewId(const FarString& id,
 {
   FindDictViewId_Ctx* ctx = (FindDictViewId_Ctx *)client_context;
   if (ctx->name == name) {
-    ctx->uid = atoi(id.c_str());
+    ctx->uid = atoi(id.c_str()+prefix_length);
     return 0;
   } else 
     return 1;
@@ -228,7 +233,7 @@ FarString DictViewFactory::GetDictViewIdStr(const FarString &name)
 {
   int id = GetDictViewId(name);
   if (id!=-1) {
-    return itoa(id, 10);
+    return prefix+itoa(id, 10);
   } else
     return FarString("");
 }

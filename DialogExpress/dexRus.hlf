@@ -1,0 +1,413 @@
+.Language=Russian,Russian (Русский)
+.PluginContents=Dialog Express
+
+@Contents
+$^#Dialog Express - dialog development kit#
+
+   Средства разработки диалогов написанных на языке диалоговых ресурсов.
+DialogExpress состоит из библиотеки чтения диалоговых ресурсов, конвертера 
+в любой язык программирования и плагина для мгновенной визуализации ресурсов.
+
+   Посвящается всем разработчикам интерфейса FAR Manager/плагинов.
+DialogExpress можно использовать для динамической загрузки диалогов.
+Написан на чистом C. Компилируется статически и динамически.
+
+   Лицензия LGPL.
+
+   Компилятор(ы): GNU project C compiler, Microsoft VC.
+
+   ~Понемногу обо всём...~@Background@
+   ~DialogRes~@DialogRes@ ~Синтаксис~@DialogRes.Syntax@
+   ~Meta Dialog~@MetaDialog@ ~Синтаксис~@MetaDialog.Syntax@
+   ~DEx View~@DEx_View@ 
+
+@Background
+$ #Понемногу обо всём...# 
+
+   Вовремя написания плагина FarSpell, мне не понравился подход
+для рисования диалогов предлагаемый Plugin SDK. Сначала, я
+открыл DialogGenerator Семенова Алексея. Но его развитие под вопросом,
+а исходники были закрыты. 
+   Было решено переизобрести велосипед и... получился #DialogExpress#.
+
+   DialogExpress адресован разработчикам интерфейса под FAR Manager.
+Он состоит из нескольких частей:
+
+   ~DialogRes~@DialogRes@ 
+   ~DEx View~@DEx_View@   
+   ~Meta Dialog~@MetaDialog@
+   ~Содержание~@Contents@
+
+@DialogRes
+$ #DialogExpress > DialogRes# 
+
+   Библиотека для чтения описания диалогов на языке аналогичном
+DialogGenerator. Сердцем этой библиотеки является парсер,
+который автоматически создаётся из грамматики с помощью 
+~lemon~@http://www.hwaci.org/@. DialogRes написан на чистом C и вобрал 
+в себя многое из ~SQLite~@http://www.sqlite.org/@
+  
+   ~Описание синтаксиса DialogRes~@DialogRes.Syntax@
+   ~Содержание~@Contents@
+
+@DialogRes.Syntax
+$ #DialogRes > синтаксис#
+
+   ~Грамматика~@DialogRes.Grammar@
+   ~Содержание~@Contents@
+
+@DialogRes.Grammar
+$ #DialogRes > Полуформальное описание грамматики#
+
+   Терминальные символы:
+
+ LT "<"   GT ">"   LE "<="   GE ">="   NE "<>", "!="
+ BITAND "&"   BITOR "|"   BITNOT "~~"   LSHIFT "<<"   RSHIFT ">>"
+ PLUS "+"   MINUS "-"   STAR "*"   EQ "="    SLASH "/"   REM "%" 
+ SPACE " "   SEMI ";"   COMMA ","   STRING <'"'.*'"'>
+ LB "{"   RB "}"
+ LP "("   RP ")"
+ COMMENT комментарий <"/*".*"*/">, <";".*"\n">
+ ID идентификатор
+ VARIABLE связанная переменная или константа
+   
+   Ключевые слова:
+
+ INCLUDE "include"   ENUM "enum"   NAME "name"  HELP "help"
+ OR AND NOT            
+ T F COLOR VAR NULL TXT LNG REG HISTORY 
+ HKCU HKLM HKCR HKCC VER DEF INTEGER    
+ TEXT VTEXT SINGLEBOX DOUBLEBOX EDIT FIXEDIT PSWEDIT BUTTON CHECKBOX   
+ RADIOBUTTON COMBOBOX LISTBOX USERCONTROL
+
+   Нетерминалы:
+
+input cmdlist cmd idents ident id cexpr help items          
+item item_id item_data data_source item_properties history        
+bool selected label_lng label_ver label_txt_def label_reg      
+reg_root_def reg_default label_hkcu label_hklm label_hkcr     
+label_hkcc label_def label_history item_property half_color_id  
+color_index    
+
+
+   Типо БНФ:
+
+ input ::= cmdlist.
+ cmdlist ::=.
+ cmdlist ::= cmdlist cmd.
+ cmd ::= INCLUDE STRING.
+ cmd ::= ENUM LB idents RB.
+ idents ::=.
+ idents ::= idents ident COMMA.
+ idents ::= idents ident.
+ ident ::= id.
+ ident ::= id EQ cexpr.
+ id ::= ID.
+ cexpr ::= INTEGER.
+ cexpr ::= LP cexpr RP.
+ cexpr ::= MINUS cexpr. [UMINUS]
+ cexpr ::= PLUS cexpr. [UPLUS]
+ cexpr ::= cexpr PLUS cexpr.
+ cexpr ::= cexpr MINUS cexpr.
+ cexpr ::= cexpr REM cexpr.
+ cexpr ::= cexpr SLASH cexpr.
+ cexpr ::= cexpr STAR cexpr.
+ cexpr ::= NOT cexpr.
+ cexpr ::= cexpr OR cexpr.
+ cexpr ::= cexpr AND cexpr.
+ cexpr ::= BITNOT cexpr.
+ cexpr ::= cexpr BITOR cexpr.
+ cexpr ::= cexpr BITAND cexpr.
+ cexpr ::= cexpr LSHIFT cexpr.
+ cexpr ::= cexpr RSHIFT cexpr.
+ cexpr ::= id.
+ cmd ::= NAME STRING help items.
+ help ::=.
+ help ::= HELP STRING.
+ items ::=.
+ items ::= items item.
+ item ::= TEXT item_id item_data data_source item_properties.
+ item ::= VTEXT item_id item_data data_source item_properties.
+ item ::= SINGLEBOX item_id item_data data_source item_properties.
+ item ::= DOUBLEBOX item_id item_data data_source item_properties.
+ item ::= EDIT item_id item_data data_source history item_properties.
+ item ::= FIXEDIT item_id item_data data_source history item_properties.
+ item ::= PSWEDIT item_id item_data data_source item_properties.
+ item ::= BUTTON item_id item_data data_source item_properties.
+ item ::= CHECKBOX item_id item_data data_source item_properties.
+ item ::= RADIOBUTTON item_id item_data data_source item_properties.
+ item ::= COMBOBOX item_id item_data data_source item_properties.
+ item ::= LISTBOX item_id item_data data_source item_properties.
+ item ::= USERCONTROL item_id item_data data_source item_properties.
+ item_data ::= INTEGER INTEGER INTEGER INTEGER bool selected cexpr bool.
+ item_id ::= INTEGER.
+ item_id ::= MINUS INTEGER.
+ item_id ::= id.
+ item_id ::= label_lng.
+ bool ::= INTEGER.
+ bool ::= F.
+ bool ::= T.
+ selected ::= bool.
+ data_source ::= NULL.
+ data_source ::= label_ver.
+ data_source ::= label_txt_def STRING.
+ data_source ::= label_lng ID.
+ data_source ::= label_reg reg_root_def STRING reg_default.
+ reg_root_def ::=.
+ reg_root_def ::= label_hkcu.
+ reg_root_def ::= label_hklm.
+ reg_root_def ::= label_hkcr.
+ reg_root_def ::= label_hkcc.
+ reg_default ::= label_def STRING.
+ reg_default ::= label_def cexpr.
+ history ::=.
+ history ::= label_history STRING.
+ history ::= label_history ID.
+ label_txt_def ::=.
+ label_txt_def ::= REM TXT REM.
+ label_lng ::= REM LNG REM.
+ label_reg ::= REM REG REM.
+ label_hklm ::= REM HKLM REM.
+ label_hkcu ::= REM HKCU REM.
+ label_hkcr ::= REM HKCR REM.
+ label_hkcc ::= REM HKCC REM.
+ label_def ::=.
+ label_def ::= REM DEF REM.
+ label_ver ::= REM VER REM.
+ label_history ::= HISTORY EQ.
+ item_properties ::=.
+ item_properties ::= item_properties item_property.
+ item_property ::= VAR ID EQ STRING.
+ item_property ::= VAR ID EQ cexpr.
+ item_property ::= COLOR EQ LB half_color_id COMMA half_color_id RB.
+ item_property ::= COLOR EQ color_index.
+ color_index ::= ID.
+ half_color_id ::= ID.
+
+   Подробности см. в #parse.y# и #lemon.html#.
+   ~Содержание~@Contents@
+
+@MetaDialog
+$ #DialogExpress > Meta Dialog#
+
+   Программа, которая конвертирует диалоговые ресурсы в формате
+DialogRes в любой другой формат по заданному шаблону.
+Сейчас есть образцы шаблонов для C и C++.
+
+   Для описания шаблонов был разработан простейший макро-язык
+со вставкой переменных, примитивными условиями и жёстко 
+ограниченными циклам. Никакого XML!
+   
+   Вызов программы:
+#metadialog.exe template filename.dlg#
+   где #template# - имя файла с шаблоном для генерации исходника
+       #filename.dlg# - имя файла с диалоговыми ресурсами
+   в результате 
+     на #stdout# будет выдан готовый исходник (например, сформирован
+заполненный массив #InitDialogItem#).
+     на #stderr# - ошибки и отладочные сообщения.
+
+   ~Описание синтаксиса диалогов~@DialogRes.Syntax@
+   ~Описание синтаксиса шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+@MetaDialog.Syntax
+$ #Meta Dialog > синтаксис#
+
+   Шаблон начинается со служебного заголовка, которой содержит
+список опций и заканчивается словом #begin# на отдельной строке.
+   Первая строка содержит признак шаблона и задаёт скобки для
+спец. команд. Например,
+ #metaquote %[]#
+ означает что это действительно файл с шаблоном и все 
+управляющий команды будут начинаться с #%[# и заканчиваться #]#. Другой пример:
+ #metaquote $()#
+ (make-подобный синтаксис #$(variable)#.)
+   Вторая строка задаёт целевой язык. (сейчас игнорируется.)
+В будущем будет предусмотрены различные правила формирования
+строк, констант и флагов для различных языков программирования 
+(т.е. #C#: "tab\ttab", DIF_SETCOLOR|0xC7; 
+#Pascal#: 'tab'##8'tab', DIF_SETCOLOR or $C7;)
+   Примеры:
+ #target C#
+ #target C++#
+ #target Pascal#
+   Третья строка:
+ #begin#
+   После неё идёт сам шаблон он может содержать любые символы
+и строки, а также управляющий команды в скобках определённых первой строке.
+
+   Управляющий команды можно разделить на четыре группы:
+ - операторы управления циклами: 
+~foreach~@MetaDialog.Syntax.foreach@, 
+~next~@MetaDialog.Syntax.next@;
+ - условные операторы: 
+~has~@MetaDialog.Syntax.has@, 
+~hasn't~@MetaDialog.Syntax.has@, 
+~other~@MetaDialog.Syntax.other@,
+~common~@MetaDialog.Syntax.common@;
+ - переменные цикла dialog: 
+   #dialog.id#
+     идентификатор диалога (без кавычек, см. ~name~@DialogRes.Syntax.name@)
+   #dialog.cid#
+     идентификатор диалога приведённый к стандартному виду.
+   #dialog.helptopic#
+     раздел справки диалога (без кавычек, см. ~help~@DialogRes.Syntax.help@)
+   #dialog.width#, #dialog.height#
+     ширина и высота диалога (только если окаймляющий 
+#DOUBLEBOX# есть и идёт первым)
+   #items.count#
+     количество элементов в текущем диалоге
+ - переменные цикла #item#: 
+   #index#
+     номер текущего элемента
+   #id#
+     идентификатор элемента (число)
+   #sid
+     идентификатор элемента (исходная строка)
+   #cid#
+     идентификатор элемента (строка приведённая к стандартному виду)
+   #type#
+     тип элемента диалога (строка, напр. #DI_BUTTON#)
+   #x1#, #y1#, #x2#, #y2#
+     координаты, определяющие позицию элемента, относительно диалогового окна
+   #focused#
+     определяет имеет ли элемент фокус ввода (#1#/#0#) 
+   #selected#
+     определяет состояние элементов DI_CHECKBOX и DI_RADIOBUTTON при 
+     показе диалога - включен/выключен (#1#/#0#) 
+   #flags#
+     флаги элементов диалога (дизъюнкция констант, пока только для C)
+   #default#
+     флаг, означающий, что данный элемент диалога 
+является "элементом по умолчанию" (#1#/#0#) 
+   #msgid#
+     номер сообщения в файле сообщений (число)
+   #smsgid#
+     идентификатор  сообщения в файле сообщений (исходная строка)
+   #text#
+     текст сообщения
+   #cdata#
+     obsolete
+   #history#
+     строка, которая будет использоваться как внутреннее название 
+истории редактирования
+   #color.index#
+     цвет элемента (если задан)
+   #foreground.index#
+     цвет текста элемента (если задан)
+   #background.index#
+     цвет фона элемента (если задан)
+
+   ~Содержание~@Contents@
+
+@MetaDialog.Syntax.foreach
+$ #Meta Dialog > синтаксис > %[foreach item] и %[foreach dialog]#
+ 
+   Указывает начало участка шаблона, который будет
+повторятся для каждого элемента из заданного множества. Существует
+всего два вида множеств: #dialog# (все диалоги) и 
+#item# (все элементы текущего диалога.)
+   Цикл #item# (и только он!) может быть только вложенным в цикл #dialog#.
+Других вложенностей не предусмотрено. 
+   В одном шаблоне можно использовать несколько переборов всех 
+диалогов, а каждая итерация диалогов может содержать несколько 
+переборов всех элементов.
+   Каждый цикл должен завершатся парной командой #next#. Один и тот-же 
+цикл может содержать несколько next'ов, если правильно сформировать
+условные операторы.
+
+   Пример:
+ metaquote %[]
+ target C
+ begin
+ /* начало файла */
+ %[foreach dialog]
+ диалог
+ %[next dialog]
+ %[foreach dialog]
+ ==========================================
+ Этот текст повторяется для каждого диалога
+ %[foreach item]
+ Этот текст повторяется для каждого элемента текущего диалога
+ %[next item]
+
+ %[foreach item]
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+ %[next item]
+ %[next dialog]
+ %[foreach dialog]
+ конец
+ %[next dialog]
+ /* конец файла */
+   Допустим у нас два диалога: в первом диалоге 2 элемента, а во втором три элемента,
+тогда получим:
+ /* начало файла */
+ диалог
+ диалог
+ ==========================================
+ Этот текст повторяется для каждого диалога
+ Этот текст повторяется для каждого элемента текущего диалога
+ Этот текст повторяется для каждого элемента текущего диалога
+
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+
+ ==========================================
+ Этот текст повторяется для каждого диалога
+ Этот текст повторяется для каждого элемента текущего диалога
+ Этот текст повторяется для каждого элемента текущего диалога
+ Этот текст повторяется для каждого элемента текущего диалога
+
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+ Этот текст тоже повторяется для каждого элемента текущего диалога
+ конец
+ конец
+ /* конец файла */
+
+   ~Синтаксис шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+@MetaDialog.Syntax.next
+$ #Meta Dialog > синтаксис > %[next item] и %[next dialog] #
+
+   Указывает конец участка шаблона, который будет повторятся.
+Команду next можно применять, только если задано начало
+соответствующего цикла foreach. Один и тот-же цикл может
+содержать несколько next'ов, если правильно сформировать
+условные операторы.
+
+   ~Синтаксис шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+@MetaDialog.Syntax.has
+$ #Meta Dialog > синтаксис > has, hasn't #
+
+   ~Синтаксис шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+
+@MetaDialog.Syntax.other
+$ #Meta Dialog > синтаксис > other #
+
+   ~Синтаксис шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+@MetaDialog.Syntax.common
+$ #Meta Dialog > синтаксис > common #
+
+   ~Синтаксис шаблонов~@MetaDialog.Syntax@
+   ~Содержание~@Contents@
+
+@DEx_View
+$ #DialogExpress > DEx View#
+
+   Плагин для мгновенной визуализации диалоговых ресурсов: как будто это 
+настоящий плагин, а не диалог от него.
+Перед показом диалога можно выбрать файл с нужным языком строк
+(благодаря ~FarLNG~@http://farmanager.com/warp/farmanager/farlng/farlng.description.php@
+от Warp ItSelf.) А клавиша F1 показывает статью для выбранного 
+диалога из файла справки в текущей папке.
+
+  ~Содержание~@Contents@

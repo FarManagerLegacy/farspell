@@ -22,7 +22,10 @@
    Доки по SVK:
      http://svk.elixus.org/
      http://pickscrape.woobling.org/svk-visual-guide.pdf
-     http://article.gmane.org/gmane.comp.lang.ruby.rails/23701  
+     http://article.gmane.org/gmane.comp.lang.ruby.rails/23701 
+   Поиск по логам чата SVK:
+     http://colabti.de/irclogger/irclogger_log_search/svk
+
 
 Для работы с Darcs репозитарием:
    Нужен darcs-win32. Например отсюда http://glozer.net/darcs/

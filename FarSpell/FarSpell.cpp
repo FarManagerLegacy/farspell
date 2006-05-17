@@ -631,7 +631,7 @@ class ExcDump
           Far::Done();
           break;
         case 3: // Exit FAR
-          ExitThread(0);
+          ExitProcess(1);
           break;
       }
     }

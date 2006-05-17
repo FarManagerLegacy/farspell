@@ -182,7 +182,7 @@ class FarSpellEditor
     void ShowPreferences(FarEdInfo &fei);
     void ShowSuggestion(FarEdInfo &fei);
     void Spellcheck(FarEdInfo &fei);
-    void UpdateDocumentCharset(FarEdInfo &fei);
+    void UpdateDocumentCharset(const FarEdInfo &fei);
     virtual void ReportError (int line, int col, const char *expected)
     {
        editors->GetLog().Error("%s:%d:%d: expected %s", file_name.c_str(), line, col, expected);

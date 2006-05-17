@@ -475,7 +475,7 @@ void FarSpellEditor::Redraw(FarEdInfo &fei, int What)
 }
 
 
-void FarSpellEditor::UpdateDocumentCharset(FarEdInfo &fei)
+void FarSpellEditor::UpdateDocumentCharset(const FarEdInfo &fei)
 {
   if (doc_tablenum == fei.TableNum && doc_ansi == fei.AnsiMode) return;
   if (fei.TableNum != -1)

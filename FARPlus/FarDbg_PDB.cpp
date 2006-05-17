@@ -1195,19 +1195,19 @@ void FarDumpStackCb( PEXCEPTION_POINTERS pExcPtrs, FarDumpCallback callback, voi
       if (er) callback(param, "*** Nested exception ***\r\n");
     }
     pthreadContext = pExcPtrs->ContextRecord;
-    callback(param, "Context: EAX:%08X EBX:%08X ECX:%08X EDX:%08X ESI:%08X EDI:%08X\r\n",
+    callback(param, "Context:  EAX=%08X EBX=%08X ECX=%08X EDX=%08X\r\n",
                    pthreadContext->Eax, pthreadContext->Ebx,
-                   pthreadContext->Ecx, pthreadContext->Edx,
-                   pthreadContext->Esi, pthreadContext->Edi);
-    callback(param, "         CS:EIP:%04X:%08X  Flags:%08X\r\n",
+                   pthreadContext->Ecx, pthreadContext->Edx);
+    callback(param, "  CS:EIP=%04X:%08X   DS:ESI=%04X:%08X   FS=%04X\r\n",
                    pthreadContext->SegCs, pthreadContext->Eip,
-                   pthreadContext->EFlags );
-    callback(param, "         SS:ESP:%04X:%08X  EBP:%08X\r\n",
+                   pthreadContext->SegDs, pthreadContext->Esi,
+                   pthreadContext->SegFs );
+    callback(param, "  SS:ESP=%04X:%08X   ES:EDI=%04X:%08X   GS=%04X\r\n",
                    pthreadContext->SegSs, pthreadContext->Esp,
-                   pthreadContext->Ebp );
-    callback(param, "         DS:%04X  ES:%04X  FS:%04X  GS:%04X\r\n",
-                   pthreadContext->SegDs, pthreadContext->SegEs,
-                   pthreadContext->SegFs, pthreadContext->SegGs );
+                   pthreadContext->SegEs, pthreadContext->Edi,
+                   pthreadContext->SegGs );
+    callback(param, "          EBP=%08X   Flags=%08X\r\n",
+                   pthreadContext->Ebp, pthreadContext->EFlags );
   }
   //if ( symbols_initialized )
   callback(param, "===== begin FarDumpStack output =====\r\n" );

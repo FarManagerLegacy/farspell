@@ -103,16 +103,22 @@ public:
 
 	T &At (int index)
 	{
+		far_assert(index >= 0);
+		far_assert(index < fCount);
 		return reinterpret_cast<T *> (fItems) [index];
 	}
 
 	T &operator[] (int index)
 	{
+		far_assert(index >= 0);
+		far_assert(index < fCount);
 		return At (index);
 	}
 
 	const T &operator[] (int index) const
 	{
+		far_assert(index >= 0);
+		far_assert(index < fCount);
 		return reinterpret_cast<const T *> (fItems) [index];
 	}
 

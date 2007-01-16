@@ -27,7 +27,7 @@ ROOT = ..
 !endif
 
 COMMON_LIBS = $(ROOT)\libs
-Hunspell = F:\devel\spell\hunspell-1.1.4-koifix\src
+Hunspell = F:\devel\projects\spell\hunspell-1.1.4-koifix\src
 
 FARPlus = $(ROOT)\FARPlus
 DEX = $(ROOT)\DialogExpress

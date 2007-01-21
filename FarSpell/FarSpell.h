@@ -65,6 +65,7 @@ enum {
   MHighlight,
   MDictionary0,
   MDictionary,
+  MDictViews,
   MParser,
 
   MGeneralConfig,

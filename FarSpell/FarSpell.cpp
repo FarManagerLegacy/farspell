@@ -256,8 +256,7 @@ FarSpellEditor::FarSpellEditor():
   file_name = fei.FileName;
   highlight = 1;
   parser_id = ParserFactory::GetDefaultParser();
-  _dict_instance = NULL;
-  _parser_instance = NULL;
+  _spell_engine = NULL;
   colored_begin = INT_MAX;
   colored_end = 0;
   doc_tablenum = 0xCCCCCCCC;
@@ -291,7 +290,7 @@ FarSpellEditor::FarSpellEditor():
 FarSpellEditor::~FarSpellEditor()
 {
   Save(NULL);
-  DropEngine(RS_ALL);
+  DropSpellEngine();
   //===============================
   if (this == editors->last)
   {
@@ -326,6 +325,31 @@ bool FarSpellEditor::CheckDictionary()
     highlight = false;
   }
   return exists;
+}
+
+SpellEngine *FarSpellEditor::GetSpellEngine(const FarEdInfo &fei)
+{
+  UpdateDocumentCharset(fei); // get actual `doc_enc'
+  if (!_spell_engine)
+  {
+#   ifdef USE_DICT_VIEWS
+    _spell_engine = new VirtalSpellEngine(doc_enc);
+#   else
+    _spell_engine = new SimpleSpellEngine(doc_enc, editors->highlight_color);
+#   endif
+    if (_spell_engine)
+    {
+      _spell_engine->SetDocumentFileSource(file_name);
+      _spell_engine->SetDictionary(dict);
+    }
+  }
+  return _spell_engine;
+}
+
+void FarSpellEditor::DropSpellEngine()
+{
+  delete _spell_engine;
+  _spell_engine = NULL;
 }
 
 bool IsLegalFullPath(FarFileName &name)
@@ -366,50 +390,6 @@ void FarSpellEditor::Save(FarEdInfo *fei)
      dict.c_str(),
      parser_id.c_str());
   editors->reg.SetRegKey(editor_files_key, file_name, config_text);
-}
-
-void FarSpellEditor::DropEngine(int what)
-{
-  if (what&(RS_DICT))
-    _dict_instance = NULL;
-
-  if ((what&(RS_PARSER) && _parser_instance) || !_dict_instance)
-  {
-    delete _parser_instance;
-    _parser_instance = NULL;
-  }
-}
-
-void FarSpellEditor::RecreateEngine(int what)
-{
-  if (what&(RS_DICT))
-  {
-    if (CheckDictionary())
-    {
-      _dict_instance = editors->spell_factory.GetDictInstance(dict);
-      spell_enc = editors->GetCharsetEncoding(FarString(_dict_instance->get_dic_encoding()));
-    }
-  }
-  if (what&(RS_PARSER) && doc_enc!=-1 && GetDict())
-  {
-    _parser_instance = ParserFactory::CreateParserInstance(
-       parser_id.c_str(), 
-       doc_enc, _dict_instance->GetWordChars(), 
-       file_name);
-  }
-}
-
-SpellInstance* FarSpellEditor::GetDict()
-{
-  if (!_dict_instance) RecreateEngine(RS_DICT);
-  return _dict_instance;
-}
-
-ParserInstance* FarSpellEditor::GetParser(FarEdInfo &fei)
-{
-  UpdateDocumentCharset(fei);
-  if (!_parser_instance) RecreateEngine(RS_PARSER);
-  return _parser_instance;
 }
 
 int FarSpellEditor::Manager::OnEvent(int Event, int Param)
@@ -457,11 +437,10 @@ void FarSpellEditor::Redraw(FarEdInfo &fei, int What)
 {
 #ifdef _DEBUG
   if (highlight) {
-    if(!GetDict()) editors->GetLog().Message("Redraw: GetDict(`%s')==NULL");
-    if(!GetParser(fei)) editors->GetLog().Message("Redraw: GetParser(id=`%s',enc=%d)==NULL", parser_id.c_str(), doc_enc);
+    if(!GetSpellEngine(fei)) editors->GetLog().Message("Redraw: GetSpellEngine(`%s')==NULL", dict.c_str());
   }
 #endif  
-  if (!highlight || !GetDict() || !GetParser(fei)) return;
+  if (!highlight || !GetSpellEngine(fei)) return;
   switch (What)
   {
      case EEREDRAW_ALL:
@@ -503,20 +482,20 @@ void FarSpellEditor::UpdateDocumentCharset(const FarEdInfo &fei)
     doc_enc = fei.AnsiMode ? GetACP() : editors->GetOEMCP();
   doc_tablenum = fei.TableNum;
   doc_ansi = fei.AnsiMode;
-  // charset changed: current parser charset incorrect.
-  DropEngine(RS_PARSER);
+  if (_spell_engine)
+    _spell_engine->SetDocumentEncoding(doc_enc); // charset changed: current parser charset is incorrect.
   //editors->GetLog().Message("tn=%d doc_cs=%s spell_cs=%s spell_enc=%d doc_enc=%d", fei.TableNum,  doc_cs.c_str(), spell_cs.c_str(), spell_enc, doc_enc);
 }
 
 void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_line)
 {
   FarString document;
-  char *token;
+  SpellEngine::Token ti;
+  FarString token;
   FarStringW token_wide;
   
-  SpellInstance *dict_inst = GetDict();
-  ParserInstance *parser_inst = GetParser(fei);
-  if (!dict_inst || !parser_inst) return;
+  SpellEngine *se = GetSpellEngine(fei);
+  if (!se) return;
 
   colored_begin = min(colored_begin, top_line);
   colored_end = max(colored_end, bottom_line);
@@ -528,18 +507,13 @@ void FarSpellEditor::HighlightRange(FarEdInfo &fei, int top_line, int bottom_lin
   {
     if (editors->highlight_deletecolor)
       FarEd::DeleteColor(line_no);
-    document.SetText(fes.StringText, min(fes.StringLength, ParserInstance::MaxLineLength));
-    parser_inst->put_line((char*)document.c_str());
-    while ((token = parser_inst->next_token()))
-    {
-      ToUnicode(doc_enc, token, token_wide);
-      if (!dict_inst->Check(token_wide))
-      {
-        int pos = parser_inst->get_tokenpos();
-        FarEd::AddColor(line_no, pos, pos+strlen(token)-1, editors->highlight_color);
-      }
-      hunspell_free(token);
-    }
+    document.SetText(fes.StringText, fes.StringLength);
+    se->PutLine(document);
+
+    while (se->NextToken(&ti))
+      if (ti.color!=-1)
+        // TODO: try "line_no==-1" (use current line)
+        FarEd::AddColor(line_no, ti.begin, ti.end-1, ti.color);
   }
   // TODO: restore position in one call:
   FarEd::SetPos(fei.CurLine, fei.CurPos);

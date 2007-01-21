@@ -84,10 +84,12 @@ class CurrentSettingsDialog: public CurrentSettingsSkel
 {
 public:
   ftl::ComboboxItems languages;
+  DictViewEnumerator<ftl::ComboboxItems> dict_view_enumerator;
   ftl::ComboboxItems parsers;
   ParserEnumerator parser_enumumerator;
   CurrentSettingsDialog()
   : languages(sItems+Index_MDictionary)
+  , dict_view_enumerator(languages)
   , parsers(sItems+Index_MParser)
   {
     parser_enumumerator.parsers = &parsers;
@@ -95,18 +97,25 @@ public:
   void Execute(FarEdInfo &fei, FarSpellEditor *editor)
   {
     sItems[Index_MHighlight].Selected = editor->highlight;
-
+#   ifdef USE_DICT_VIEWS
+    dict_view_enumerator.Enum(FarSpellEditor::editors->dict_view_factory);
+#   else
     FarSpellEditor::editors->spell_factory
       .EnumDictionaries("*", ScanDicts<ftl::ComboboxItems>, &languages);
-    languages.SetText(editor->dict);
-    
+#   endif
+
     ParserFactory::EnumParsers(ParserEnumerator::Scan, &parser_enumumerator);
     parsers.SetText(ParserFactory::GetParserName(editor->parser_id));
 
     languages.BeforeShow();
     parsers.BeforeShow();
     if (Show(0) == Index_MOk) {
-      FarString new_dict = languages.GetText();
+      FarString new_dict;
+#     ifdef USE_DICT_VIEWS
+      new_dict = dict_view_enumerator.dict_view_ids[languages.GetListPos()];
+#     else
+      new_dict = languages.GetText();
+#     endif
       const char *new_parser_id;
       if (parsers.GetListPos()>=0)
         new_parser_id = parser_enumumerator.parser_ids[parsers.GetListPos()];
@@ -117,13 +126,13 @@ public:
       {
         editor->dict = new_dict;
         if (new_parser_id) editor->parser_id = new_parser_id;
-        editor->DropEngine(FarSpellEditor::RS_ALL);
+        editor->DropSpellEngine();
         editor->ClearAndRedraw(fei);
       }
       else if (new_parser_id && strcmp(new_parser_id, editor->parser_id.c_str()) != 0)
       {
         editor->parser_id = new_parser_id;
-        editor->DropEngine(FarSpellEditor::RS_PARSER);
+        editor->DropSpellEngine();
         editor->ClearAndRedraw(fei);
       }
     }
@@ -139,65 +148,44 @@ void FarSpellEditor::ShowPreferences(FarEdInfo &fei)
 class FarEditorSuggestList
 {
     int ascii_cp;
-    int tpos, tlen;
-    int line;
-    char *token;
-    SpellInstance::WordList *word_list;
+    int line, tpos, tlen;
+    SpellEngine::WordList *word_list;
     FarSpellEditor* editor;
     FarString _word_cache;
     FarStringW current_word_wide;
     FarString current_word_oem;
   public:
     FarEditorSuggestList(FarEdInfo &fei, FarSpellEditor* _editor)
-    : editor(_editor)
     {
+      editor = _editor;
       ascii_cp = editor->doc_enc;
-      token = NULL;
       word_list = NULL;
-      SpellInstance *dict_inst = editor->GetDict();
-      ParserInstance *parser_inst = editor->GetParser(fei);
-      if (!dict_inst || !parser_inst) return;
+      SpellEngine *spell_engine = editor->GetSpellEngine(fei);
+      if (!spell_engine) return;
       int cpos = fei.CurPos;
       line = fei.CurLine;
       FarString document(FarEd::GetStringText(line));
-      document.Delete(ParserInstance::MaxLineLength, document.Length());
-      FarStringW token_wide;
-
-      parser_inst->put_line((char*)document.c_str());
-      while ((token = parser_inst->next_token()))
+      spell_engine->PutLine(document);
+      SpellEngine::Token ti;
+      if (spell_engine->TokenAt(cpos, &ti))
       {
-        ToUnicode(ascii_cp, token, token_wide);
-        //if (!dict_inst->Check(token_wide)) TODO? configurable.
-        {
-          tpos = parser_inst->get_tokenpos();
-          tlen = strlen(token);
-          if (cpos>=tpos && cpos<(tpos+tlen))
-            break;
-        }
-        hunspell_free(token);
-        token = NULL;
-      }
-      if (token)
-      {
-        word_list = dict_inst->Suggest(token_wide);
-        hunspell_free(token);
-        token = NULL;
-        current_word_wide = token_wide;
+        tpos = ti.begin;
+        tlen = ti.end - ti.begin;
+        word_list = spell_engine->Suggestion(ti); 
       }
     }
     FarEditorSuggestList(const FarEdInfo &fei, FarSpellEditor* _editor, const char *_token, int _len)
-    : editor(_editor)
     {
+      editor = _editor;
       ascii_cp = editor->doc_enc;
-      token = NULL;
       word_list = NULL;
       line = fei.CurLine;
       tpos = fei.CurPos;
       tlen = _len;
-      SpellInstance *dict_inst = editor->GetDict();
-      if (!dict_inst) return;
+      SpellEngine *spell_engine = editor->GetSpellEngine(fei);
+      if (!spell_engine) return;
       ToUnicode(ascii_cp, _token, _len, current_word_wide);
-      word_list = dict_inst->Suggest(current_word_wide);
+      word_list = spell_engine->Suggestion(current_word_wide);
     }
     ~FarEditorSuggestList()
     {
@@ -205,11 +193,6 @@ class FarEditorSuggestList
       {
         delete word_list;
         word_list = NULL;
-      }
-      if (token)
-      {
-        hunspell_free(token);
-        token = NULL;
       }
     }
     inline int Count() const
@@ -445,7 +428,7 @@ struct Token
   const char* end;   // указатель конца подстроки, в слово не включется.
   unsigned len;     // длина слова.
   unsigned pos;     // положение слова в строке.
-  //int level;        // код для мультисловарей.
+  int color;        // код для мультисловарей.
 };
 
 void FarSpellEditor::Spellcheck(FarEdInfo &fei)
@@ -461,9 +444,8 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
     return;
   }
 #endif
-  SpellInstance *const dict_inst = GetDict();
-  ParserInstance *const parser_inst = GetParser(fei);
-  if (!dict_inst || !parser_inst) return;
+  SpellEngine *const spell_engine = GetSpellEngine(fei);
+  if (!spell_engine) return;
   // Направление поиска ошибки:
   int dir_step = editors->spellcheck_forward? +1 : -1; 
   int top_line, bottom_line;
@@ -526,18 +508,19 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
     document.c_str()+fei.CurPos : NULL; 
   // skip_begin задаёт начало слова, которое уже не нужно проверять.
 
+  SpellEngine::Token ti;
   for(;;) /* будем выходить по средине цикла. */ { 
-    parser_inst->put_line((char*)document.c_str());
+    spell_engine->PutLine(document);
     // Соберём все слова текущей строки в массив tokens:
     tokens.Clear(); 
-    while (char *token = parser_inst->next_token()) 
+    while (spell_engine->NextToken(&ti)) 
     {
       struct Token s;
-      s.pos = parser_inst->get_tokenpos();
-      s.begin = s.end = document.c_str() + s.pos;
-      s.end += s.len = strlen(token);
+      s.pos = ti.begin;
+      s.begin = s.end = document.c_str() + ti.begin;
+      s.end += s.len = ti.end - ti.begin;
+      s.color = ti.color;
       tokens.Add(s);
-      hunspell_free(token);
     } // while (token = ...
     // token_begin --- начало массива слов.
     // token_end --- конец массива слов, который не входит в массив.
@@ -555,8 +538,7 @@ void FarSpellEditor::Spellcheck(FarEdInfo &fei)
        && ( token->begin <= skip_right ) 
         )
     {
-      ToUnicode(doc_enc, token->begin, token->len, token_wide);
-      if (!dict_inst->Check(token_wide))
+      if (token->color != -1)
       {
         FarEd::SetPos(-1, fei.CurPos=token->pos);
         if (editors->spellcheck_suggestion)
@@ -706,7 +688,12 @@ again: //{
       case 4: {
         int last_dict = -1;
         FarMenuT<FarMenuItemEx> menu(MDictionary0, FMENU_WRAPMODE, "Contents");
+#   	ifdef USE_DICT_VIEWS
+    	DictViewEnumerator< FarMenuT<FarMenuItemEx> > dict_view_enumerator(menu);
+    	dict_view_enumerator.Enum(editors->dict_view_factory);
+#	else
         editors->spell_factory.EnumDictionaries("*", DictsToMenuT<FarMenuItemEx>, &menu);
+#	endif
         for (int i=0; i<menu.Count(); i++) 
           if (dict == menu.GetItemText(i)) {
             menu.SelectItem(i);
@@ -726,8 +713,12 @@ again: //{
             menu_loop = true;
           }
           else if (n_dict != last_dict && n_dict>=0 && n_dict<menu.Count()) {
+#     	    ifdef USE_DICT_VIEWS
+      	    dict = dict_view_enumerator.dict_view_ids[n_dict];
+#     	    else
             dict = menu.GetItemText(n_dict);
-            DropEngine(RS_ALL);
+#	    endif
+            DropSpellEngine();
           }
         } while (menu_loop);
         menu_loop = editors->return_from_dictionary_menu; // main menu loop

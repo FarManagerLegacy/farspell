@@ -63,6 +63,9 @@ int search_codepage(FarString &name);
 #define _INTERFACE
 #include "DictViewFactory.cpp"
 
+// class SpellEngine
+#include "SpellEngine.hpp"
+
 enum { // for spellcheck_area
   sa_entire_text, sa_from_cursor, sa_selection, 
   sa_last = sa_selection 
@@ -71,6 +74,11 @@ enum { // for spellcheck_area
 class FarEditorSuggestList;
 class FarSpellEditor
 {
+# ifdef USE_DICT_VIEWS
+  typedef DictViewInstance TheSpell;
+# else
+  typedef SpellInstance TheSpell;
+# endif
   friend class CurrentSettingsDialog;
   friend class FarEditorSuggestList;
   friend class SuggestionDialog;
@@ -158,18 +166,13 @@ class FarSpellEditor
     char *default_config_string;
     int highlight;
     FarFileName file_name;
-    SpellInstance* _dict_instance;
     FarString dict;
-    ParserInstance* _parser_instance;
     FarString parser_id;
-    int spell_enc, doc_enc, doc_tablenum, doc_ansi;
+    int doc_enc, doc_tablenum, doc_ansi;
     int colored_begin, colored_end;
-    enum { RS_DICT = 0x1, RS_PARSER = 0x2,
-           RS_ALL = RS_DICT|RS_PARSER };
-    void RecreateEngine(int what = RS_ALL);
-    void DropEngine(int what = RS_ALL);
-    SpellInstance* GetDict();
-    ParserInstance* GetParser(FarEdInfo &fei);
+    SpellEngine *_spell_engine;
+    SpellEngine *GetSpellEngine(const FarEdInfo &fei);
+    void DropSpellEngine();
   public:
     FarSpellEditor();
     ~FarSpellEditor();

@@ -35,10 +35,11 @@ CINCLUDE = /I"$(PLUGINSDK_HEADERS)" /I"$(ROOT)" /I$(Hunspell) /I"$(BOOST_HEADERS
  
 CPPFILES = farspell.cpp FarSpell_UI.cpp \
   ParserFactory.cpp SpellFactory.cpp \
-  DecisionTable.cpp DictViewFactory.cpp
+  DecisionTable.cpp DictViewFactory.cpp \
+  SpellEngine.cpp
 DIST = farspell
 
-CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= $(CINCLUDE)
+CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= /DUSE_DICT_VIEWS $(CINCLUDE)
 LINKFLAGS = /nologo /dll /opt:ref
 !ifdef DEBUG
 !ifdef RELEASE
@@ -139,11 +140,13 @@ $(MJU_SED):
 	$(MAKE) /nologo -f makefile.vc mju-sed.exe
 	cd "$(MAKEDIR)"
 
-farspell.hpp: FarSpell.h ParserFactory.hpp SpellFactory.hpp DictViewFactory.cpp
+farspell.hpp: FarSpell.h ParserFactory.hpp SpellFactory.hpp \
+ DictViewFactory.cpp SpellEngine.hpp 
 farspell.cpp: farspell.hpp codepages.cpp 
 farspell_UI.cpp: farspell.hpp dialogs.cpp ftl.hpp
 ParserFactory.cpp: ParserFactory.hpp FarSpell.h
 SpellFactory.cpp: SpellFactory.hpp
+SpellEngine.cpp: SpellEngine.hpp
 
 $(DIST)\farspell.dll: templates $(OBJ_FILES) farspell.def $(DIST)\farspell.res \
  	$(MYLIBS)

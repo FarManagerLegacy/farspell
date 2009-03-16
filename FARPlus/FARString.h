@@ -17,21 +17,21 @@
 #endif
 
 // strncpy template
-template <class TChar> TChar *t_strncpy(TChar *strDest, const TChar *strSource, size_t count);
+template <class TChar> const TChar *t_strncpy(TChar *strDest, const TChar *strSource, size_t count);
 
-template <> inline char *t_strncpy<char>(char *strDest, const char *strSource, size_t count)
+template <> inline const char *t_strncpy<char>(char *strDest, const char *strSource, size_t count)
 { return strncpy(strDest, strSource, count); }
 
-template <> inline wchar_t *t_strncpy<wchar_t>(wchar_t *strDest, const wchar_t *strSource, size_t count)
+template <> inline const wchar_t *t_strncpy<wchar_t>(wchar_t *strDest, const wchar_t *strSource, size_t count)
 { return wcsncpy(strDest, strSource, count); }
 
 // strchr template
-template <class TChar> TChar *t_strchr(const TChar *string, int c);
+template <class TChar> const TChar *t_strchr(const TChar *string, int c);
 
-template <> inline char *t_strchr<char>(const char *string, int c)
+template <> inline const char *t_strchr<char>(const char *string, int c)
 { return strchr(string, c);  }
 
-template <> inline wchar_t *t_strchr<wchar_t>(const wchar_t *string, int c)
+template <> inline const wchar_t *t_strchr<wchar_t>(const wchar_t *string, int c)
 { return wcschr(string, c); }
 
 // strlen template

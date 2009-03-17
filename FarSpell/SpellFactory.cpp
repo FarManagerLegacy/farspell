@@ -176,7 +176,7 @@ int WINAPI SpellFactory::GetDictCountCb(
 {
   FarFileName name(FullName, strlen(FullName)-4); // *.aff only
   if (FarFileInfo::FileExists(name+".dic"))
-     (*(int*)Param)++;
+     (*reinterpret_cast<int *>(Param))++;
   return 1;
 }
 

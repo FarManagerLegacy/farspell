@@ -12,7 +12,7 @@ $^#!!!! ТОЛЬКО ДЛЯ ТЕСТИРОВАНИЯ !!!!#
 в подпапку #dict# в папке плагина FarSpell. Большинство словарей
 Вы можете скачать с ~OpenOffice.Org~@http://lingucomponent.openoffice.org/spell_dic.html@.
 
-    Проверка орфографии сделана на базе движка Hunspell 1.1.3 -
+    Проверка орфографии сделана на базе движка Hunspell 1.2.8 -
 наследника MySpell из ~OpenOffice.org~@http://www.openoffice.org@.
 
     Вы можете материально вознаградить автора за FarSpell отправив

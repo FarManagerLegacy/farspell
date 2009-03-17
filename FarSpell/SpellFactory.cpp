@@ -97,7 +97,7 @@ FarStringW SpellInstance::GetWordChars_FromDict()
   int wcs_len;
   if (unsigned short * wcs = get_wordchars_utf16(&wcs_len))
   {
-    wcsncpy(word_chars.GetBuffer(wcs_len), wcs, wcs_len);
+    wcsncpy(word_chars.GetBuffer(wcs_len), reinterpret_cast<wchar_t *>(wcs), wcs_len);
     return word_chars;
   } else {
     ToUnicode(encoding, FarString(get_wordchars()), word_chars);

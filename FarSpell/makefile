@@ -27,7 +27,7 @@ ROOT = ..
 !endif
 
 COMMON_LIBS = $(ROOT)\libs
-Hunspell = F:\devel\projects\spell\hunspell-1.1.4-koifix\src
+Hunspell = C:\libs\hunspell-1.2.8-koifix\src
 
 FARPlus = $(ROOT)\FARPlus
 DEX = $(ROOT)\DialogExpress
@@ -39,7 +39,7 @@ CPPFILES = farspell.cpp FarSpell_UI.cpp \
   SpellEngine.cpp
 DIST = farspell
 
-CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= /DUSE_DICT_VIEWS $(CINCLUDE)
+CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= /DUSE_DICT_VIEWS /DHUNSPELL_STATIC $(CINCLUDE)
 LINKFLAGS = /nologo /dll /opt:ref
 !ifdef DEBUG
 !ifdef RELEASE

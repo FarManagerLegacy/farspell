@@ -20,14 +20,15 @@
 #      Sergey Shishmintzev <sergey.shishmintzev@gmail.com>
 
 CXXFILES = affentry.cxx affixmgr.cxx csutil.cxx \
-   dictmgr.cxx hashmgr.cxx hunspell.cxx suggestmgr.cxx
+   dictmgr.cxx hashmgr.cxx hunspell.cxx suggestmgr.cxx \
+   hunzip.cxx phonet.cxx replist.cxx utf_info.cxx filemgr.cxx
 
 RELEASE_OBJ_FILES = $(CXXFILES:.cxx=.obj_r)
 DEBUG_OBJ_FILES = $(CXXFILES:.cxx=.obj_d)
 CC = cl -nologo
 LIB = lib.exe
 
-CXX_COMMON_FLAGS = -DW32 -D_LIB
+CXX_COMMON_FLAGS = -DW32 -D_LIB -DHUNSPELL_STATIC
 CXX_RELEASE_FLAGS = -LD -Ox -Gy -GL  -DNDEBUG
 CXX_DEBUG_FLAGS =  -LD -Od -Zi -Ge -D_DEBUG
 

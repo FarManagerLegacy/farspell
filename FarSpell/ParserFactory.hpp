@@ -49,7 +49,7 @@ class ParserInstance
 class ParserFactory
 {
   public:
-    typedef (*SpellFactoryEnumProc)(const char* id, const char* name, void* param);
+    typedef int (*SpellFactoryEnumProc)(const char* id, const char* name, void* param);
     static void EnumParsers(SpellFactoryEnumProc proc, void* param);
     static const char* GetParserName(const char *parser_id);
     static ParserInstance* CreateParserInstance(const char *parser_id, int encoding, const FarStringW &wordchars, const FarFileName &file_name);

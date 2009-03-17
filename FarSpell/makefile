@@ -39,7 +39,8 @@ CPPFILES = farspell.cpp FarSpell_UI.cpp \
   SpellEngine.cpp
 DIST = farspell
 
-CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= /DUSE_DICT_VIEWS /DHUNSPELL_STATIC $(CINCLUDE)
+# /DUSE_DICT_VIEWS 
+CFLAGS = /nologo /Zp2 /LD /EHsc /DUSE_FAR_170 /D_export= /DHUNSPELL_STATIC $(CINCLUDE)
 LINKFLAGS = /nologo /dll /opt:ref
 !ifdef DEBUG
 !ifdef RELEASE

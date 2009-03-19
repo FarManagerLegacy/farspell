@@ -57,6 +57,8 @@ public:
 	}
 	void BeforeShow()
 	{
+		if (fItem)
+			fItem->ListItems = &fFarList;
 		fFarList.ItemsNumber = fListItems.Count();
 		fFarList.Items = fListItems.GetItems();
 	}

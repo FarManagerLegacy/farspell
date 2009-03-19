@@ -3,8 +3,19 @@
 #include <string.h>
 #include "plugin.hpp"
 #include "farcolor.hpp"
+
 #define malloc(nBytes) HeapAlloc(GetProcessHeap(), 0, nBytes)
 #define free(pChunk) HeapFree(GetProcessHeap(), 0, pChunk)
+
+#pragma function(memset)
+void *memset(void *p, int c, size_t n)
+{
+  char *pb = (char *) p;
+  char *pbend = pb + n;
+  while (pb != pbend) *pb++ = c;
+  return p;
+}
+
 
 static struct PluginStartupInfo Info;
 /*

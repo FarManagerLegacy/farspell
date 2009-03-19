@@ -24,8 +24,8 @@ ROOT = ..\..
 DEX = ..
 
 colorPlugin.dll: colorPlugin.c color.c colorPlugin.def
-	cl /LD /MD /GL /Ox /I"$(PLUGINSDK_HEADERS)" colorPlugin.c colorPlugin.def \
- /Fm kernel32.lib
+	cl /LD /MD /Ox /I"$(PLUGINSDK_HEADERS)" colorPlugin.c colorPlugin.def \
+ /Fm /nodefaultlib kernel32.lib
 
 color.c: color.dlg $(DEX)/metadialog_c.txt
 	cd $(DEX)

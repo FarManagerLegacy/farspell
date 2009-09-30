@@ -1,0 +1,29 @@
+syntax: glob
+
+*.orig
+*.bak
+*.out
+*.log
+*.7z
+*.obj_?
+*.obj
+*.lib
+*.exp
+*.pdb
+*.dll
+*.dll-debug
+*.dll-release
+*.exe
+*.res
+*.msvc.*
+*.gcc.*
+makefile.exinfo
+config.mak
+DialogExpress\keywordhash.h
+FarSpell\dialogs.cpp
+
+syntax: regexp
+
+^FarSpell/farspell$
+^FarSpell/www/index\.html$
+(^|/)Thumbs\.db$
